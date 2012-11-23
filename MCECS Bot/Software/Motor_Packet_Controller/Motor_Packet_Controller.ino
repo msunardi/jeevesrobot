@@ -30,7 +30,7 @@ void setup() {
 
 void loop() {
   char version[32];
-  char bytein = 0;
+  byte bytein = 0;
   int in = 0;
   
   
@@ -40,7 +40,7 @@ void loop() {
     switch (ab){
       case 0:
          roboclaw.ForwardM1(0x81,bytein);
-         Serial.println("read a\n");     
+         Serial.println("read a\n");
          Serial.println(bytein,DEC);
 
          ab = 1;
@@ -48,7 +48,7 @@ void loop() {
          
       case 1:
          roboclaw.ForwardM1(0x80,bytein);
-         Serial.println("read b\n");     
+         Serial.println("read b\n");
          Serial.println(bytein,DEC);
 
          ab = 0;
