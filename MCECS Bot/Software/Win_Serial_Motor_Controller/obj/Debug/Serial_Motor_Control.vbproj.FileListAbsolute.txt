@@ -1,0 +1,9 @@
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\bin\Debug\Serial_Motor_Control.exe
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\bin\Debug\Serial_Motor_Control.pdb
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\bin\Debug\Serial_Motor_Control.xml
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.Form1.resources
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.Resources.resources
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.vbproj.GenerateResource.Cache
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.exe
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.xml
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.pdb
