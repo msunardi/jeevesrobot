@@ -75,11 +75,11 @@ void loop() {
   
   
   //terminalSerial.println("Hello");
-  if(roboclaw.ReadEncM1(0x80,&encoder)){
+  //if(){
   //if(roboclaw.ReadVersion(0x80,version)){
-    Serial.println(encoder);
+    Serial.println(roboclaw.ReadEncM1(0x80,&encoder));
     
-  }
+  //}
   
   
 
