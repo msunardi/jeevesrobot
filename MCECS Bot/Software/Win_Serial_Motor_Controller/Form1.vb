@@ -1,23 +1,27 @@
 ﻿Public Class Form1
 
     Private Sub btnSend_Click(sender As Object, e As EventArgs) Handles btnSend.Click
-        Dim serFrame(12) As Byte
+        Dim byteFrame(7) As Byte
+        Dim byteDirection As Byte
 
-        serFrame(0) = Convert.ToByte(100)
-        serFrame(1) = Convert.ToByte(128)
-        serFrame(2) = Convert.ToByte(0)
-        serFrame(3) = Convert.ToByte(0)
-        serFrame(4) = Convert.ToByte(CInt(txt1Dir.Text))
-        serFrame(5) = Convert.ToByte(CInt(txt1Speed.Text))
-        serFrame(6) = Convert.ToByte(CInt(txt2Dir.Text))
-        serFrame(7) = Convert.ToByte(CInt(txt2Speed.Text))
-        serFrame(8) = Convert.ToByte(CInt(txt3Dir.Text))
-        serFrame(9) = Convert.ToByte(CInt(txt3Speed.Text))
-        serFrame(10) = Convert.ToByte(CInt(txt4Dir.Text))
-        serFrame(11) = Convert.ToByte(CInt(txt4Speed.Text))
-        serFrame(12) = Convert.ToByte(0)
+        byteDirection = Convert.ToByte(txt1Dir.Text) + Convert.ToByte(CInt(txt2Dir.Text) * 2) + Convert.ToByte(CInt(txt3Dir.Text) * 4) + Convert.ToByte(CInt(txt4Dir.Text) * 8)
 
-        SerialPort1.Write(serFrame, 0, 12)
+
+        byteFrame(0) = Convert.ToByte(CInt(txtHeader0.Text))
+        byteFrame(1) = Convert.ToByte(CInt(txtHeader1.Text))
+        byteFrame(2) = Convert.ToByte(CInt(txtOPCode.Text))
+        byteFrame(3) = Convert.ToByte(byteDirection)
+        byteFrame(4) = Convert.ToByte(CInt(txt1Speed.Text))
+        byteFrame(5) = Convert.ToByte(CInt(txt2Speed.Text))
+        byteFrame(6) = Convert.ToByte(CInt(txt3Speed.Text))
+        byteFrame(7) = Convert.ToByte(CInt(txt4Speed.Text))
+
+        Try
+            SerialPort1.Write(byteFrame, 0, 8)
+        Catch ex As Exception
+            MsgBox("Error writting to port")
+        End Try
+
 
     End Sub
 
@@ -56,7 +60,6 @@
     End Sub
 
     Private Delegate Sub IncomingDataDelegate(ByVal sData As String)
-    'Dim del As New IncomingDataDelegate(AddressOf IncomingData)
 
     Public Sub IncomingData(ByVal sData As String)
         If ListBox1.InvokeRequired Then
@@ -64,6 +67,8 @@
             ListBox1.Invoke(del, New Object() {sData})
         Else
             ListBox1.Items.Add(sData)
+            ListBox1.SelectedIndex = ListBox1.Items.Count - 1
+            'Debug.Print(ListBox1.Items.Count)
 
         End If
 

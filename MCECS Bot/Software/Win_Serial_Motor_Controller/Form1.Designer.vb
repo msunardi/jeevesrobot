@@ -46,6 +46,12 @@ Partial Class Form1
         Me.ListBox1 = New System.Windows.Forms.ListBox()
         Me.btnConnect = New System.Windows.Forms.Button()
         Me.btnDisconnect = New System.Windows.Forms.Button()
+        Me.txtHeader0 = New System.Windows.Forms.TextBox()
+        Me.txtHeader1 = New System.Windows.Forms.TextBox()
+        Me.txtOPCode = New System.Windows.Forms.TextBox()
+        Me.Label10 = New System.Windows.Forms.Label()
+        Me.Label11 = New System.Windows.Forms.Label()
+        Me.Label12 = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'SerialPort1
@@ -54,7 +60,7 @@ Partial Class Form1
         'Label1
         '
         Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(61, 25)
+        Me.Label1.Location = New System.Drawing.Point(75, 104)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(49, 13)
         Me.Label1.TabIndex = 0
@@ -63,7 +69,7 @@ Partial Class Form1
         'Label2
         '
         Me.Label2.AutoSize = True
-        Me.Label2.Location = New System.Drawing.Point(186, 25)
+        Me.Label2.Location = New System.Drawing.Point(200, 104)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(49, 13)
         Me.Label2.TabIndex = 1
@@ -72,7 +78,7 @@ Partial Class Form1
         'Label3
         '
         Me.Label3.AutoSize = True
-        Me.Label3.Location = New System.Drawing.Point(61, 82)
+        Me.Label3.Location = New System.Drawing.Point(75, 161)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(49, 13)
         Me.Label3.TabIndex = 2
@@ -81,7 +87,7 @@ Partial Class Form1
         'Label5
         '
         Me.Label5.AutoSize = True
-        Me.Label5.Location = New System.Drawing.Point(186, 82)
+        Me.Label5.Location = New System.Drawing.Point(200, 161)
         Me.Label5.Name = "Label5"
         Me.Label5.Size = New System.Drawing.Size(49, 13)
         Me.Label5.TabIndex = 4
@@ -89,7 +95,7 @@ Partial Class Form1
         '
         'txt1Speed
         '
-        Me.txt1Speed.Location = New System.Drawing.Point(64, 41)
+        Me.txt1Speed.Location = New System.Drawing.Point(78, 120)
         Me.txt1Speed.Name = "txt1Speed"
         Me.txt1Speed.Size = New System.Drawing.Size(46, 20)
         Me.txt1Speed.TabIndex = 5
@@ -97,31 +103,31 @@ Partial Class Form1
         '
         'txt2Speed
         '
-        Me.txt2Speed.Location = New System.Drawing.Point(189, 41)
+        Me.txt2Speed.Location = New System.Drawing.Point(203, 120)
         Me.txt2Speed.Name = "txt2Speed"
         Me.txt2Speed.Size = New System.Drawing.Size(46, 20)
         Me.txt2Speed.TabIndex = 6
-        Me.txt2Speed.Text = "10"
+        Me.txt2Speed.Text = "15"
         '
         'txt3Speed
         '
-        Me.txt3Speed.Location = New System.Drawing.Point(64, 98)
+        Me.txt3Speed.Location = New System.Drawing.Point(78, 177)
         Me.txt3Speed.Name = "txt3Speed"
         Me.txt3Speed.Size = New System.Drawing.Size(46, 20)
         Me.txt3Speed.TabIndex = 7
-        Me.txt3Speed.Text = "10"
+        Me.txt3Speed.Text = "100"
         '
         'txt4Speed
         '
-        Me.txt4Speed.Location = New System.Drawing.Point(189, 98)
+        Me.txt4Speed.Location = New System.Drawing.Point(203, 177)
         Me.txt4Speed.Name = "txt4Speed"
         Me.txt4Speed.Size = New System.Drawing.Size(46, 20)
         Me.txt4Speed.TabIndex = 8
-        Me.txt4Speed.Text = "10"
+        Me.txt4Speed.Text = "58"
         '
         'btnSend
         '
-        Me.btnSend.Location = New System.Drawing.Point(157, 124)
+        Me.btnSend.Location = New System.Drawing.Point(171, 203)
         Me.btnSend.Name = "btnSend"
         Me.btnSend.Size = New System.Drawing.Size(78, 27)
         Me.btnSend.TabIndex = 9
@@ -130,7 +136,7 @@ Partial Class Form1
         '
         'txtPortNumber
         '
-        Me.txtPortNumber.Location = New System.Drawing.Point(31, 175)
+        Me.txtPortNumber.Location = New System.Drawing.Point(45, 254)
         Me.txtPortNumber.Name = "txtPortNumber"
         Me.txtPortNumber.Size = New System.Drawing.Size(31, 20)
         Me.txtPortNumber.TabIndex = 10
@@ -139,7 +145,7 @@ Partial Class Form1
         'Label4
         '
         Me.Label4.AutoSize = True
-        Me.Label4.Location = New System.Drawing.Point(28, 159)
+        Me.Label4.Location = New System.Drawing.Point(42, 238)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(93, 13)
         Me.Label4.TabIndex = 11
@@ -147,7 +153,7 @@ Partial Class Form1
         '
         'txt1Dir
         '
-        Me.txt1Dir.Location = New System.Drawing.Point(12, 41)
+        Me.txt1Dir.Location = New System.Drawing.Point(26, 120)
         Me.txt1Dir.Name = "txt1Dir"
         Me.txt1Dir.Size = New System.Drawing.Size(46, 20)
         Me.txt1Dir.TabIndex = 12
@@ -156,7 +162,7 @@ Partial Class Form1
         'Label6
         '
         Me.Label6.AutoSize = True
-        Me.Label6.Location = New System.Drawing.Point(9, 25)
+        Me.Label6.Location = New System.Drawing.Point(23, 104)
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(53, 13)
         Me.Label6.TabIndex = 13
@@ -164,7 +170,7 @@ Partial Class Form1
         '
         'txt2Dir
         '
-        Me.txt2Dir.Location = New System.Drawing.Point(137, 41)
+        Me.txt2Dir.Location = New System.Drawing.Point(151, 120)
         Me.txt2Dir.Name = "txt2Dir"
         Me.txt2Dir.Size = New System.Drawing.Size(46, 20)
         Me.txt2Dir.TabIndex = 14
@@ -173,7 +179,7 @@ Partial Class Form1
         'Label7
         '
         Me.Label7.AutoSize = True
-        Me.Label7.Location = New System.Drawing.Point(134, 25)
+        Me.Label7.Location = New System.Drawing.Point(148, 104)
         Me.Label7.Name = "Label7"
         Me.Label7.Size = New System.Drawing.Size(53, 13)
         Me.Label7.TabIndex = 15
@@ -181,15 +187,15 @@ Partial Class Form1
         '
         'txt3Dir
         '
-        Me.txt3Dir.Location = New System.Drawing.Point(12, 98)
+        Me.txt3Dir.Location = New System.Drawing.Point(26, 177)
         Me.txt3Dir.Name = "txt3Dir"
         Me.txt3Dir.Size = New System.Drawing.Size(46, 20)
         Me.txt3Dir.TabIndex = 16
-        Me.txt3Dir.Text = "1"
+        Me.txt3Dir.Text = "0"
         '
         'txt4Dir
         '
-        Me.txt4Dir.Location = New System.Drawing.Point(137, 98)
+        Me.txt4Dir.Location = New System.Drawing.Point(151, 177)
         Me.txt4Dir.Name = "txt4Dir"
         Me.txt4Dir.Size = New System.Drawing.Size(46, 20)
         Me.txt4Dir.TabIndex = 17
@@ -198,7 +204,7 @@ Partial Class Form1
         'Label8
         '
         Me.Label8.AutoSize = True
-        Me.Label8.Location = New System.Drawing.Point(9, 82)
+        Me.Label8.Location = New System.Drawing.Point(23, 161)
         Me.Label8.Name = "Label8"
         Me.Label8.Size = New System.Drawing.Size(53, 13)
         Me.Label8.TabIndex = 18
@@ -207,7 +213,7 @@ Partial Class Form1
         'Label9
         '
         Me.Label9.AutoSize = True
-        Me.Label9.Location = New System.Drawing.Point(134, 82)
+        Me.Label9.Location = New System.Drawing.Point(148, 161)
         Me.Label9.Name = "Label9"
         Me.Label9.Size = New System.Drawing.Size(53, 13)
         Me.Label9.TabIndex = 19
@@ -216,14 +222,14 @@ Partial Class Form1
         'ListBox1
         '
         Me.ListBox1.FormattingEnabled = True
-        Me.ListBox1.Location = New System.Drawing.Point(253, 12)
+        Me.ListBox1.Location = New System.Drawing.Point(276, 11)
         Me.ListBox1.Name = "ListBox1"
-        Me.ListBox1.Size = New System.Drawing.Size(323, 186)
+        Me.ListBox1.Size = New System.Drawing.Size(337, 264)
         Me.ListBox1.TabIndex = 20
         '
         'btnConnect
         '
-        Me.btnConnect.Location = New System.Drawing.Point(68, 175)
+        Me.btnConnect.Location = New System.Drawing.Point(82, 254)
         Me.btnConnect.Name = "btnConnect"
         Me.btnConnect.Size = New System.Drawing.Size(75, 23)
         Me.btnConnect.TabIndex = 21
@@ -233,18 +239,75 @@ Partial Class Form1
         'btnDisconnect
         '
         Me.btnDisconnect.Enabled = False
-        Me.btnDisconnect.Location = New System.Drawing.Point(149, 175)
+        Me.btnDisconnect.Location = New System.Drawing.Point(163, 254)
         Me.btnDisconnect.Name = "btnDisconnect"
         Me.btnDisconnect.Size = New System.Drawing.Size(75, 23)
         Me.btnDisconnect.TabIndex = 22
         Me.btnDisconnect.Text = "Disconnect"
         Me.btnDisconnect.UseVisualStyleBackColor = True
         '
+        'txtHeader0
+        '
+        Me.txtHeader0.Location = New System.Drawing.Point(126, 13)
+        Me.txtHeader0.Name = "txtHeader0"
+        Me.txtHeader0.Size = New System.Drawing.Size(46, 20)
+        Me.txtHeader0.TabIndex = 23
+        Me.txtHeader0.Text = "255"
+        '
+        'txtHeader1
+        '
+        Me.txtHeader1.Location = New System.Drawing.Point(126, 39)
+        Me.txtHeader1.Name = "txtHeader1"
+        Me.txtHeader1.Size = New System.Drawing.Size(46, 20)
+        Me.txtHeader1.TabIndex = 24
+        Me.txtHeader1.Text = "255"
+        '
+        'txtOPCode
+        '
+        Me.txtOPCode.Location = New System.Drawing.Point(126, 65)
+        Me.txtOPCode.Name = "txtOPCode"
+        Me.txtOPCode.Size = New System.Drawing.Size(46, 20)
+        Me.txtOPCode.TabIndex = 25
+        Me.txtOPCode.Text = "0"
+        '
+        'Label10
+        '
+        Me.Label10.AutoSize = True
+        Me.Label10.Location = New System.Drawing.Point(75, 16)
+        Me.Label10.Name = "Label10"
+        Me.Label10.Size = New System.Drawing.Size(48, 13)
+        Me.Label10.TabIndex = 26
+        Me.Label10.Text = "Header0"
+        '
+        'Label11
+        '
+        Me.Label11.AutoSize = True
+        Me.Label11.Location = New System.Drawing.Point(75, 42)
+        Me.Label11.Name = "Label11"
+        Me.Label11.Size = New System.Drawing.Size(48, 13)
+        Me.Label11.TabIndex = 27
+        Me.Label11.Text = "Header1"
+        '
+        'Label12
+        '
+        Me.Label12.AutoSize = True
+        Me.Label12.Location = New System.Drawing.Point(75, 68)
+        Me.Label12.Name = "Label12"
+        Me.Label12.Size = New System.Drawing.Size(50, 13)
+        Me.Label12.TabIndex = 28
+        Me.Label12.Text = "OP Code"
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(588, 207)
+        Me.ClientSize = New System.Drawing.Size(625, 292)
+        Me.Controls.Add(Me.Label12)
+        Me.Controls.Add(Me.Label11)
+        Me.Controls.Add(Me.Label10)
+        Me.Controls.Add(Me.txtOPCode)
+        Me.Controls.Add(Me.txtHeader1)
+        Me.Controls.Add(Me.txtHeader0)
         Me.Controls.Add(Me.btnDisconnect)
         Me.Controls.Add(Me.btnConnect)
         Me.Controls.Add(Me.ListBox1)
@@ -296,5 +359,11 @@ Partial Class Form1
     Friend WithEvents ListBox1 As System.Windows.Forms.ListBox
     Friend WithEvents btnConnect As System.Windows.Forms.Button
     Friend WithEvents btnDisconnect As System.Windows.Forms.Button
+    Friend WithEvents txtHeader0 As System.Windows.Forms.TextBox
+    Friend WithEvents txtHeader1 As System.Windows.Forms.TextBox
+    Friend WithEvents txtOPCode As System.Windows.Forms.TextBox
+    Friend WithEvents Label10 As System.Windows.Forms.Label
+    Friend WithEvents Label11 As System.Windows.Forms.Label
+    Friend WithEvents Label12 As System.Windows.Forms.Label
 
 End Class
