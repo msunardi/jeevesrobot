@@ -23,13 +23,18 @@ void setup() {
   //rc.begin(2400);
   //Baud rate of connection to motor driver
   roboclaw.begin(2400);
+  Serial.begin(9600);
   
-  pinMode(22, OUTPUT);
+  //pinMode(22, OUTPUT);
+  pinMode(2, INPUT_PULLUP);
+  pinMode(3, INPUT_PULLUP);
+  attachInterrupt(2, bumper_2, LOW);
+  attachInterrupt(3, bumper_3, LOW);
 
   //roboclaw.ForwardM1(address,0);
 
   //serial to pc
-  Serial.begin(9600);
+  
   
   roboclaw.SetM1Constants(0x80,Kd,Kp,Ki,qpps);
 
@@ -79,13 +84,21 @@ void loop() {
   //if(roboclaw.ReadVersion(0x80,version)){
     uint32_t enc1;
     enc1 = roboclaw.ReadEncM1(0x80,&encoder);
-    Serial.println(enc1,DEC);
+    //Serial.println(enc1,DEC);
     
   //}
   
-  
-
   delay(100);
+}
+
+void bumper_2() 
+{
+  Serial.println("Bumper2");
+}
+
+void bumper_3() 
+{
+  Serial.println("Bumper3");
 }
 
 

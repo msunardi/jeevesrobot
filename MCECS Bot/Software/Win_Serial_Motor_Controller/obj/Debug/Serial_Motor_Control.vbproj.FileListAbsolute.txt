@@ -7,3 +7,7 @@ C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\
 C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.exe
 C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.xml
 C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.pdb
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\bin\Debug\mcecs_motor_driver.dll
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\bin\Debug\mcecs_motor_driver.pdb
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\bin\Debug\mcecs_motor_driver.xml
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\Win_Serial_Motor_Controller\obj\Debug\Serial_Motor_Control.vbprojResolveAssemblyReference.cache

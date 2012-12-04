@@ -3,6 +3,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Serial_Motor_Control", "Serial_Motor_Control.vbproj", "{0160B561-8EAB-4EBA-AB27-B27EF07E5D81}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "mcecs_motor_driver", "..\mcecs_motor_driver\mcecs_motor_driver.vbproj", "{8B5E9BC5-E8CB-4081-BA6D-5293819CA031}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "mcecs_sensors", "mcecs_sensors\mcecs_sensors.vbproj", "{752960C8-C5DE-48C9-9B2E-FEA20BC2156E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +17,14 @@ Global
 		{0160B561-8EAB-4EBA-AB27-B27EF07E5D81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0160B561-8EAB-4EBA-AB27-B27EF07E5D81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0160B561-8EAB-4EBA-AB27-B27EF07E5D81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B5E9BC5-E8CB-4081-BA6D-5293819CA031}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B5E9BC5-E8CB-4081-BA6D-5293819CA031}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B5E9BC5-E8CB-4081-BA6D-5293819CA031}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B5E9BC5-E8CB-4081-BA6D-5293819CA031}.Release|Any CPU.Build.0 = Release|Any CPU
+		{752960C8-C5DE-48C9-9B2E-FEA20BC2156E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{752960C8-C5DE-48C9-9B2E-FEA20BC2156E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{752960C8-C5DE-48C9-9B2E-FEA20BC2156E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{752960C8-C5DE-48C9-9B2E-FEA20BC2156E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

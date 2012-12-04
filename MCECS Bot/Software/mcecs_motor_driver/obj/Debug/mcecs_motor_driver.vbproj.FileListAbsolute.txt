@@ -1,0 +1,8 @@
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\mcecs_motor_driver\bin\Debug\mcecs_motor_driver.dll
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\mcecs_motor_driver\bin\Debug\mcecs_motor_driver.pdb
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\mcecs_motor_driver\bin\Debug\mcecs_motor_driver.xml
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\mcecs_motor_driver\obj\Debug\mcecs_motor_driver.Resources.resources
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\mcecs_motor_driver\obj\Debug\mcecs_motor_driver.vbproj.GenerateResource.Cache
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\mcecs_motor_driver\obj\Debug\mcecs_motor_driver.dll
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\mcecs_motor_driver\obj\Debug\mcecs_motor_driver.xml
+C:\Users\Jeramy\Dropbox\Jeramy\Education\Robotics\Repository\MCECS Bot\Software\mcecs_motor_driver\obj\Debug\mcecs_motor_driver.pdb
