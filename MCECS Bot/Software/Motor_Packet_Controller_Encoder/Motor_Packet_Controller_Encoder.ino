@@ -47,7 +47,7 @@ void loop() {
     bytein = Serial.read();
     switch (ab){
       case 0:
-         roboclaw.ForwardM1(0x80,bytein);
+         roboclaw.BackwardM1(0x80,bytein);
          Serial.println("read a\n");
          Serial.println(bytein,DEC);
 
@@ -55,7 +55,7 @@ void loop() {
          break;
          
       case 1:
-         roboclaw.ForwardM1(0x81,bytein);
+         roboclaw.ForwardM1(0x80,bytein);
          Serial.println("read b\n");
          Serial.println(bytein,DEC);
 
@@ -77,7 +77,9 @@ void loop() {
   //terminalSerial.println("Hello");
   //if(){
   //if(roboclaw.ReadVersion(0x80,version)){
-    Serial.println(roboclaw.ReadEncM1(0x80,&encoder));
+    uint32_t enc1;
+    enc1 = roboclaw.ReadEncM1(0x80,&encoder);
+    Serial.println(enc1,DEC);
     
   //}
   
