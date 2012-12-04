@@ -1,10 +1,11 @@
 ﻿Public Class Form1
 
     Private Sub btnSend_Click(sender As Object, e As EventArgs) Handles btnSend.Click
-        Dim byteFrame(2) As Byte
+        Dim byteFrame() As Byte
         Dim charFrame() As Char
         Dim byteDirection As Byte
 
+        ReDim byteFrame(2)
         byteFrame(0) = Convert.ToByte(CInt(txtHeader0.Text))
         byteFrame(1) = Convert.ToByte(CInt(txtHeader1.Text))
         byteFrame(2) = Convert.ToByte(CInt(txtOPCode.Text))

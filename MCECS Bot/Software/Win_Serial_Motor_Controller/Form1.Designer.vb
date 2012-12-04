@@ -419,7 +419,7 @@ Partial Class Form1
         Me.Label15.Size = New System.Drawing.Size(153, 91)
         Me.Label15.TabIndex = 32
         Me.Label15.Text = "OP Code 00:" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "A = Direction (0 - Rev, 1 - Fwd)" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "B = Speed (0-127)" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "OP Code 01:" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & _
-    "A = Speed (m/s)" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "B = Distance (m)"
+    "A = Speed (cm/s)" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "B = Distance (m)"
         '
         'Form1
         '
