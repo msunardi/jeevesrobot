@@ -1,4 +1,15 @@
 
+/***********************************************/
+/* The following code is the final code for 
+/* implementation of the 12 sonars on MCECS Bot.
+/* To use this code simply upload and open the 
+/* serial monitor. Sonar measurements will be 
+/* taken when the user indicates which sonar 
+/* should be read. To do this the each sonar is 
+/* activated by an ascii input. 1-9 are for sonars
+/* 1-9. ! is sonar 10, @ is sonar 11 and # is sonar
+/* 12. Send ascii 'a' for the code to read all sonars.*/
+
 #include <SoftwareSerial.h> 
 
 
@@ -23,23 +34,25 @@ void setup() {
   pinMode(4, INPUT);
   pinMode(3, INPUT);
   pinMode(2, INPUT);
-  delay(350);
+  delay(350);      // delay for sonar initialization
   Serial.begin(9600);
-  AllSonars = true;
+  AllSonars = true; // variable for reading all sonars at once
 
 }
 
 
 void loop() {
-  
-   if (Serial.available() > 0) {
-    int incoming = Serial.read();
-    Serial.print(incoming);
+                                      
+   if (Serial.available() > 0) {    // read data from computer if available
+    int incoming = Serial.read();   // store value in 'incoming'
+    Serial.print(incoming);         // print that value to screen
   
   
     switch (incoming) {
 
-      case 97:
+      // case 97 is the all sonar read function. It loops through
+      // all sonars, reading from each 5 times.
+      case 97:                
          sonar = 2;
          AllSonars = true;
          for( int sonar = 2; sonar <= 13; sonar ++){
@@ -51,16 +64,18 @@ void loop() {
       Serial.print(" sonar");
       Serial.print(sonar-1);
       Serial.print(": ");
-      //Serial.print(pulse/147);
+      //Serial.print(pulse/147);              //extra print function
       isort(rangevalue,arraysize);
-      //printArray(rangevalue,arraysize);
+      //printArray(rangevalue,arraysize);    // extra print function
       modE = mode(rangevalue,arraysize);
-      //Serial.print("    The mode/median is: ");
+      //Serial.print("    The mode/median is: ");  // extra print function
       Serial.print(modE);
       Serial.println();
          }
       Serial.println(); 
       break;
+      
+      
       
       case 49:
          sonar = 2;
@@ -71,6 +86,7 @@ void loop() {
            AllSonars = false;
           }
         break;
+ 
  
       case 50:
          sonar = 3;
@@ -184,6 +200,10 @@ void loop() {
     }
 }
   
+// Becuase of the way the information is printed in the all sonar 
+// function, this block is needed to not duplicate the printed 
+// information. This block only prints on single sonar readings. 
+
   if(AllSonars == false){
       Serial.print(" sonar");
       Serial.print(sonar-1);
@@ -211,6 +231,8 @@ void printArray(int *a, int n) {
 }
 
 
+
+// This block of code sorts the sonar readings by value
 void isort(int *a, int n){
 // *a is an array pointer function
   for (int i = 1; i < n; ++i)
@@ -224,7 +246,10 @@ void isort(int *a, int n){
     a[k + 1] = j;
   }
 }
-//Mode function, returning the mode or median.
+
+
+
+//Mode function returns the mode or median.
 int mode(int *x,int n){
   int i = 0;
   int count = 0;
