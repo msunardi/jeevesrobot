@@ -25,16 +25,19 @@ int datarray[6];  // initialize data array
 
 void setup() {
   // Baud rate of debug serial port
-  terminalSerial.begin(38400);
+  //terminalSerial.begin(38400);
 
   // Baud rate of connection to motor driver
   roboclaw.begin(2400);
 
-  // ???
-  pinMode(22, OUTPUT);
-
   // serial to pc
   Serial.begin(9600);
+  
+  // setup bumper interupt pins
+  pinMode(2, INPUT_PULLUP);
+  pinMode(3, INPUT_PULLUP);
+  attachInterrupt(0, bumper_2, FALLING);
+  attachInterrupt(1, bumper_3, FALLING);
 
   // instantiate PID constants
   roboclaw.SetM1Constants(0x80,Kd,Kp,Ki,qpps);
@@ -43,6 +46,7 @@ void setup() {
   roboclaw.SetM2Constants(0x81,Kd,Kp,Ki,qpps); 
 }
 
+// function to display encoder information during opcode 1 commands, from roboclaw encoder example
 void displayspeed(void)
 {
   uint8_t status;
@@ -113,19 +117,23 @@ void loop() {
 
       //then apply the data to the roboclaw
       switch (datarray[0]) {
+
+        // case for opcode 0, raw motor drive commands  
       case 0:
+
+        // read in the data for opcode 1, 5 bytes after opcode
         for(int i = 1; i < 6; i++) {
           datarray[i] = Serial.read();
           delay(100);
         } 
-        
+
         // read direction vector into individual bits      
         M1dir = bitRead(datarray[1],0);
         M2dir = bitRead(datarray[1],1);
         M3dir = bitRead(datarray[1],2);
         M4dir = bitRead(datarray[1],3);
 
-
+        /*
         // print all of the data received
         Serial.print("opcode: ");
         Serial.println(datarray[0], DEC);
@@ -145,6 +153,7 @@ void loop() {
         Serial.println(datarray[4], DEC);
         Serial.print("Motor4 speed: ");
         Serial.println(datarray[5], DEC);        
+        */
 
         // motor 1 command depending on direction value
         if(M1dir==1)
@@ -187,14 +196,16 @@ void loop() {
 
         break;
 
+        // case for opcode 1, encoder speed and distance commands
       case 1:
-      
+
+        // read in data bytes for distance, 4 after opcode...
         for(int i = 1; i < 5; i++) {
           datarray[i] = Serial.read();
           delay(100);
         }
-        
-        
+
+        // then read in characters for speed, 4 more
         char M1speed = Serial.read();
         delay(100);
         char M2speed = Serial.read();
@@ -203,7 +214,8 @@ void loop() {
         delay(100);
         char M4speed = Serial.read();
         delay(100);
-        
+
+        /*
         Serial.print("M1speed = ");
         Serial.println(M1speed,DEC);
         Serial.print("M2speed = ");
@@ -220,20 +232,33 @@ void loop() {
         Serial.println(datarray[3]);
         Serial.print("M4dist = ");
         Serial.println(datarray[4]);
-        
-        
-        
+        */
+
+        /* Opcode 1 motor commands are recieved in the format speed[cm/s] and distance[m].  speed is limited to -128 to 127cm/s, distance is limited 
+           to 255m.  The mecanum wheels are 8in in diameter, so the circumference is 8PI, which results in the scale factor of 2303 encoder cts/m,
+           and 23cts/cm.  This was determined empirically by observing the relation of 1470cts/revolution.
+        */
         // motor 1 command
         roboclaw.SpeedDistanceM1(0x80,M1speed*23,datarray[1]*2303);
-        displayspeed();
-        delay(100);
+        //displayspeed();
+        //delay(100);
+
+        // motor 2 command
+        roboclaw.SpeedDistanceM2(0x80,M2speed*23,datarray[2]*2303);
+        //displayspeed();
+        //delay(100);
 
         // motor 3 command
         roboclaw.SpeedDistanceM1(0x81,M3speed*23,datarray[3]*2303);
+        //displayspeed();
+        //delay(100);
+
+        // motor 4 command
+        roboclaw.SpeedDistanceM2(0x81,M4speed*23,datarray[4]*2303);
+        //displayspeed();
+        //delay(100);        
         
-        displayspeed();
-        delay(100);
-        
+        break;
       }
 
     }
@@ -244,6 +269,26 @@ void loop() {
 
     delay(100);
   }
+}
+
+void bumper_2() 
+{
+  roboclaw.ForwardM1(0x80,0);
+  roboclaw.ForwardM2(0x80,0);
+  roboclaw.ForwardM1(0x81,0);
+  roboclaw.ForwardM2(0x81,0);
+  //Serial.println("b2");
+  //delay(25);
+}
+
+void bumper_3() 
+{
+  roboclaw.ForwardM1(0x80,0);
+  roboclaw.ForwardM2(0x80,0);
+  roboclaw.ForwardM1(0x81,0);
+  roboclaw.ForwardM2(0x81,0);
+  //Serial.println("b3");
+  //delay(25);
 }
 
 
