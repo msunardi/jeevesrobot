@@ -94,7 +94,7 @@ struct TThreadRobotParam
 	mrpt::synch::CThreadSafeVariable<CPose2D>					 	currentOdo;
 	mrpt::synch::CThreadSafeVariable<CPose2D>					 	targetOdo;
 	
-	mrpt::synch::CThreadSafeVariable<CObservation3DRangeScanPtr>    new_obs;     // RGB+D (+3D points)
+	mrpt::synch::CThreadSafeVariable<CObservation2DRangeScanPtr>    	new_obs;     // RGB+D (+3D points)
 	mrpt::synch::CThreadSafeVariable<CObservationIMUPtr>            new_obs_imu; // Accelerometers
 	//mrpt::synch::CThreadSafeVariable<CActivMediaRobotBase>     * robot;   // robot info
 	//mrpt::synch::CThreadSafeVariable<CPose2D>                    new_pose;   // robot info
@@ -147,6 +147,7 @@ void computePdfLikelihoodValues(COccupancyGridMap2D & map, CMonteCarloLocalizati
 void adjustCObservationRangeSonarPose( CObservationRange &obs );
 void thread_wall_detect(TThreadRobotParam &p);
 void fixOdometry(CPose2D & pose, CPose2D offset);
+void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error);
 
 /**************************************************************************************************/
 /*                                         FUNCTION IMPLEMENTATIONS                               */		
@@ -256,7 +257,7 @@ void thread_update_pdf(TThreadRobotParam &p)
 //			M
 //			);
 
-	CObservation3DRangeScanPtr  last_obs;
+	//CObservation3DRangeScanPtr  last_obs;
 	
 	/* repeat pdf calculation until terminated */
 	while(p.quit.get() == false)
@@ -284,7 +285,8 @@ void thread_update_pdf(TThreadRobotParam &p)
 		if (currentOdo.distanceTo(previousOdo) > 2*dummy_odom_params.gausianModel.minStdXY)
 		{ 
 			/* make sure that we have new kinect reading */
-			CObservation2DRangeScan* obs_2d = getKinect2DScan(p, last_obs);			
+			CObservation2DRangeScanPtr obs_Ptr = p.new_obs.get();			
+			CObservation2DRangeScan* obs_2d = obs_Ptr.pointer();			
 								
 			/* make sure that we have new kinect reading */
 			if (obs_2d == NULL)
@@ -357,7 +359,7 @@ void thread_kinect(TThreadRobotParam &p)
 	try
 	{
 		/* initialize for hardware readings */
-		CKinect  kinect;
+		
 		// Set params:
 		// kinect.enableGrab3DPoints(true);
 		// kinect.enablePreviewRGB(true);
@@ -366,13 +368,13 @@ void thread_kinect(TThreadRobotParam &p)
 		if (mrpt::system::fileExists(cfgFile))
 		{
 			cout << "Loading calibration from: "<< cfgFile << endl;
-			kinect.loadConfig( mrpt::utils::CConfigFile(cfgFile), "KINECT" );
+			// Put any code needed to configure LRF from config file
 		}
 		else cerr << "Warning: Calibration file ["<< cfgFile <<"] not found -> Using default params.\n";
 
 		// Open:
-		cout << "Calling CKinect::initialize()...";
-		kinect.initialize();
+		cout << "Calling LRF::initialize()...";
+		//Put code to initialize LRF :::
 		cout << "OK\n";
 
 		CTicTac tictac;
@@ -384,15 +386,15 @@ void thread_kinect(TThreadRobotParam &p)
 		while (!hard_error && !p.quit.get() )
 		{
 			/* Grab new observation from the camera:*/
-			CObservation3DRangeScanPtr  obs     = CObservation3DRangeScan::Create(); 
-			CObservationIMUPtr          obs_imu = CObservationIMU::Create();
+			CObservation2DRangeScanPtr  obs     = CObservation2DRangeScan::Create(); 
+			//CObservationIMUPtr          obs_imu = CObservationIMU::Create();
 			
-			kinect.getNextObservation(*obs,*obs_imu,there_is_obs,hard_error);
+			getNextObservation(*obs,there_is_obs,hard_error);
 
 			if (!hard_error && there_is_obs)
 			{
 				p.new_obs.set(obs);
-				p.new_obs_imu.set(obs_imu);
+			//	p.new_obs_imu.set(obs_imu);
 			}
 
 		}/* end while*/
@@ -402,6 +404,22 @@ void thread_kinect(TThreadRobotParam &p)
 		cout << "Exception in grabbing thread: " << e.what() << endl;
 		p.quit.set(true);
 	}
+}
+
+
+/*
+ * @Description
+ *This function is made to mock the getNextObservation function from the kinect
+ *
+ * @param	obs: pointer to a CObservation2DRangeScan object created from the LRF
+ *		there_is_obs: boolean set if there is a new observation observation
+ *		hard_error: true when an error occurs with the LRF
+ * @return	none
+ */
+void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error)
+{
+
+
 }
 
 /*
@@ -584,26 +602,26 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
  */	
 static CObservation2DRangeScan* getKinect2DScan(const TThreadRobotParam & TP, CObservation3DRangeScanPtr & lastObs)
 {
-	CObservation3DRangeScanPtr newObs = TP.new_obs.get();
+	//CObservation3DRangeScanPtr newObs = TP.new_obs.get();
 	//CObservation2DRangeScanPtr obs2D;
-	
+/*	
 	if (newObs && newObs->timestamp!=INVALID_TIMESTAMP &&
 		(!lastObs  || newObs->timestamp!=lastObs->timestamp ) )
 	{
-		/* It IS a new observation: */
+		// It IS a new observation: 
 		lastObs = newObs;
 		//last_obs_imu = thrPar.new_obs_imu.get();
-		/* Update visualization ---------------------------------------*/
+		// Update visualization ---------------------------------------
 
-		/* Convert ranges to an equivalent 2D "fake laser" scan: */
+		// Convert ranges to an equivalent 2D "fake laser" scan: 
 		if (lastObs->hasRangeImage )
 		{			
-			/* FIXME memory leak ?*/
+			// FIXME memory leak ?
 			CObservation2DRangeScan* obs2D = new CObservation2DRangeScan();
 			lastObs->convertTo2DScan(*obs2D, "KINECT_2D_SCAN");
 			return obs2D;
 		}
-	}
+	}*/
 	/* else return NULL */
 	return NULL;
 }
@@ -775,7 +793,7 @@ void thread_display(TThreadRobotParam &p)
 	CDisplayWindow3D	win("Example of 3D Scene Visualization - MRPT",640,480);
 	COccupancyGridMap2D		the_grid;
 
-	CObservation3DRangeScanPtr  last_obs;
+	CObservation2DRangeScan  last_obs;
 
 	COpenGLScenePtr &theScene = win.get3DSceneAndLock();
 	the_grid.loadFromBitmapFile(MAP_FILE,MAP_RESOLUTION /*,xCentralPixel,yCentralPixel*/);
@@ -956,8 +974,9 @@ void thread_display(TThreadRobotParam &p)
 
 		/* Put new kinect ranges in the display */
 		{ 
-			/* make sure that we have new kinect reading */
-			CObservation2DRangeScan* obs_2d = getKinect2DScan(p, last_obs);			
+			/* make sure that we have new kinect reading */	
+			CObservation2DRangeScanPtr obs_Ptr = p.new_obs.get();			
+			CObservation2DRangeScan* obs_2d = obs_Ptr.pointer();			
 								
 			/* make sure that we have new kinect reading */
 			if (obs_2d != NULL)
@@ -1413,13 +1432,14 @@ void computePdfLikelihoodValues(COccupancyGridMap2D & map, CMonteCarloLocalizati
  */
 void thread_wall_detect(TThreadRobotParam &p)
 {
-	CObservation3DRangeScanPtr  last_obs;		
+	//CObservation2DRangeScan  last_obs;		
 	/* make sure that we have new kinect reading */
 	
 	
 	while(p.quit == false)
 	{
-		CObservation2DRangeScan* obs_2d = getKinect2DScan(p, last_obs);	
+		CObservation2DRangeScanPtr obs_Ptr = p.new_obs.get();			
+		CObservation2DRangeScan* obs_2d = obs_Ptr.pointer();			
 
 		if (obs_2d == NULL)
 		{
@@ -1633,6 +1653,7 @@ int main(int argc, char **argv)
 
 		/* Wait until data stream starts so we can say for sure the sensor has been initialized OK: */	
 		cout << "Waiting for sensor initialization...\n";
+		/* May need to do similar for LRF
 		do 
 		{
 			CObservation3DRangeScanPtr possiblyNewObs = thrPar.new_obs.get();
@@ -1641,7 +1662,7 @@ int main(int argc, char **argv)
 			else 	
 				mrpt::system::sleep(10);			
 		} while (!thrPar.quit);
-	
+		*/
 		/* Check error condition: */
 		if (thrPar.quit.get()) 
 			return 0;
