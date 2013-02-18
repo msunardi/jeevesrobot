@@ -419,6 +419,15 @@ void thread_kinect(TThreadRobotParam &p)
 void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error)
 {
 
+	cout << "Getting Observations" << endl;
+	out_obs.scan.push_back(3);
+	out_obs.scan.push_back(4);
+	out_obs.scan.push_back(3);
+	out_obs.scan.push_back(3);
+	out_obs.scan.push_back(4);
+	out_obs.scan.push_back(3);
+	there_is = false;
+	sleep(1000);
 
 }
 
@@ -1602,9 +1611,9 @@ int main(int argc, char **argv)
 		TURN_THRESHOLD = DEG2RAD(TURN_THRESHOLD);				
 		SHARP_TURN     = DEG2RAD(SHARP_TURN);	
 		
-		/* our robot base object */
+		/* our robot base object REMOVED FOR MCECS*/
 		CActivMediaRobotBase	robot;
-
+/*
 #ifdef MRPT_OS_WINDOWS
 		string	port= COM_PORT;
 #else
@@ -1621,12 +1630,12 @@ int main(int argc, char **argv)
 		// -------------------------------------------
 		robot.enableSonars();
 		robot.initialize();
-
+*/
 		double cur_v = 0;
 		double cur_w = 0;
 
 		CActivMediaRobotBase::TRobotDescription  robInfo;
-		robot.getRobotInformation(robInfo);
+	//	robot.getRobotInformation(robInfo);
 
 		CPoint2D  target( -29, 8);  // target for path planning.
 
