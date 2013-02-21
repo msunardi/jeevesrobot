@@ -1,4 +1,4 @@
-/*
+/* 
  * guidebot Navigation, spring 2012
  * =============================================================================
  * Tested platform: Linux + mrpt lib, guidebbot (ActivMediaRobot) base + Kinect 
@@ -128,7 +128,7 @@ struct TThreadRobotParam
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMostLikely;
 };
 
-
+int scanTest = 0;  //Testing global variable. Delete After test
 /* prototypes */
 double turnAngle(CActivMediaRobotBase & aRobot, double phi, TThreadRobotParam thrPar);
 double turnAngle(double current_phi, double phi);
@@ -189,7 +189,9 @@ void thread_update_pdf(TThreadRobotParam &p)
 	/* insert and likelihood observation options for gridmap */
 	COccupancyGridMap2D::TInsertionOptions gridmapOption;
 	COccupancyGridMap2D::TLikelihoodOptions likelihoodOption;
-	
+
+	int ind = 0;
+ 
 	gridmapOption.loadFromConfigFile( guidebotConfFile, "MetricMap_occupancyGrid_00_insertOpts" );
 	gridmapOption.loadFromConfigFile( guidebotConfFile, "MetricMap_occupancyGrid_00_likelihoodOpts" );
 	
@@ -197,6 +199,7 @@ void thread_update_pdf(TThreadRobotParam &p)
 	gridmap.likelihoodOptions = likelihoodOption;
 	
 	/****** MonteCarloLocalization  ******/
+	
 	
 	uint64_t M = guidebotConfFile.read_uint64_t("LocalizationParams","PARTICLE_COUNT",1000, false);
 	pdf = CMonteCarloLocalization2D(M);
@@ -230,7 +233,7 @@ void thread_update_pdf(TThreadRobotParam &p)
 	previousOdo.phi(p.currentOdo.get().phi());
 	
 	/* reset all particle to a known location */	
-	pdf.resetDeterministic(previousOdo,1000);
+	pdf.resetDeterministic(previousOdo,0);
 	
 	/* this part below uniformly distributes particles to the whole map */
 	
@@ -419,15 +422,40 @@ void thread_kinect(TThreadRobotParam &p)
 void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error)
 {
 
-	cout << "Getting Observations" << endl;
-	out_obs.scan.push_back(3);
-	out_obs.scan.push_back(4);
-	out_obs.scan.push_back(3);
-	out_obs.scan.push_back(3);
-	out_obs.scan.push_back(4);
-	out_obs.scan.push_back(3);
-	there_is = false;
 	sleep(1000);
+	CPose2D newOffset(0,0,0);
+	out_obs.scan.clear();
+	out_obs.setSensorPose(newOffset);
+	out_obs.aperture = M_PI;	
+
+	scanTest = (scanTest+1)%3;
+	scanTest++;
+
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.scan.push_back(scanTest);
+	out_obs.validRange.clear();
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
+	out_obs.validRange.push_back(1);
 
 }
 
@@ -1635,15 +1663,16 @@ int main(int argc, char **argv)
 		double cur_w = 0;
 
 		CActivMediaRobotBase::TRobotDescription  robInfo;
-	//	robot.getRobotInformation(robInfo);
+		robot.getRobotInformation(robInfo);
 
 		CPoint2D  target( -29, 8);  // target for path planning.
 
+		
 		//CPoint2D  origin( -29, 10 );  // origin for path planning.
 
-		cout << "Robot # front bumpers : " << robInfo.nFrontBumpers << endl;
-		cout << "Robot # rear bumpers  : " << robInfo.nRearBumpers << endl;
-		cout << "Robot # sonars        : " << robInfo.nSonars << endl;
+	//	cout << "Robot # front bumpers : " << robInfo.nFrontBumpers << endl;
+	//	cout << "Robot # rear bumpers  : " << robInfo.nRearBumpers << endl;
+	//	cout << "Robot # sonars        : " << robInfo.nSonars << endl;
 
 		/* --------------------------------------------------------
 		 * Launch threads
