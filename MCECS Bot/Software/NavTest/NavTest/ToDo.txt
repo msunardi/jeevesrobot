@@ -1,0 +1,15 @@
+To DO list:
+
+- add web view after lab detail view
+- lab view vs person view? (Use tab view maybe?)
+- picture gallery different for each lab/person
+- change database structure (normalize)
+- add voice input support in chat
+- add Hints view
+- add Diagnostics view
+- add search field support
+- from Chat Modal form, user MUST input name, or Cancel. Prompt Alert if user tries to enter with empty name.
+
+How to import database from csv to sqlite3:
+- remove ^M (replace with newline character) (in vim, replace: %s/^M/\r/g. To make "^M" do: CTRL+V, M)
+- gotta search for the sqlite3 command to import

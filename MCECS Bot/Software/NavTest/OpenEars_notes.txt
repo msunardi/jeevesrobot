@@ -1,0 +1,20 @@
+Re: Open Ears Frameworks
+
+I wasn't able to just copy the OpenEars.Framework files into the repo with errors: 
+cp: /Users/msunardi/Projects/iOS/OpenEarsDistribution/Frameworks/OpenEars.framework/Headers/Headers: No such file or directory
+cp: /Users/msunardi/Projects/iOS/OpenEarsDistribution/Frameworks/OpenEars.framework/Resources/Resources: No such file or directory
+cp: /Users/msunardi/Projects/iOS/OpenEarsDistribution/Frameworks/OpenEars.framework/Versions/A/A: Too many levels of symbolic links
+cp: /Users/msunardi/Projects/iOS/OpenEarsDistribution/Frameworks/OpenEars.framework/Versions/A/Headers/Headers: No such file or directory
+cp: /Users/msunardi/Projects/iOS/OpenEarsDistribution/Frameworks/OpenEars.framework/Versions/A/Resources/Resources: No such file or directory
+cp: /Users/msunardi/Projects/iOS/OpenEarsDistribution/Frameworks/OpenEars.framework/Versions/Current/A: Too many levels of symbolic links
+cp: /Users/msunardi/Projects/iOS/OpenEarsDistribution/Frameworks/OpenEars.framework/Versions/Current/Headers/Headers: No such file or directory
+cp: /Users/msunardi/Projects/iOS/OpenEarsDistribution/Frameworks/OpenEars.framework/Versions/Current/Resources/Resources: No such file or directory
+
+So, if you are trying to work with NavTest, you may have to extract the OpenEars framework .tar.bz2 attached here and add the framework to your NavTest project.I.e. to work on the NavTest:
+1. Untar/uncompress the OpenEarsDistribution.tar.bz2 (by default, it will be uncompressed to folder: OpenEarsDistribution/)
+2. Open XCode
+3. Open the project: NavText.xcodeproj
+4. In the project/file explorer in XCode (the leftmost column), right-click and choose "Add files to "NavTest"..."
+5. Add the OpenEars stuff in OpenEarsDistribution/Framework into the Frameworks folder in NavTest.
+
+*NOTE: I haven't actually tried this as of this writing (2/28/13). I didn't expect that the NavTest project folder can't just be simply copied in. But it looks like only the OpenEars part is having this issue and the rest of the project is ok.  Please add a note to the project page https://projects.cecs.pdx.edu/projects/roboticsclub-mcecsbot/issues if you find any issues.
