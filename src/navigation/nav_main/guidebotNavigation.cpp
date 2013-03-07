@@ -245,7 +245,7 @@ void thread_update_pdf(TThreadRobotParam &p)
 	previousOdo.phi(p.currentOdo.get().phi());
 	
 	/* reset all particle to a known location */	
-	pdf.resetDeterministic(previousOdo,0);
+	pdf.resetDeterministic(previousOdo,1000);
 	
 	/* this part below uniformly distributes particles to the whole map */
 	
@@ -413,10 +413,10 @@ void thread_LRF(TThreadRobotParam &p)
 	 toptions.c_oflag &= ~OPOST;	 
 
 	/* wait for 1 characters to come in before read returns */
-	 toptions.c_cc[VMIN] = 1;
+	 toptions.c_cc[VMIN] = 6;
 
 	 /* no minimum time to wait before read returns */
- 	toptions.c_cc[VTIME] = 500;
+ 	toptions.c_cc[VTIME] = 0;
 
 	/* commit the options */
 	 tcsetattr(fd, TCSANOW, &toptions); 
@@ -492,39 +492,39 @@ void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool h
 	 tcflush(fd, TCIFLUSH);
 	 /* read up to 128 bytes from the fd */
 	write(fd,getCommand,1);
-
+	buf[0] = 0;
 	while(buf[0] != '!')
 	{
-	 	n = read(fd, buf, 1);
-		sleep(100);
+	 	n = read(fd, buf, 6);
 		
+		sleep(100);
 	 	printf("%i bytes got read...\n", n);
 		printf("Buffer has \n%s\n",buf);
  	}
 	
-	sleep(1000);	
+	sleep(150);	
 	 
 	//read data in
-	n = read(fd, buf, 7);
+//	n = read(fd, buf,6);
 	
-	 printf("Buffer has \n%s\n",buf);
+	// printf("Buffer has \n%s\n",buf);
 	 printf("%i bytes got read...\n", n);
-	 printf("Buffer 1 contains...\n%d\n", buf[1]);
-	 printf("Buffer 2 contains...\n%d\n", buf[2]);
-	 printf("Buffer 3 contains...\n%d\n", buf[3]);
-	 printf("Buffer 4 contains...\n%d\n", buf[4]);
-	 printf("Buffer 5 contains...\n%d\n", buf[5]);
+	 printf("Buffer 1 contains...\n%d\n", buf[0]);
+	 printf("Buffer 2 contains...\n%d\n", buf[1]);
+	 printf("Buffer 3 contains...\n%d\n", buf[2]);
+	 printf("Buffer 4 contains...\n%d\n", buf[3]);
+	 printf("Buffer 5 contains...\n%d\n", buf[4]);
 
 	CPose2D newOffset(0,0,0);
 	out_obs.scan.clear();	
 	out_obs.validRange.clear();
 	out_obs.setSensorPose(newOffset);
-	out_obs.aperture = M_PI*5/9;	
-
+	out_obs.aperture = M_PI*40/180;	
+	sleep(1000);
 	for(int i = 0; i < SCAN_BYTES; i++)
 	{	
-	 	printf("Buffer 0 contains...\n%d\n", buf[i]);
-		if (i <SCAN_BYTES-1)
+	 	printf("Buffer %d contains...\n%d\n",i,buf[i]);
+		if (i > 0)
 		{
 			out_obs.scan.push_back(float(buf[i])/100);
 			out_obs.validRange.push_back(1);
