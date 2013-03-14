@@ -94,7 +94,7 @@ static float kinectMinTruncateDistance = 0.5;
 static int SCAN_BYTES 		= 6;	//number of bytes from LRF (including auxillary byte)
 
 static char* LRF_PORT_NAME		=	"/dev/ttyACM0";
-static char* ODO_PORT_NAME		=	"/dev/ttyACM1";
+static char* ODO_PORT_NAME		=	"/dev/ttyACM0";
 static int   ODO_READ_MIN		=	7;
 /* our threads 's sharing resources */
 struct TThreadRobotParam
@@ -546,8 +546,52 @@ void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool h
 void getOdometry(CPose2D &out_odom, int odo_fd)
 {
 
-
-
+	char buf[256];
+	char getCommand[1];
+	int n;
+	
+	int x,y,phi;
+	getCommand[0]='e';
+	 /* Flush anything already in the serial buffer */
+	 tcflush(odo_fd, TCIFLUSH);
+	 /* read up to 128 bytes from the fd */
+	write(odo_fd,getCommand,1);
+	buf[0] = 0;
+	while(buf[0] != '!')
+	{
+	 	n = read(odo_fd, buf, 7);
+		
+		sleep(100);
+	 	printf("%i bytes got read...\n", n);
+		printf("Buffer has \n%s\n",buf);
+ 	}
+	
+	sleep(150);	
+	 
+	//read data in
+//	n = read(fd, buf,6);
+	
+	// printf("Buffer has \n%s\n",buf);
+	 printf("%i bytes got read...\n", n);
+	 printf("Buffer 1 contains...\n%d\n", buf[0]);
+	 printf("Buffer 2 contains...\n%d\n", buf[1]);
+	 printf("Buffer 3 contains...\n%d\n", buf[2]);
+	 printf("Buffer 4 contains...\n%d\n", buf[3]);
+	 printf("Buffer 5 contains...\n%d\n", buf[4]);
+	 printf("Buffer 5 contains...\n%d\n", buf[5]);
+	 printf("Buffer 5 contains...\n%d\n", buf[6]);
+	
+	x = ((buf[2] & 255)<< 8) | (buf[1] & 255);	
+	y = ((buf[4] & 255) << 8) | (buf[3] & 255);
+	phi = ((buf[6] & 255) << 8) | (buf[5] & 255);
+	
+	printf("x = %d, y = %d, phi = %d\n",x,y,phi);
+	
+	out_odom.x(x);
+	out_odom.y(y);
+	out_odom.phi(phi);
+	sleep(1000);
+	
 
 }
 
@@ -1836,9 +1880,9 @@ int main(int argc, char **argv)
 		mrpt::system::TThreadHandle thHandle; 
 		mrpt::system::TThreadHandle wallDetectHandle;
 	
-		pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
+	//	pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
 		displayHandle = mrpt::system::createThreadRef(thread_display ,thrPar);
-		thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
+	//	thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
 		wallDetectHandle = mrpt::system::createThreadRef(thread_wall_detect, thrPar);
 
 
