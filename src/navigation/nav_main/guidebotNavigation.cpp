@@ -164,7 +164,7 @@ void adjustCObservationRangeSonarPose( CObservationRange &obs );
 void thread_wall_detect(TThreadRobotParam &p);
 void fixOdometry(CPose2D & pose, CPose2D offset);
 void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd);
-void getOdometry(CPose2D &out_odom, int odo_fd);
+void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar);
 int setupArduino(char * port, int readBytes);
 /**************************************************************************************************/
 /*                                         FUNCTION IMPLEMENTATIONS                               */		
@@ -543,18 +543,19 @@ void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool h
  * @param	out_odom: a pointer to the object in which the current odometry of the robot will get filled in
  *
  */
-void getOdometry(CPose2D &out_odom, int odo_fd)
+void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 {
 
 	char buf[256];
 	char getCommand[1];
 	int n;
-	
+	CPose2D tempPose;
 	int x,y,phi;
 	getCommand[0]='e';
-	 /* Flush anything already in the serial buffer */
-	 tcflush(odo_fd, TCIFLUSH);
-	 /* read up to 128 bytes from the fd */
+	 
+	/* Flush anything already in the serial buffer */
+	tcflush(odo_fd, TCIFLUSH);
+	/* read up to 128 bytes from the fd */
 	write(odo_fd,getCommand,1);
 	buf[0] = 0;
 	while(buf[0] != '!')
@@ -586,10 +587,15 @@ void getOdometry(CPose2D &out_odom, int odo_fd)
 	phi = ((buf[6] & 255) << 8) | (buf[5] & 255);
 	
 	printf("x = %d, y = %d, phi = %d\n",x,y,phi);
-	
+	tempPose = thrPar.currentOdo.get();
+	x = x + tempPose.x();
+	y = y + tempPose.y();
+	phi = phi + tempPose.phi();
+
 	out_odom.x(x);
 	out_odom.y(y);
 	out_odom.phi(phi);
+	
 	sleep(1000);
 	
 
@@ -666,15 +672,15 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 {
 	CPose2D initOdo;
 	int odo_fd = thrPar.odo_fd.get();
-	getOdometry(initOdo, odo_fd);
+	getOdometry(initOdo, odo_fd, thrPar);
 	fixOdometry( initOdo, thrPar.odometryOffset.get() );
 	
 	CPose2D currentOdo, previousOdo;
-	getOdometry(currentOdo, odo_fd);	
+	getOdometry(currentOdo, odo_fd, thrPar);	
 	fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 	thrPar.currentOdo.set(currentOdo);
 
-	getOdometry(previousOdo, odo_fd);
+	getOdometry(previousOdo, odo_fd, thrPar);
 	fixOdometry( previousOdo, thrPar.odometryOffset.get() );	
 	
 	/* for each individual step on path */
@@ -693,7 +699,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 				cout << "continue.................. "<< endl;
 			continue;
 		}
-		getOdometry( currentOdo,odo_fd );//, v, w, left_ticks, right_ticks );	
+		getOdometry( currentOdo,odo_fd, thrPar);//, v, w, left_ticks, right_ticks );	
 		//cout << " Odometry: " << currentOdo; 
 		fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 		//cout << " Fixed Odometry: " << currentOdo;
@@ -728,7 +734,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 				cout << "\t tempOdo.phi: " << RAD2DEG(tempOdo.phi()) << endl;
 				cout << "turning ... " << endl;									
 				turn(aRobot,phi, thrPar);
-				getOdometry(currentOdo,odo_fd);
+				getOdometry(currentOdo,odo_fd, thrPar);
 				fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 				cout << "Phi after turn: " << currentOdo.phi() << endl;
 			}	
@@ -792,7 +798,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 			
 			/* update robot status */
 			
-			getOdometry( currentOdo, odo_fd ); /* for stop condition */
+			getOdometry( currentOdo, odo_fd, thrPar); /* for stop condition */
 			fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 			thrPar.currentOdo.set(currentOdo);
 			//cout << "end while" << endl;
@@ -870,7 +876,7 @@ double turnAngle(CActivMediaRobotBase & aRobot, double phi, TThreadRobotParam th
 	CPose2D odoTemp;
 	double ret;
 	int odo_fd = thrPar.odo_fd.get();
-	getOdometry( odoTemp,odo_fd );
+	getOdometry( odoTemp,odo_fd, thrPar);
 	
 	fixOdometry( odoTemp, thrPar.odometryOffset.get() );
 	odoTemp.normalizePhi();	
@@ -956,7 +962,7 @@ static void turn(CActivMediaRobotBase &robot, double phi, TThreadRobotParam &p)
 	int odo_fd = p.odo_fd.get();	
 	while(1)
 	{
-		getOdometry( odo,odo_fd );//, v, w, left_ticks, right_ticks );
+		getOdometry( odo, odo_fd, p);//, v, w, left_ticks, right_ticks );
 		fixOdometry( odo, p.odometryOffset.get() );
 		p.currentOdo.set(odo); 		// Update current odometry for threads.
 		
@@ -2017,7 +2023,7 @@ int main(int argc, char **argv)
 				cin >> newPhi;	cin.clear();
 				
 				CPose2D startOdo;
-				getOdometry( startOdo, odo_fd );
+				getOdometry( startOdo, odo_fd, thrPar);
 				startOdo.x(0);
 				startOdo.y(0);
 				//CPose2D startOdo(newX,newY,DEG2RAD(newPhi));
@@ -2045,7 +2051,7 @@ int main(int argc, char **argv)
 				cout << "phi: " << RAD2DEG(phi);
 				cout << "turning ... " << endl;									
 				turn(robot,phi,thrPar);
-				getOdometry( odo, odo_fd );
+				getOdometry( odo, odo_fd, thrPar );
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 				thrPar.currentOdo.set(odo);
 			}
@@ -2073,7 +2079,7 @@ int main(int argc, char **argv)
 				double 		v,w;
 				int64_t  	left_ticks, right_ticks;
 				double 		phi;
-				getOdometry( odo, odo_fd );
+				getOdometry( odo, odo_fd, thrPar );
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 			
 				CPoint2D origin( odo.x(), odo.y() );
