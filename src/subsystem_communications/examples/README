@@ -1,0 +1,38 @@
+The subsystem_communications/examples folder contains sample programs for creating client and server using socket communications. There are TCP and UDP examples.
+
+*** PROCESSING EXAMPLE ***
+The Processing network example is currently being used for the Kinect subsystem since the subsystem was written in Processing language.
+
+The Therapy_chat_client and Therapy_chat_server folders contain sample programs written in Processing language for client and server, respectively. To test:
+	- Make sure to install Processing (www.processing.org)
+	- Open the Therapy_chat_client.pde and Therapy_chat_server.pde using Processing 1.5.1 (Probably works in newer version of Processing too, but it's not yet been tested)
+	- Run the server program first, followed by the client program
+	- Play around, see how it works. This particular example uses TCP.
+The Processing programs were taken from this website: http://www.learningprocessing.com/examples/
+	- Server: http://www.learningprocessing.com/examples/chapter-19/example-19-1/
+	- Client: http://www.learningprocessing.com/examples/chapter-19/example-19-2/
+
+*** C EXAMPLE ***
+The client.c and server.c programs are client and server programs, respectively, written in the C language. The programs were taken from Beej's Network Tutorial: http://beej.us/guide/bgnet/output/html/multipage/clientserver.html. To compile the programs, use you don't need any additional parameters. For example:
+	- ~$ gcc server.c (will output an executable file a.out)
+or, alternatively you can specify the output file using the "-o" option followed by your desired output file name (e.g. "server"): 
+	- ~$ gcc server.c -o server
+To run the server program:
+	- if you used the first method (didn't specify the output file), do: ~$ ./a.out
+	- if you used the second method, do: ~$ ./server
+Same thing with the client program.
+
+Similarly to the Processing example above, run the server program first, then the client program.
+
+If you'll notice, the client.c program connects to the server then immediately disconnect/exits. There is another C example where the client continuously listens for new messages from the server: client_keep_listening.c. This example comes from the website: http://www.binarytides.com/server-client-example-c-sockets-linux/. To compile this program, you also just use gcc without any additional parameters/options (except maybe the output file option).
+
+*** PYTHON SERVER ***
+The main server program used is in the server.py program written in Python language. The program was adapted from the server program provided here:  http://www.raywenderlich.com/3932/how-to-create-a-socket-based-iphone-app-and-server.
+
+Originally, the server program was used by Mathias Sunardi as he was developing chat feature in the iPad app for the user interface of the MCECSBot. Since it was working, and Python provides easy-to-use message parsing functions, the team decided to keep using it. Perhaps in the future, the server program may be re-written, maybe in different a different programming language - if such a need ever arise.
+
+Currently, the server program is listening to port 80 (this can always be changed later).
+
+The good news is, the Python server program works with both the C client and Processing client programs. That is, you can run the Python server program, then run either or both the C client and Processing client programs, and the server will recognize them. Likewise, the Processing and C server programs can also recognize any client programs (given that they are connecting to the IP address and port number of the server). In other words, you can write the client and server program in different programming languages, as long as they use the same communication protocols (TCP or UDP being the most common protocols) and connecting to the correct IP address and port number, the programs can communicate with each other. Also, a client program can communicate with another client program that is connected to the same server. This is the key point of our argument of using this socket-based (i.e. server-client) communication schema because the MCECSBot software systems consists of several subsystems written in different programming languages, and some of them need to be able to communicate with each other.
+
+The not-so-good news is, the Python server program always asks a super-user (sudo) password. Mathias hasn't looked into why this is so, but in general it is preferred to not have to provide the sudo password when executing the server program.
