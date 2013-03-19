@@ -39,6 +39,16 @@
 #include <mrpt/hwdrivers/CActivMediaRobotBase.h>
 #include <iostream>
 
+//Includes for arduino serial communication
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <fstream>
+#include <string>
+#include <unistd.h>
+
 using namespace mrpt;
 using namespace mrpt::hwdrivers;
 using namespace mrpt::utils;
@@ -81,6 +91,11 @@ static int Y_CENTRAL_PIXEL		=	-1;
 static CMonteCarloLocalization2D pdf;
 static float kinectMinTruncateDistance = 0.5;
 
+static int SCAN_BYTES 		= 6;	//number of bytes from LRF (including auxillary byte)
+
+static char* LRF_PORT_NAME		=	"/dev/ttyACM0";
+static char* ODO_PORT_NAME		=	"/dev/ttyACM0";
+static int   ODO_READ_MIN		=	7;
 /* our threads 's sharing resources */
 struct TThreadRobotParam
 {
@@ -124,6 +139,7 @@ struct TThreadRobotParam
 
 	mrpt::synch::CThreadSafeVariable<CPose2D>						odometryOffset;
 	
+	mrpt::synch::CThreadSafeVariable<int>							odo_fd; //file descripter for odometry port
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMean;
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMostLikely;
 };
@@ -136,7 +152,7 @@ static void turn(CActivMediaRobotBase &robot, double phi, TThreadRobotParam &p);
 static int PathPlanning(std::deque<poses::TPoint2D> &thePath, CPoint2D  origin, CPoint2D  target);
 static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar);
 static CObservation2DRangeScan* getKinect2DScan(const TThreadRobotParam & TP, CObservation3DRangeScanPtr & lastObs);
-void thread_kinect(TThreadRobotParam &p);
+void thread_LRF(TThreadRobotParam &p);
 void thread_update_pdf(TThreadRobotParam &p);
 void thread_display(TThreadRobotParam &p);
 void createCObservationRange( CObservationRange	&obs );
@@ -147,8 +163,9 @@ void computePdfLikelihoodValues(COccupancyGridMap2D & map, CMonteCarloLocalizati
 void adjustCObservationRangeSonarPose( CObservationRange &obs );
 void thread_wall_detect(TThreadRobotParam &p);
 void fixOdometry(CPose2D & pose, CPose2D offset);
-void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error);
-
+void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd);
+void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar);
+int setupArduino(char * port, int readBytes);
 /**************************************************************************************************/
 /*                                         FUNCTION IMPLEMENTATIONS                               */		
 /**************************************************************************************************/
@@ -233,7 +250,7 @@ void thread_update_pdf(TThreadRobotParam &p)
 	previousOdo.phi(p.currentOdo.get().phi());
 	
 	/* reset all particle to a known location */	
-	pdf.resetDeterministic(previousOdo,0);
+	pdf.resetDeterministic(previousOdo,1000);
 	
 	/* this part below uniformly distributes particles to the whole map */
 	
@@ -357,16 +374,66 @@ void thread_update_pdf(TThreadRobotParam &p)
  * Thread for grabbing: monitor kinect reading, this is required for getKinect2DScan()
  * calibration file can be used for more accurate reading.
  */
-void thread_kinect(TThreadRobotParam &p)
+void thread_LRF(TThreadRobotParam &p)
 {
+	
+	/* initialize for hardware readings */		
+	char *portname = LRF_PORT_NAME;
+	int fd;
+ 
+	/* Open the file descriptor in non-blocking mode */
+	 fd = open(portname, O_RDWR | O_NOCTTY);
+	 
+	/* Set up the control structure */
+	 struct termios toptions;
+	 
+	 /* Get currently set options for the tty */
+	 tcgetattr(fd, &toptions);
+
+	/* Set custom options */
+	/* 9600 baud */
+	 cfsetispeed(&toptions, B9600);
+	 cfsetospeed(&toptions, B9600);
+
+	 /* 8 bits, no parity, no stop bits */
+	 toptions.c_cflag &= ~PARENB;
+	 toptions.c_cflag &= ~CSTOPB;
+	 toptions.c_cflag &= ~CSIZE;
+	 toptions.c_cflag |= CS8;
+	 /* no hardware flow control */
+	 toptions.c_cflag &= ~CRTSCTS;
+
+	 /* enable receiver, ignore status lines */
+	 toptions.c_cflag |= CREAD | CLOCAL;
+
+	 /* disable input/output flow control, disable restart chars */
+	 toptions.c_iflag &= ~(IXON | IXOFF | IXANY);
+
+	 /* disable canonical input, disable echo,
+	 disable visually erase chars,
+	 disable terminal-generated signals */
+	 toptions.c_iflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+
+	 /* disable output processing */
+	 toptions.c_oflag &= ~OPOST;	 
+
+	/* wait for 1 characters to come in before read returns */
+	 toptions.c_cc[VMIN] = SCAN_BYTES;
+
+	 /* no minimum time to wait before read returns */
+ 	toptions.c_cc[VTIME] = 0;
+
+	/* commit the options */
+	 tcsetattr(fd, TCSANOW, &toptions); 
+
+	/* Wait for the Arduino to reset */
+	sleep(1000);
+	
 	try
 	{
-		/* initialize for hardware readings */
-		
-		// Set params:
-		// kinect.enableGrab3DPoints(true);
-		// kinect.enablePreviewRGB(true);
-		//...
+
+
+
 		const std::string cfgFile = CONFIG_FILE_NAME;
 		if (mrpt::system::fileExists(cfgFile))
 		{
@@ -392,7 +459,7 @@ void thread_kinect(TThreadRobotParam &p)
 			CObservation2DRangeScanPtr  obs     = CObservation2DRangeScan::Create(); 
 			//CObservationIMUPtr          obs_imu = CObservationIMU::Create();
 			
-			getNextObservation(*obs,there_is_obs,hard_error);
+			getNextObservation(*obs,there_is_obs,hard_error,fd);
 
 			if (!hard_error && there_is_obs)
 			{
@@ -419,44 +486,176 @@ void thread_kinect(TThreadRobotParam &p)
  *		hard_error: true when an error occurs with the LRF
  * @return	none
  */
-void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error)
+void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd)
 {
 
-	sleep(1000);
+	char buf[256];
+	char getCommand[1];
+	int n;
+	getCommand[0]='l';
+	 /* Flush anything already in the serial buffer */
+	 tcflush(fd, TCIFLUSH);
+	 /* read up to 128 bytes from the fd */
+	write(fd,getCommand,1);
+	buf[0] = 0;
+	while(buf[0] != '!')
+	{
+	 	n = read(fd, buf, 6);
+		
+		sleep(100);
+	 	printf("%i bytes got read...\n", n);
+		printf("Buffer has \n%s\n",buf);
+ 	}
+	
+	sleep(150);	
+	 
+	//read data in
+//	n = read(fd, buf,6);
+	
+	// printf("Buffer has \n%s\n",buf);
+	 printf("%i bytes got read...\n", n);
+	 printf("Buffer 1 contains...\n%d\n", buf[0]);
+	 printf("Buffer 2 contains...\n%d\n", buf[1]);
+	 printf("Buffer 3 contains...\n%d\n", buf[2]);
+	 printf("Buffer 4 contains...\n%d\n", buf[3]);
+	 printf("Buffer 5 contains...\n%d\n", buf[4]);
+
 	CPose2D newOffset(0,0,0);
-	out_obs.scan.clear();
-	out_obs.setSensorPose(newOffset);
-	out_obs.aperture = M_PI;	
-
-	scanTest = (scanTest+1)%3;
-	scanTest++;
-
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
-	out_obs.scan.push_back(scanTest);
+	out_obs.scan.clear();	
 	out_obs.validRange.clear();
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
-	out_obs.validRange.push_back(1);
+	out_obs.setSensorPose(newOffset);
+	out_obs.aperture = M_PI*40/180;	
+	sleep(1000);
+	for(int i = 0; i < SCAN_BYTES; i++)
+	{	
+	 	printf("Buffer %d contains...\n%d\n",i,buf[i]);
+		if (i > 0)
+		{
+			out_obs.scan.push_back(float(buf[i])/100);
+			out_obs.validRange.push_back(1);
+		}
+	}
+}
 
+/*
+ * @Description
+ * Replacement for the getOdometry function that was part of the CActivMediaRobotBase class
+ * @param	out_odom: a pointer to the object in which the current odometry of the robot will get filled in
+ *
+ */
+void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
+{
+
+	char buf[256];
+	char getCommand[1];
+	int n;
+	CPose2D tempPose;
+	int x,y,phi;
+	getCommand[0]='e';
+	 
+	/* Flush anything already in the serial buffer */
+	tcflush(odo_fd, TCIFLUSH);
+	/* read up to 128 bytes from the fd */
+	write(odo_fd,getCommand,1);
+	buf[0] = 0;
+	while(buf[0] != '!')
+	{
+	 	n = read(odo_fd, buf, 7);
+		
+		sleep(100);
+	 	printf("%i bytes got read...\n", n);
+		printf("Buffer has \n%s\n",buf);
+ 	}
+	
+	sleep(150);	
+	 
+	//read data in
+//	n = read(fd, buf,6);
+	
+	// printf("Buffer has \n%s\n",buf);
+	 printf("%i bytes got read...\n", n);
+	 printf("Buffer 1 contains...\n%d\n", buf[0]);
+	 printf("Buffer 2 contains...\n%d\n", buf[1]);
+	 printf("Buffer 3 contains...\n%d\n", buf[2]);
+	 printf("Buffer 4 contains...\n%d\n", buf[3]);
+	 printf("Buffer 5 contains...\n%d\n", buf[4]);
+	 printf("Buffer 5 contains...\n%d\n", buf[5]);
+	 printf("Buffer 5 contains...\n%d\n", buf[6]);
+	
+	x = ((buf[2] & 255)<< 8) | (buf[1] & 255);	
+	y = ((buf[4] & 255) << 8) | (buf[3] & 255);
+	phi = ((buf[6] & 255) << 8) | (buf[5] & 255);
+	
+	printf("x = %d, y = %d, phi = %d\n",x,y,phi);
+	tempPose = thrPar.currentOdo.get();
+	x = x + tempPose.x();
+	y = y + tempPose.y();
+	phi = phi + tempPose.phi();
+
+	out_odom.x(x);
+	out_odom.y(y);
+	out_odom.phi(phi);
+	
+	sleep(1000);
+	
+
+}
+
+int setupArduino(char * port, int readBytes)
+{
+
+	/* initialize for hardware readings */		
+	char *portname = port;
+	int fd;
+ 
+	/* Open the file descriptor in non-blocking mode */
+	 fd = open(portname, O_RDWR | O_NOCTTY);
+	 
+	/* Set up the control structure */
+	 struct termios toptions;
+	 
+	 /* Get currently set options for the tty */
+	 tcgetattr(fd, &toptions);
+
+	/* Set custom options */
+	/* 9600 baud */
+	 cfsetispeed(&toptions, B9600);
+	 cfsetospeed(&toptions, B9600);
+
+	 /* 8 bits, no parity, no stop bits */
+	 toptions.c_cflag &= ~PARENB;
+	 toptions.c_cflag &= ~CSTOPB;
+	 toptions.c_cflag &= ~CSIZE;
+	 toptions.c_cflag |= CS8;
+	 /* no hardware flow control */
+	 toptions.c_cflag &= ~CRTSCTS;
+
+	 /* enable receiver, ignore status lines */
+	 toptions.c_cflag |= CREAD | CLOCAL;
+
+	 /* disable input/output flow control, disable restart chars */
+	 toptions.c_iflag &= ~(IXON | IXOFF | IXANY);
+
+	 /* disable canonical input, disable echo,
+	 disable visually erase chars,
+	 disable terminal-generated signals */
+	 toptions.c_iflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+
+	 /* disable output processing */
+	 toptions.c_oflag &= ~OPOST;	 
+
+	/* wait for 1 characters to come in before read returns */
+	 toptions.c_cc[VMIN] = readBytes;
+
+	 /* no minimum time to wait before read returns */
+ 	toptions.c_cc[VTIME] = 0;
+
+	/* commit the options */
+	 tcsetattr(fd, TCSANOW, &toptions); 
+
+	/* Wait for the Arduino to reset */
+	sleep(1000);
+	return fd;
 }
 
 /*
@@ -472,15 +671,16 @@ void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool h
 static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar)
 {
 	CPose2D initOdo;
-	aRobot.getOdometry(initOdo);
+	int odo_fd = thrPar.odo_fd.get();
+	getOdometry(initOdo, odo_fd, thrPar);
 	fixOdometry( initOdo, thrPar.odometryOffset.get() );
 	
 	CPose2D currentOdo, previousOdo;
-	aRobot.getOdometry(currentOdo);	
+	getOdometry(currentOdo, odo_fd, thrPar);	
 	fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 	thrPar.currentOdo.set(currentOdo);
 
-	aRobot.getOdometry(previousOdo);
+	getOdometry(previousOdo, odo_fd, thrPar);
 	fixOdometry( previousOdo, thrPar.odometryOffset.get() );	
 	
 	/* for each individual step on path */
@@ -499,7 +699,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 				cout << "continue.................. "<< endl;
 			continue;
 		}
-		aRobot.getOdometry( currentOdo );//, v, w, left_ticks, right_ticks );	
+		getOdometry( currentOdo,odo_fd, thrPar);//, v, w, left_ticks, right_ticks );	
 		//cout << " Odometry: " << currentOdo; 
 		fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 		//cout << " Fixed Odometry: " << currentOdo;
@@ -534,7 +734,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 				cout << "\t tempOdo.phi: " << RAD2DEG(tempOdo.phi()) << endl;
 				cout << "turning ... " << endl;									
 				turn(aRobot,phi, thrPar);
-				aRobot.getOdometry(currentOdo);
+				getOdometry(currentOdo,odo_fd, thrPar);
 				fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 				cout << "Phi after turn: " << currentOdo.phi() << endl;
 			}	
@@ -598,7 +798,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 			
 			/* update robot status */
 			
-			aRobot.getOdometry( currentOdo ); /* for stop condition */
+			getOdometry( currentOdo, odo_fd, thrPar); /* for stop condition */
 			fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 			thrPar.currentOdo.set(currentOdo);
 			//cout << "end while" << endl;
@@ -612,7 +812,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 //		CPose2D tempPose;
 //		tempPdf->getMean( tempPose );
 //		CPose2D startOdo;
-//		aRobot.getOdometry (startOdo);
+//		getOdometry (startOdo);
 //		startOdo.x(0);
 //		startOdo.y(0);
 //		//CPose2D startOdo(newX,newY,DEG2RAD(newPhi));
@@ -675,7 +875,8 @@ double turnAngle(CActivMediaRobotBase & aRobot, double phi, TThreadRobotParam th
 {
 	CPose2D odoTemp;
 	double ret;
-	aRobot.getOdometry( odoTemp );
+	int odo_fd = thrPar.odo_fd.get();
+	getOdometry( odoTemp,odo_fd, thrPar);
 	
 	fixOdometry( odoTemp, thrPar.odometryOffset.get() );
 	odoTemp.normalizePhi();	
@@ -757,10 +958,11 @@ static void turn(CActivMediaRobotBase &robot, double phi, TThreadRobotParam &p)
 	double	v,w;
 	int64_t	left_ticks, right_ticks;
 	double	speed;
-	double	turnAngle;	
+	double	turnAngle;
+	int odo_fd = p.odo_fd.get();	
 	while(1)
 	{
-		robot.getOdometry( odo );//, v, w, left_ticks, right_ticks );
+		getOdometry( odo, odo_fd, p);//, v, w, left_ticks, right_ticks );
 		fixOdometry( odo, p.odometryOffset.get() );
 		p.currentOdo.set(odo); 		// Update current odometry for threads.
 		
@@ -1667,7 +1869,7 @@ int main(int argc, char **argv)
 
 		CPoint2D  target( -29, 8);  // target for path planning.
 
-		
+				
 		//CPoint2D  origin( -29, 10 );  // origin for path planning.
 
 	//	cout << "Robot # front bumpers : " << robInfo.nFrontBumpers << endl;
@@ -1684,11 +1886,15 @@ int main(int argc, char **argv)
 		mrpt::system::TThreadHandle thHandle; 
 		mrpt::system::TThreadHandle wallDetectHandle;
 	
-		pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
+	//	pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
 		displayHandle = mrpt::system::createThreadRef(thread_display ,thrPar);
-		thHandle = mrpt::system::createThreadRef(thread_kinect ,thrPar);
+	//	thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
 		wallDetectHandle = mrpt::system::createThreadRef(thread_wall_detect, thrPar);
 
+
+		//setup arduino for odo
+		int odo_fd = setupArduino(ODO_PORT_NAME,ODO_READ_MIN);
+		thrPar.odo_fd.set(odo_fd);
 		/* Wait until data stream starts so we can say for sure the sensor has been initialized OK: */	
 		cout << "Waiting for sensor initialization...\n";
 		/* May need to do similar for LRF
@@ -1765,7 +1971,7 @@ int main(int argc, char **argv)
 				CPose2D 	odo;
 				double 		v,w;
 				int64_t  	left_ticks, right_ticks;
-				robot.getOdometryFull( odo, v, w, left_ticks, right_ticks );
+				//getOdometryFull( odo, v, w, left_ticks, right_ticks );
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 				thrPar.currentOdo.set(odo);
 				cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
@@ -1817,7 +2023,7 @@ int main(int argc, char **argv)
 				cin >> newPhi;	cin.clear();
 				
 				CPose2D startOdo;
-				robot.getOdometry( startOdo );
+				getOdometry( startOdo, odo_fd, thrPar);
 				startOdo.x(0);
 				startOdo.y(0);
 				//CPose2D startOdo(newX,newY,DEG2RAD(newPhi));
@@ -1828,7 +2034,7 @@ int main(int argc, char **argv)
 				double 		v,w;
 				int64_t  	left_ticks, right_ticks;
 				double 		phi;
-				robot.getOdometryFull( odo, v, w, left_ticks, right_ticks );
+				//getOdometryFull( odo, v, w, left_ticks, right_ticks );
 
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 				thrPar.currentOdo.set(odo);
@@ -1845,7 +2051,7 @@ int main(int argc, char **argv)
 				cout << "phi: " << RAD2DEG(phi);
 				cout << "turning ... " << endl;									
 				turn(robot,phi,thrPar);
-				robot.getOdometry( odo );
+				getOdometry( odo, odo_fd, thrPar );
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 				thrPar.currentOdo.set(odo);
 			}
@@ -1873,7 +2079,7 @@ int main(int argc, char **argv)
 				double 		v,w;
 				int64_t  	left_ticks, right_ticks;
 				double 		phi;
-				robot.getOdometry( odo );
+				getOdometry( odo, odo_fd, thrPar );
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 			
 				CPoint2D origin( odo.x(), odo.y() );
