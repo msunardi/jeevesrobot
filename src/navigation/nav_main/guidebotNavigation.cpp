@@ -49,6 +49,10 @@
 #include <string>
 #include <unistd.h>
 
+//includes for network communication
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
 using namespace mrpt;
 using namespace mrpt::hwdrivers;
 using namespace mrpt::utils;
@@ -94,8 +98,15 @@ static float kinectMinTruncateDistance = 0.5;
 static int SCAN_BYTES 		= 6;	//number of bytes from LRF (including auxillary byte)
 
 static char* LRF_PORT_NAME		=	"/dev/ttyACM0";
-static char* ODO_PORT_NAME		=	"/dev/ttyACM0";
+static char* ODO_PORT_NAME		=	"/dev/ttyACM1";
 static int   ODO_READ_MIN		=	7;
+
+#define PORT "80" // the port client will be connecting to 
+
+#define MAXDATASIZE 100 // max number of bytes we can get at once 
+
+#define LOCAL_HOST "127.0.0.1"
+
 /* our threads 's sharing resources */
 struct TThreadRobotParam
 {
@@ -166,6 +177,10 @@ void fixOdometry(CPose2D & pose, CPose2D offset);
 void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd);
 void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar);
 int setupArduino(char * port, int readBytes);
+void *get_in_addr(struct sockaddr *sa);
+int clientCommunication();
+void setVelocities(int linear, int angular, TThreadRobotParam &thrPar);
+
 /**************************************************************************************************/
 /*                                         FUNCTION IMPLEMENTATIONS                               */		
 /**************************************************************************************************/
@@ -550,7 +565,7 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	char getCommand[1];
 	int n;
 	CPose2D tempPose;
-	int x,y,phi;
+	short x,y,phi;
 	getCommand[0]='e';
 	 
 	/* Flush anything already in the serial buffer */
@@ -558,7 +573,7 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	/* read up to 128 bytes from the fd */
 	write(odo_fd,getCommand,1);
 	buf[0] = 0;
-	while(buf[0] != '!')
+	while(buf[0] != '*')
 	{
 	 	n = read(odo_fd, buf, 7);
 		
@@ -588,13 +603,13 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	
 	printf("x = %d, y = %d, phi = %d\n",x,y,phi);
 	tempPose = thrPar.currentOdo.get();
-	x = x + tempPose.x();
-	y = y + tempPose.y();
-	phi = phi + tempPose.phi();
+	//x = x + tempPose.x();
+	//y = y + tempPose.y();
+	//phi = phi + tempPose.phi();
 
-	out_odom.x(x);
-	out_odom.y(y);
-	out_odom.phi(phi);
+	out_odom.x(float(x)/100.0);
+	out_odom.y(float(y)/100.0);
+	out_odom.phi(float(phi)*M_PI/180.0);
 	
 	sleep(1000);
 	
@@ -733,7 +748,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 				cout << "phi: " << RAD2DEG(phi);
 				cout << "\t tempOdo.phi: " << RAD2DEG(tempOdo.phi()) << endl;
 				cout << "turning ... " << endl;									
-				turn(aRobot,phi, thrPar);
+				//*turn(aRobot,phi, thrPar);
 				getOdometry(currentOdo,odo_fd, thrPar);
 				fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 				cout << "Phi after turn: " << currentOdo.phi() << endl;
@@ -755,25 +770,25 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 				 * to do with the fixOdometry()
 				 */
 				//cout << "after turnangle " << turn_angle << endl;
-				aRobot.setVelocities( LINEAR_SPEED, turn_angle); //turnAngle(aRobot, phi, thrPar) / 5 );
+				//*setVelocities( LINEAR_SPEED, turn_angle, thrPar); //turnAngle(aRobot, phi, thrPar) / 5 );
 			} 
 			else if (thrPar.rightObstacle.get() == true && thrPar.leftObstacle.get() == false)
 			{
 				/*turn to the left to avoid the wall on the right */
-				aRobot.setVelocities( LINEAR_SPEED / 2, 0.2 );
+				//*setVelocities( LINEAR_SPEED / 2, 0.2, thrPar );
 				//sleep(200);			
 			}
 			else if (thrPar.leftObstacle.get() == true && thrPar.rightObstacle.get() == false)
 			{
 				/* turn to the right to avoid the wall on the left. */
-				aRobot.setVelocities( LINEAR_SPEED / 2, -0.2 );
+				//*setVelocities( LINEAR_SPEED / 2, -0.2, thrPar );
 				//sleep(200);
 			}
 			else	/* obstacle in front. FIXME: not having any appropriate behaviour for this */
 			{
 				cout << "error! I am confused and cannot navigate appropriately at this time." << endl;
 				//thrPar.stop.set(true);
-				//aRobot.setVelocities(0, 0);
+				//setVelocities(0, 0);
 			}
 
 			/* update sonar reading to display */
@@ -825,7 +840,8 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 	} /* end for */
 
 	/* done driving and save outputs */	
-	aRobot.setVelocities( 0, 0 );	
+	
+	//*setVelocities( 0, 0, thrPar );	
 	thrPar.stop.set(false);
 //	
 }
@@ -942,6 +958,7 @@ double turnAngle(double current_phi, double phi)
 
 /*
  * @Description
+ * @Description
  * Turn robot direction to target next target
  * 
  * @param	phi:	is the desired turn angle, which referenced to the map coordiate,
@@ -1005,14 +1022,66 @@ static void turn(CActivMediaRobotBase &robot, double phi, TThreadRobotParam &p)
 		}
 
 		/* do turn */
-		robot.setVelocities( 0, speed );
+		setVelocities( 0, speed , p );
 		
 		/* delay between reading */
 		mrpt::system::sleep(POLL_INTERVAL);
 	}
-	//robot.setVelocities(0,0); /* stop */
+	//setVelocities(0,0); /* stop */
 }
 
+void setVelocities(int linear, int angular, TThreadRobotParam &thrPar)
+{
+	int velocity_fd = thrPar.odo_fd.get(); //file descriptor for writing to robot velocity		
+	char velocityCommand[1];
+	int n;
+	 
+	/* Flush anything already in the serial buffer */
+	tcflush(velocity_fd, TCIFLUSH);
+	
+	//STOP
+	if(linear == 0 && angular == 0)
+	{
+		velocityCommand[0] = 2;
+		/* read up to 128 bytes from the fd */
+		write(velocity_fd,velocityCommand,1);
+	}
+	//LEFT	
+	else if(linear == 0 && angular == -1)
+	{
+		velocityCommand[0] = 0;
+		/* read up to 128 bytes from the fd */
+		write(velocity_fd,velocityCommand,1);
+	}
+	//RIGHT
+	else if(linear == 0 && angular == 1)
+	{
+		velocityCommand[0] = 1;
+		/* read up to 128 bytes from the fd */
+		write(velocity_fd,velocityCommand,1);
+	}
+	//FORWARD
+	else if(linear == 1 && angular == 0)
+	{
+		velocityCommand[0] = 3;
+		/* read up to 128 bytes from the fd */
+		write(velocity_fd,velocityCommand,1);
+	}
+	//BACK
+	else if(linear == 0 && angular == 0)
+	{
+		velocityCommand[0] = 4;
+		/* read up to 128 bytes from the fd */
+		write(velocity_fd,velocityCommand,1);
+	}
+	else
+	{
+		velocityCommand[0] = 2;
+		/* read up to 128 bytes from the fd */
+		write(velocity_fd,velocityCommand,1);
+	}
+
+}
 
 /*
  * @Description
@@ -1784,6 +1853,92 @@ void fixOdometry(CPose2D & pose, CPose2D offset)
 
 }
 
+// get sockaddr, IPv4 or IPv6:
+void *get_in_addr(struct sockaddr *sa)
+{
+	if (sa->sa_family == AF_INET) {
+		return &(((struct sockaddr_in*)sa)->sin_addr);
+	}
+
+	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+int clientCommunication()
+{
+	int sock;
+	struct sockaddr_in server;
+	char message[1000] , server_reply[2000];
+	
+	//Create socket
+	sock = socket(AF_INET , SOCK_STREAM , 0);
+	if (sock == -1)
+	{
+		printf("Could not create socket");
+	}
+	puts("Socket created");
+	
+	server.sin_addr.s_addr = inet_addr(LOCAL_HOST);
+	server.sin_family = AF_INET;
+	//server.sin_port = htons( 8888 );
+	server.sin_port = htons( 80 );
+
+	//Connect to remote server
+	if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
+	{
+		perror("connect failed. Error");
+		return 1;
+	}
+	
+	puts("Connected\n");
+	
+	//keep communicating with server
+	/*
+		MIKE, you might want to look into this while loop more closely.
+		This is where the program keeps listening to the server
+	*/
+	while(1)
+	{
+		printf("Enter message : ");
+		scanf("%s" , message);
+		
+		//Send some data
+		if( send(sock , message , strlen(message) , 0) < 0)
+		{
+			puts("Send failed");
+			return 1;
+		}
+		
+		//Receive a reply from the server
+		if( recv(sock , server_reply , 2000 , 0) < 0)
+		{
+			puts("recv failed");
+			break;
+		}
+	
+		// server_reply (char [2000]) is the response (a string) from the server
+		/* 
+			The message format would be like this:
+				<target>:<command>:<input argument1>(:<input argument2>)
+			
+			The navigation should respond to messages like these from the server:
+			- Navigate to a location: 'nav:goto:fab70', 'nav:goto:eb84'
+			- Short/small movements: 'nav:move:forward:1', 'nav:move:left:2' (maybe 1 = 30 degrees, 2 = 60 degrees, etc.)
+			
+			You might need to check the stringmatching.c file from the Project page > Files to see how to use regular expression to parse the message.
+		*/
+
+		puts("Server reply :");
+		puts(server_reply);
+
+		// Clear the server_reply array
+		memset(server_reply, 0, sizeof server_reply);
+
+		printf("x");
+	}
+	
+	close(sock);
+	return 0;
+}
 
 /**************************************************************************************************/
 /*                                            MAIN THREAD                                         */		
@@ -1918,8 +2073,8 @@ int main(int argc, char **argv)
 			{
 				show_menu=false;
 				cout << "Press the key for your option:" << endl << endl;
-				cout << " w/s   : +/- linear speed" << endl;
-				cout << " a/d   : +/- angular speed" << endl;
+				cout << " w/s   : +/- forward or back" << endl;
+				cout << " a/d   : +/- left or right" << endl;
 				cout << " space : stop" << endl;
 				cout << " o     : Query odometry" << endl;
 				cout << " n     : Query sonars" << endl;
@@ -1928,6 +2083,7 @@ int main(int argc, char **argv)
 				cout << " P		: Follow Path" << endl;
 				cout << " e		: Enter new current pose: " << endl;
 				cout << " t 	: Enter new target for path Planning: " << endl;
+				cout << " n	: Network communication mode" << endl;
 				cout << " x     : Quit" << endl;
 			}
 
@@ -1947,23 +2103,27 @@ int main(int argc, char **argv)
 
 			if (c=='w' || c=='s') /* increase or decrease current linear velocity */
 			{
-				if (c=='w') cur_v += 0.05;
-				if (c=='s') cur_v -= 0.05;
-				robot.setVelocities( cur_v, cur_w );
+				if (c=='w') cur_v = 1;
+				if (c=='s') cur_v = -1;
+				setVelocities( cur_v, 0, thrPar);
+				sleep(1000);
+				setVelocities( 0, 0, thrPar);
 			}
 
 			if (c=='a' || c=='d')  /* increase or decrease current angular velocity */
 			{
-				if (c=='a') cur_w += 0.05;
-				if (c=='d') cur_w -= 0.05;
-				robot.setVelocities( cur_v, cur_w );
+				if (c=='a') cur_w += -1;
+				if (c=='d') cur_w -= 1;
+				setVelocities( 0, cur_w, thrPar );
+				sleep(1000);
+				setVelocities( 0, 0, thrPar);
 			}
 
 			if (c==' ')  /* stop, set current linear and anhular velocities to 0 */
 			{
 				cur_v = 0;
 				cur_w = 0;
-				robot.setVelocities( cur_v, cur_w );
+				setVelocities( cur_v, cur_w, thrPar );
 			}
 
 			if (c=='o')  /* get current odometry reading */
@@ -1971,9 +2131,11 @@ int main(int argc, char **argv)
 				CPose2D 	odo;
 				double 		v,w;
 				int64_t  	left_ticks, right_ticks;
-				//getOdometryFull( odo, v, w, left_ticks, right_ticks );
+				getOdometry( odo, odo_fd, thrPar );
+				printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 				thrPar.currentOdo.set(odo);
+				printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
 				cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
 			}
 
@@ -2095,6 +2257,13 @@ int main(int argc, char **argv)
 				} /* end path following */
 				
 			}
+
+			if (c=='n')
+			{
+	
+				clientCommunication();			
+
+			}
 	
 
 		}
@@ -2115,4 +2284,3 @@ int main(int argc, char **argv)
 	}
 	return 0;
 }
-
