@@ -95,12 +95,10 @@ static int Y_CENTRAL_PIXEL		=	-1;
 static CMonteCarloLocalization2D pdf;
 static float kinectMinTruncateDistance = 0.5;
 
-static int SCAN_BYTES 		= 6;	//number of bytes from LRF (including auxillary byte)
-
 static char* LRF_PORT_NAME		=	"/dev/ttyACM0";
 static char* ODO_PORT_NAME		=	"/dev/ttyACM1";
 static int   ODO_READ_MIN		=	7;
-
+static int   LRF_READ_MIN		=	6;
 #define PORT "80" // the port client will be connecting to 
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
@@ -151,6 +149,7 @@ struct TThreadRobotParam
 	mrpt::synch::CThreadSafeVariable<CPose2D>						odometryOffset;
 	
 	mrpt::synch::CThreadSafeVariable<int>							odo_fd; //file descripter for odometry port
+	mrpt::synch::CThreadSafeVariable<int>							lrf_fd; //file descripter for lrf (may be same as odometry)
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMean;
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMostLikely;
 };
@@ -174,7 +173,7 @@ void computePdfLikelihoodValues(COccupancyGridMap2D & map, CMonteCarloLocalizati
 void adjustCObservationRangeSonarPose( CObservationRange &obs );
 void thread_wall_detect(TThreadRobotParam &p);
 void fixOdometry(CPose2D & pose, CPose2D offset);
-void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd);
+void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd,TThreadRobotParam &thrPar);
 void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar);
 int setupArduino(char * port, int readBytes);
 void *get_in_addr(struct sockaddr *sa);
@@ -391,64 +390,12 @@ void thread_update_pdf(TThreadRobotParam &p)
  */
 void thread_LRF(TThreadRobotParam &p)
 {
-	
-	/* initialize for hardware readings */		
-	char *portname = LRF_PORT_NAME;
-	int fd;
- 
-	/* Open the file descriptor in non-blocking mode */
-	 fd = open(portname, O_RDWR | O_NOCTTY);
-	 
-	/* Set up the control structure */
-	 struct termios toptions;
-	 
-	 /* Get currently set options for the tty */
-	 tcgetattr(fd, &toptions);
-
-	/* Set custom options */
-	/* 9600 baud */
-	 cfsetispeed(&toptions, B9600);
-	 cfsetospeed(&toptions, B9600);
-
-	 /* 8 bits, no parity, no stop bits */
-	 toptions.c_cflag &= ~PARENB;
-	 toptions.c_cflag &= ~CSTOPB;
-	 toptions.c_cflag &= ~CSIZE;
-	 toptions.c_cflag |= CS8;
-	 /* no hardware flow control */
-	 toptions.c_cflag &= ~CRTSCTS;
-
-	 /* enable receiver, ignore status lines */
-	 toptions.c_cflag |= CREAD | CLOCAL;
-
-	 /* disable input/output flow control, disable restart chars */
-	 toptions.c_iflag &= ~(IXON | IXOFF | IXANY);
-
-	 /* disable canonical input, disable echo,
-	 disable visually erase chars,
-	 disable terminal-generated signals */
-	 toptions.c_iflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-
-	 /* disable output processing */
-	 toptions.c_oflag &= ~OPOST;	 
-
-	/* wait for 1 characters to come in before read returns */
-	 toptions.c_cc[VMIN] = SCAN_BYTES;
-
-	 /* no minimum time to wait before read returns */
- 	toptions.c_cc[VTIME] = 0;
-
-	/* commit the options */
-	 tcsetattr(fd, TCSANOW, &toptions); 
-
-	/* Wait for the Arduino to reset */
+	//get lrf file descriptor
+	int fd = p.lrf_fd.get();
 	sleep(1000);
-	
+
 	try
 	{
-
-
-
 		const std::string cfgFile = CONFIG_FILE_NAME;
 		if (mrpt::system::fileExists(cfgFile))
 		{
@@ -474,7 +421,7 @@ void thread_LRF(TThreadRobotParam &p)
 			CObservation2DRangeScanPtr  obs     = CObservation2DRangeScan::Create(); 
 			//CObservationIMUPtr          obs_imu = CObservationIMU::Create();
 			
-			getNextObservation(*obs,there_is_obs,hard_error,fd);
+			getNextObservation(*obs,there_is_obs,hard_error,fd,p);
 
 			if (!hard_error && there_is_obs)
 			{
@@ -501,12 +448,13 @@ void thread_LRF(TThreadRobotParam &p)
  *		hard_error: true when an error occurs with the LRF
  * @return	none
  */
-void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd)
+void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd, TThreadRobotParam &thrPar)
 {
 
-	char buf[256];
+	unsigned char buf[256];
 	char getCommand[1];
 	int n;
+	
 	getCommand[0]='l';
 	 /* Flush anything already in the serial buffer */
 	 tcflush(fd, TCIFLUSH);
@@ -524,10 +472,7 @@ void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool h
 	
 	sleep(150);	
 	 
-	//read data in
-//	n = read(fd, buf,6);
 	
-	// printf("Buffer has \n%s\n",buf);
 	 printf("%i bytes got read...\n", n);
 	 printf("Buffer 1 contains...\n%d\n", buf[0]);
 	 printf("Buffer 2 contains...\n%d\n", buf[1]);
@@ -535,13 +480,15 @@ void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool h
 	 printf("Buffer 4 contains...\n%d\n", buf[3]);
 	 printf("Buffer 5 contains...\n%d\n", buf[4]);
 
-	CPose2D newOffset(0,0,0);
+	CPose2D curOdo = thrPar.currentOdo.get();
+	CPose2D newOffset(curOdo.x(),curOdo.y(),curOdo.phi());
 	out_obs.scan.clear();	
 	out_obs.validRange.clear();
 	out_obs.setSensorPose(newOffset);
 	out_obs.aperture = M_PI*40/180;	
 	sleep(1000);
-	for(int i = 0; i < SCAN_BYTES; i++)
+	
+	for(int i = 0; i < LRF_READ_MIN; i++)
 	{	
 	 	printf("Buffer %d contains...\n%d\n",i,buf[i]);
 		if (i > 0)
@@ -561,7 +508,7 @@ void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool h
 void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 {
 
-	char buf[256];
+	unsigned char buf[256];
 	char getCommand[1];
 	int n;
 	CPose2D tempPose;
@@ -2041,15 +1988,30 @@ int main(int argc, char **argv)
 		mrpt::system::TThreadHandle thHandle; 
 		mrpt::system::TThreadHandle wallDetectHandle;
 	
-	//	pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
+		pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
 		displayHandle = mrpt::system::createThreadRef(thread_display ,thrPar);
-	//	thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
+		thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
 		wallDetectHandle = mrpt::system::createThreadRef(thread_wall_detect, thrPar);
 
 
 		//setup arduino for odo
+		cout<<"Initializing odometry arduino"<<endl;
 		int odo_fd = setupArduino(ODO_PORT_NAME,ODO_READ_MIN);
 		thrPar.odo_fd.set(odo_fd);
+		
+		//if lrf and odometry are on the same arduino port
+		if(strcmp(ODO_PORT_NAME,LRF_PORT_NAME) == 0)
+		{
+			cout<<"Initializing lrf arduino on the same port as odometry"<<endl;
+			thrPar.lrf_fd.set(odo_fd);
+		}
+		else
+		{
+			cout<<"Initializing lrf arduino on unique port"<<endl;
+			int lrf_fd = setupArduino(LRF_PORT_NAME,LRF_READ_MIN);
+			thrPar.lrf_fd.set(lrf_fd);
+		}
+
 		/* Wait until data stream starts so we can say for sure the sensor has been initialized OK: */	
 		cout << "Waiting for sensor initialization...\n";
 		/* May need to do similar for LRF
