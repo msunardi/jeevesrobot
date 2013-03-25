@@ -96,9 +96,10 @@ static CMonteCarloLocalization2D pdf;
 static float kinectMinTruncateDistance = 0.5;
 
 static char* LRF_PORT_NAME		=	"/dev/ttyACM0";
-static char* ODO_PORT_NAME		=	"/dev/ttyACM1";
+static char* ODO_PORT_NAME		=	"/dev/ttyACM0";
+static char* MOTOR_PORT_NAME		=	"/dev/ttyACM0";
 static int   ODO_READ_MIN		=	7;
-static int   LRF_READ_MIN		=	6;
+static int   LRF_READ_MIN		=	7;
 #define PORT "80" // the port client will be connecting to 
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
@@ -145,11 +146,16 @@ struct TThreadRobotParam
 	mrpt::synch::CThreadSafeVariable<bool>							leftObstacle;
 	mrpt::synch::CThreadSafeVariable<bool>							rightObstacle;
 	mrpt::synch::CThreadSafeVariable<bool>							centerObstacle;
+	mrpt::synch::CThreadSafeVariable<bool>							isMoving; //set when robot is moving, clear otherwise
+	mrpt::synch::CThreadSafeVariable<bool>							gettingLRF; //set when robot is using LRF, clear otherwise
+	mrpt::synch::CThreadSafeVariable<bool>							isTurning; //set when robot is using LRF, clear otherwise
+
 
 	mrpt::synch::CThreadSafeVariable<CPose2D>						odometryOffset;
 	
 	mrpt::synch::CThreadSafeVariable<int>							odo_fd; //file descripter for odometry port
 	mrpt::synch::CThreadSafeVariable<int>							lrf_fd; //file descripter for lrf (may be same as odometry)
+	mrpt::synch::CThreadSafeVariable<int>							vel_fd;
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMean;
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMostLikely;
 };
@@ -158,7 +164,7 @@ int scanTest = 0;  //Testing global variable. Delete After test
 /* prototypes */
 double turnAngle(CActivMediaRobotBase & aRobot, double phi, TThreadRobotParam thrPar);
 double turnAngle(double current_phi, double phi);
-static void turn(CActivMediaRobotBase &robot, double phi, TThreadRobotParam &p);
+static void turn( double phi, TThreadRobotParam &p);
 static int PathPlanning(std::deque<poses::TPoint2D> &thePath, CPoint2D  origin, CPoint2D  target);
 static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar);
 static CObservation2DRangeScan* getKinect2DScan(const TThreadRobotParam & TP, CObservation3DRangeScanPtr & lastObs);
@@ -173,11 +179,11 @@ void computePdfLikelihoodValues(COccupancyGridMap2D & map, CMonteCarloLocalizati
 void adjustCObservationRangeSonarPose( CObservationRange &obs );
 void thread_wall_detect(TThreadRobotParam &p);
 void fixOdometry(CPose2D & pose, CPose2D offset);
-void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd,TThreadRobotParam &thrPar);
+int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd,TThreadRobotParam &thrPar);
 void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar);
 int setupArduino(char * port, int readBytes);
-void *get_in_addr(struct sockaddr *sa);
 int clientCommunication();
+int parseServerReply(char * server_reply);
 void setVelocities(int linear, int angular, TThreadRobotParam &thrPar);
 
 /**************************************************************************************************/
@@ -420,15 +426,16 @@ void thread_LRF(TThreadRobotParam &p)
 			/* Grab new observation from the camera:*/
 			CObservation2DRangeScanPtr  obs     = CObservation2DRangeScan::Create(); 
 			//CObservationIMUPtr          obs_imu = CObservationIMU::Create();
-			
-			getNextObservation(*obs,there_is_obs,hard_error,fd,p);
-
-			if (!hard_error && there_is_obs)
+			if(!p.isMoving.get() & !p.gettingLRF.get())
+			{
+				getNextObservation(*obs,there_is_obs,hard_error,fd,p);
+			}
+			if (!hard_error && there_is_obs )
 			{
 				p.new_obs.set(obs);
 			//	p.new_obs_imu.set(obs_imu);
-			}
-
+			}	
+			sleep(2500);
 		}/* end while*/
 	}
 	catch(std::exception &e)
@@ -448,22 +455,26 @@ void thread_LRF(TThreadRobotParam &p)
  *		hard_error: true when an error occurs with the LRF
  * @return	none
  */
-void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd, TThreadRobotParam &thrPar)
+int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd, TThreadRobotParam &thrPar)
 {
 
 	unsigned char buf[256];
 	char getCommand[1];
 	int n;
+	cout<<"lrf_odo "<<fd<<endl;
+	cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;	 
 	
+	thrPar.gettingLRF.set(true);	
 	getCommand[0]='l';
 	 /* Flush anything already in the serial buffer */
+	cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;	 
 	 tcflush(fd, TCIFLUSH);
 	 /* read up to 128 bytes from the fd */
 	write(fd,getCommand,1);
 	buf[0] = 0;
 	while(buf[0] != '!')
 	{
-	 	n = read(fd, buf, 6);
+	 	n = read(fd, buf, 7);
 		
 		sleep(100);
 	 	printf("%i bytes got read...\n", n);
@@ -471,7 +482,6 @@ void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool h
  	}
 	
 	sleep(150);	
-	 
 	
 	 printf("%i bytes got read...\n", n);
 	 printf("Buffer 1 contains...\n%d\n", buf[0]);
@@ -483,20 +493,25 @@ void getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool h
 	CPose2D curOdo = thrPar.currentOdo.get();
 	CPose2D newOffset(curOdo.x(),curOdo.y(),curOdo.phi());
 	out_obs.scan.clear();	
+	fixOdometry( newOffset, thrPar.odometryOffset.get() );
 	out_obs.validRange.clear();
-	out_obs.setSensorPose(newOffset);
+	out_obs.setSensorPose(thrPar.odometryOffset.get());
 	out_obs.aperture = M_PI*40/180;	
 	sleep(1000);
 	
 	for(int i = 0; i < LRF_READ_MIN; i++)
 	{	
-	 	printf("Buffer %d contains...\n%d\n",i,buf[i]);
+//	 	printf("Buffer %d contains...\n%d\n",i,buf[i]);
 		if (i > 0)
 		{
 			out_obs.scan.push_back(float(buf[i])/100);
 			out_obs.validRange.push_back(1);
 		}
 	}
+	thrPar.gettingLRF.set(false);
+	cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;	 
+		
+	return 0;
 }
 
 /*
@@ -514,14 +529,17 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	CPose2D tempPose;
 	short x,y,phi;
 	getCommand[0]='e';
-	 
+	cout<<"In getting ODO"<<endl; 
 	/* Flush anything already in the serial buffer */
 	tcflush(odo_fd, TCIFLUSH);
 	/* read up to 128 bytes from the fd */
 	write(odo_fd,getCommand,1);
+	cout<<"written"<<endl;
+	cout<<"odo_fd "<<odo_fd<<endl;
 	buf[0] = 0;
 	while(buf[0] != '*')
 	{
+		cout<<"reading"<<endl;
 	 	n = read(odo_fd, buf, 7);
 		
 		sleep(100);
@@ -535,19 +553,24 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 //	n = read(fd, buf,6);
 	
 	// printf("Buffer has \n%s\n",buf);
-	 printf("%i bytes got read...\n", n);
-	 printf("Buffer 1 contains...\n%d\n", buf[0]);
-	 printf("Buffer 2 contains...\n%d\n", buf[1]);
-	 printf("Buffer 3 contains...\n%d\n", buf[2]);
-	 printf("Buffer 4 contains...\n%d\n", buf[3]);
-	 printf("Buffer 5 contains...\n%d\n", buf[4]);
-	 printf("Buffer 5 contains...\n%d\n", buf[5]);
-	 printf("Buffer 5 contains...\n%d\n", buf[6]);
-	
+//	 printf("%i bytes got read...\n", n);
+//	 printf("Buffer 1 contains...\n%d\n", buf[0]);
+//	 printf("Buffer 2 contains...\n%d\n", buf[1]);
+//	 printf("Buffer 3 contains...\n%d\n", buf[2]);
+//	 printf("Buffer 4 contains...\n%d\n", buf[3]);
+//	 printf("Buffer 5 contains...\n%d\n", buf[4]);
+//	 printf("Buffer 5 contains...\n%d\n", buf[5]);
+//	 printf("Buffer 5 contains...\n%d\n", buf[6]);
+	cout<<"read"<<endl;
 	x = ((buf[2] & 255)<< 8) | (buf[1] & 255);	
 	y = ((buf[4] & 255) << 8) | (buf[3] & 255);
 	phi = ((buf[6] & 255) << 8) | (buf[5] & 255);
-	
+
+	//flip phi over x axis
+//	if(phi != 0)
+//	{
+//		phi = 360 - phi;
+//	}	
 	printf("x = %d, y = %d, phi = %d\n",x,y,phi);
 	tempPose = thrPar.currentOdo.get();
 	//x = x + tempPose.x();
@@ -655,6 +678,14 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 		cout << "current pose: " << currentOdo << endl;
 		cout <<  "[next nearby target?] x: " << it->x << " y: " << it->y << " " << endl;
 		
+		//If getting LRF don't move to the next location
+		while(thrPar.gettingLRF.get())
+		{
+			sleep(100);
+		}
+
+		
+		thrPar.isMoving.set(true);
 		/* check for undefined case atan(0,0), for sure */
 		if( ( abs(it->y - currentOdo.y()) < SMALL_NUMBER ) && ( abs(it->x - currentOdo.x()) < SMALL_NUMBER ) )
 		{			thrPar.currentOdo.set(currentOdo);
@@ -695,7 +726,8 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 				cout << "phi: " << RAD2DEG(phi);
 				cout << "\t tempOdo.phi: " << RAD2DEG(tempOdo.phi()) << endl;
 				cout << "turning ... " << endl;									
-				//*turn(aRobot,phi, thrPar);
+				turn(phi, thrPar);
+				cout << "done with turn"<< endl;
 				getOdometry(currentOdo,odo_fd, thrPar);
 				fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 				cout << "Phi after turn: " << currentOdo.phi() << endl;
@@ -711,24 +743,28 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 				/* driving to next target */	
 				/* FIXME : adjust ANGULAR_SPEED_DIV for better drive */
 				double turn_angle = turnAngle(currentOdo.phi(), phi) / ANGULAR_SPEED_DIV;
-				if (turn_angle < .01) 
+				if (turn_angle < .02) 
 					turn_angle = 0;				
 				/* FIXME : segmentation fault happens sometime, probably it has something
 				 * to do with the fixOdometry()
 				 */
 				//cout << "after turnangle " << turn_angle << endl;
+				  setVelocities( 1,0,thrPar);
 				//*setVelocities( LINEAR_SPEED, turn_angle, thrPar); //turnAngle(aRobot, phi, thrPar) / 5 );
 			} 
 			else if (thrPar.rightObstacle.get() == true && thrPar.leftObstacle.get() == false)
 			{
 				/*turn to the left to avoid the wall on the right */
-				//*setVelocities( LINEAR_SPEED / 2, 0.2, thrPar );
+				//setVelocities( LINEAR_SPEED / 2, 0.2, thrPar );
+				//FIX THIS LATER OBSTICAL AVOIDANCE
+				  setVelocities( 0,0,thrPar);
 				//sleep(200);			
 			}
 			else if (thrPar.leftObstacle.get() == true && thrPar.rightObstacle.get() == false)
 			{
 				/* turn to the right to avoid the wall on the left. */
 				//*setVelocities( LINEAR_SPEED / 2, -0.2, thrPar );
+				setVelocities(0,0, thrPar);
 				//sleep(200);
 			}
 			else	/* obstacle in front. FIXME: not having any appropriate behaviour for this */
@@ -756,10 +792,13 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 				//cout << endl;
 			}
 
-			mrpt::system::sleep(POLL_INTERVAL);
-			
+			mrpt::system::sleep(1000);
+		//	mrpt::system::sleep(POLL_INTERVAL);
+			//sleep(1000);	
 			/* update robot status */
-			
+			setVelocities(0,0,thrPar);
+
+			mrpt::system::sleep(1000);
 			getOdometry( currentOdo, odo_fd, thrPar); /* for stop condition */
 			fixOdometry( currentOdo, thrPar.odometryOffset.get() );
 			thrPar.currentOdo.set(currentOdo);
@@ -783,12 +822,16 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 //		thrPar.odometryOffset.set(newOffset);					
 //		aRobot.changeOdometry(startOdo);
 //		currentOdo = tempPose;	
-//	
+//
+	//Stop moving a delay to allow getting LRF values
+	//*setVelocities( 0, 0, thrPar );
+	thrPar.isMoving.set(false);
+	sleep(100);	
 	} /* end for */
 
 	/* done driving and save outputs */	
 	
-	//*setVelocities( 0, 0, thrPar );	
+	//*setVelocities( 0, 0, thrPar );
 	thrPar.stop.set(false);
 //	
 }
@@ -915,7 +958,7 @@ double turnAngle(double current_phi, double phi)
  *			p:	 	access and update current odometry to thread parameter list
  * @return	none
  */
-static void turn(CActivMediaRobotBase &robot, double phi, TThreadRobotParam &p)
+static void turn( double phi, TThreadRobotParam &p)
 {
 	CPose2D	odo;
 	CPose2D	target;
@@ -932,18 +975,20 @@ static void turn(CActivMediaRobotBase &robot, double phi, TThreadRobotParam &p)
 		
 		/* force odo.phi() to be in the range [-pi,pi]  */	
 		odo.normalizePhi();	
-
-		if ( abs(phi - odo.phi()) < SMALL_NUMBER )
+		cout<<"TA "<<phi<<","<<odo.phi()<<endl;
+		if ( abs(phi - odo.phi()) < .09 ) //was SMALL_NUMBER
 			return;
 		
 		/* turn: Only turn toward target, avoid circling if over-turn */	
 		/* find the optimized turn angle */	
-		turnAngle = abs(phi-odo.phi());	
+		turnAngle = phi; //abs(phi-odo.phi());	
+		cout<<"M_PI"<<TURN_THRESHOLD<<endl;	
+		cout<<"TA "<<turnAngle<<endl;
 		if ( turnAngle >= M_PI )
 		{
 			turnAngle = 2*M_PI - turnAngle;
 		}
-
+		cout<<"TA "<<turnAngle<<endl;
 		/* find the turn direction: add turnAngle, normalized then compare */	
 		CPose2D odoTemp(odo);
 		odoTemp.phi_incr(turnAngle);
@@ -955,75 +1000,106 @@ static void turn(CActivMediaRobotBase &robot, double phi, TThreadRobotParam &p)
 			
 		if ( abs(odoTemp.phi() - phi) < SMALL_NUMBER ) /* small diff */ 
 		{
+		cout<<"1"<<endl;
 			if( turnAngle < TURN_THRESHOLD * 2 ) /* slow down near desired angle */
-				speed = ANGULAR_SPEED / 2;
+				//speed = ANGULAR_SPEED / 2;
+				speed = 1;
 			else 
-				speed = ANGULAR_SPEED;
+				//speed = ANGULAR_SPEED;
+				speed = 1;
 		}
 		else
 		{
+		cout<<"2"<<endl;
 			if( turnAngle < TURN_THRESHOLD * 2 ) 
-				speed = -ANGULAR_SPEED / 2; /* slow down near desired angle */
+				//speed = -ANGULAR_SPEED / 2; /* slow down near desired angle */
+				speed = -1;
 			else 
-				speed = -ANGULAR_SPEED;		
+				//speed = -ANGULAR_SPEED;
+				speed = -1;		
 		}
-
+		
+		//mrpt::system::sleep(500);
 		/* do turn */
-		setVelocities( 0, speed , p );
+		cout<<"Speed"<<speed<<endl;
+		setVelocities( 0,-1* speed , p );
 		
 		/* delay between reading */
-		mrpt::system::sleep(POLL_INTERVAL);
+		//mrpt::system::sleep(POLL_INTERVAL);
+		mrpt::system::sleep(500);
+		//sleep(250);
+		
+	setVelocities(0, 0, p); /* stop */
+		mrpt::system::sleep(1200);
 	}
-	//setVelocities(0,0); /* stop */
+	setVelocities(0, 0, p); /* stop */
+}
+
+bool returnGettingLRF(TThreadRobotParam &thrPar)
+{
+	return thrPar.gettingLRF.get();
 }
 
 void setVelocities(int linear, int angular, TThreadRobotParam &thrPar)
 {
-	int velocity_fd = thrPar.odo_fd.get(); //file descriptor for writing to robot velocity		
+	int velocity_fd = thrPar.vel_fd.get(); //file descriptor for writing to robot velocity		
 	char velocityCommand[1];
 	int n;
-	 
+	
+	//wait for lrf reading to finish
+
+	while(thrPar.gettingLRF.get());	 
 	/* Flush anything already in the serial buffer */
 	tcflush(velocity_fd, TCIFLUSH);
-	
+	velocityCommand[0] = 0;
 	//STOP
 	if(linear == 0 && angular == 0)
 	{
-		velocityCommand[0] = 2;
+		velocityCommand[0] = 'x';
 		/* read up to 128 bytes from the fd */
 		write(velocity_fd,velocityCommand,1);
+		sleep(100);
+	
+		write(velocity_fd,velocityCommand,1);
+		sleep(100);
+		write(velocity_fd,velocityCommand,1);
+		sleep(100);
+		write(velocity_fd,velocityCommand,1);
+		sleep(100);
+		write(velocity_fd,velocityCommand,1);
+		sleep(100);
 	}
 	//LEFT	
 	else if(linear == 0 && angular == -1)
 	{
-		velocityCommand[0] = 0;
+		velocityCommand[0] = 'a';
 		/* read up to 128 bytes from the fd */
 		write(velocity_fd,velocityCommand,1);
 	}
 	//RIGHT
 	else if(linear == 0 && angular == 1)
 	{
-		velocityCommand[0] = 1;
+		velocityCommand[0] = 'd';
 		/* read up to 128 bytes from the fd */
 		write(velocity_fd,velocityCommand,1);
 	}
 	//FORWARD
 	else if(linear == 1 && angular == 0)
 	{
-		velocityCommand[0] = 3;
+		velocityCommand[0] = 'w';
 		/* read up to 128 bytes from the fd */
 		write(velocity_fd,velocityCommand,1);
 	}
 	//BACK
-	else if(linear == 0 && angular == 0)
+	else if(linear == -1 && angular == 0)
 	{
-		velocityCommand[0] = 4;
+		velocityCommand[0] = 's';
 		/* read up to 128 bytes from the fd */
 		write(velocity_fd,velocityCommand,1);
 	}
 	else
 	{
-		velocityCommand[0] = 2;
+		velocityCommand[0] = 'x';
 		/* read up to 128 bytes from the fd */
 		write(velocity_fd,velocityCommand,1);
 	}
@@ -1367,7 +1443,7 @@ void thread_display(TThreadRobotParam &p)
 
 		}
 
-	};
+	}
 
 }
 
@@ -1800,15 +1876,8 @@ void fixOdometry(CPose2D & pose, CPose2D offset)
 
 }
 
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
-	if (sa->sa_family == AF_INET) {
-		return &(((struct sockaddr_in*)sa)->sin_addr);
-	}
 
-	return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
+
 
 int clientCommunication()
 {
@@ -1839,21 +1908,17 @@ int clientCommunication()
 	puts("Connected\n");
 	
 	//keep communicating with server
-	/*
-		MIKE, you might want to look into this while loop more closely.
-		This is where the program keeps listening to the server
-	*/
 	while(1)
 	{
 		printf("Enter message : ");
 		scanf("%s" , message);
 		
 		//Send some data
-		if( send(sock , message , strlen(message) , 0) < 0)
-		{
-			puts("Send failed");
-			return 1;
-		}
+		//if( send(sock , message , strlen(message) , 0) < 0)
+		//{
+		//	puts("Send failed");
+		//	return 1;
+		//}
 		
 		//Receive a reply from the server
 		if( recv(sock , server_reply , 2000 , 0) < 0)
@@ -1876,7 +1941,8 @@ int clientCommunication()
 
 		puts("Server reply :");
 		puts(server_reply);
-
+		
+		parseServerReply(server_reply);
 		// Clear the server_reply array
 		memset(server_reply, 0, sizeof server_reply);
 
@@ -1885,6 +1951,14 @@ int clientCommunication()
 	
 	close(sock);
 	return 0;
+}
+
+
+
+int parseServerReply(char * server_reply)
+{
+	//Function to parse the server reply
+
 }
 
 /**************************************************************************************************/
@@ -1988,22 +2062,19 @@ int main(int argc, char **argv)
 		mrpt::system::TThreadHandle thHandle; 
 		mrpt::system::TThreadHandle wallDetectHandle;
 	
-		pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
-		displayHandle = mrpt::system::createThreadRef(thread_display ,thrPar);
-		thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
-		wallDetectHandle = mrpt::system::createThreadRef(thread_wall_detect, thrPar);
 
 
 		//setup arduino for odo
 		cout<<"Initializing odometry arduino"<<endl;
 		int odo_fd = setupArduino(ODO_PORT_NAME,ODO_READ_MIN);
 		thrPar.odo_fd.set(odo_fd);
-		
+		cout<<"odo_fd: "<<odo_fd<<endl;
 		//if lrf and odometry are on the same arduino port
 		if(strcmp(ODO_PORT_NAME,LRF_PORT_NAME) == 0)
 		{
 			cout<<"Initializing lrf arduino on the same port as odometry"<<endl;
 			thrPar.lrf_fd.set(odo_fd);
+			
 		}
 		else
 		{
@@ -2012,6 +2083,28 @@ int main(int argc, char **argv)
 			thrPar.lrf_fd.set(lrf_fd);
 		}
 
+		//if motor is also on the same port
+		if(strcmp(ODO_PORT_NAME,MOTOR_PORT_NAME) == 0)
+		{
+			cout<<"Initializing motor arduino on the same port as odometry"<<endl;
+			thrPar.vel_fd.set(odo_fd);
+		}
+		else
+		{
+			cout<<"Initializing vel arduino on unique port"<<endl;
+			int vel_fd = setupArduino(MOTOR_PORT_NAME,1);
+			thrPar.vel_fd.set(vel_fd);
+		}
+		
+		//Robot is not in motion, or getting LRF value
+		thrPar.isMoving.set(false);
+		thrPar.isTurning.set(false);
+		thrPar.gettingLRF.set(false);
+
+		pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
+		displayHandle = mrpt::system::createThreadRef(thread_display ,thrPar);
+		thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
+		wallDetectHandle = mrpt::system::createThreadRef(thread_wall_detect, thrPar);
 		/* Wait until data stream starts so we can say for sure the sensor has been initialized OK: */	
 		cout << "Waiting for sensor initialization...\n";
 		/* May need to do similar for LRF
@@ -2074,8 +2167,8 @@ int main(int argc, char **argv)
 
 			if (c=='a' || c=='d')  /* increase or decrease current angular velocity */
 			{
-				if (c=='a') cur_w += -1;
-				if (c=='d') cur_w -= 1;
+				if (c=='a') cur_w = -1;
+				if (c=='d') cur_w = 1;
 				setVelocities( 0, cur_w, thrPar );
 				sleep(1000);
 				setVelocities( 0, 0, thrPar);
@@ -2093,7 +2186,20 @@ int main(int argc, char **argv)
 				CPose2D 	odo;
 				double 		v,w;
 				int64_t  	left_ticks, right_ticks;
+				bool 		pollLRF = true;
+				cout<<"getting odo"<<endl;
+				thrPar.isMoving.set(true);
+				while(thrPar.gettingLRF.get());
+				//{
+				//	pollLRF = returnGettingLRF(thrPar);
+				//	cout<<pollLRF<<endl;
+				//	sleep(1000);
+
+				//}
+					
+				cout<<"OK"<<endl;
 				getOdometry( odo, odo_fd, thrPar );
+				thrPar.isMoving.set(false);
 				printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 				thrPar.currentOdo.set(odo);
@@ -2172,9 +2278,8 @@ int main(int argc, char **argv)
 				CPose2D 	odo;		
 				/* calculate required phi to next point */			
 				double phi = atan2 ( (thrPar.targetOdo.get().y() ) , (thrPar.targetOdo.get().x() ) );		
+				turn(45.0*M_PI/180,thrPar);
 				cout << "phi: " << RAD2DEG(phi);
-				cout << "turning ... " << endl;									
-				turn(robot,phi,thrPar);
 				getOdometry( odo, odo_fd, thrPar );
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 				thrPar.currentOdo.set(odo);
@@ -2226,7 +2331,7 @@ int main(int argc, char **argv)
 				clientCommunication();			
 
 			}
-	
+
 
 		}
 
