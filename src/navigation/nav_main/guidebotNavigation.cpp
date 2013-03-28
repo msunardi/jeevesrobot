@@ -121,8 +121,6 @@ struct TThreadRobotParam
 	
 	mrpt::synch::CThreadSafeVariable<CObservation2DRangeScanPtr>    	new_obs;     // RGB+D (+3D points)
 	mrpt::synch::CThreadSafeVariable<CObservationIMUPtr>            new_obs_imu; // Accelerometers
-	//mrpt::synch::CThreadSafeVariable<CActivMediaRobotBase>     * robot;   // robot info
-	//mrpt::synch::CThreadSafeVariable<CPose2D>                    new_pose;   // robot info
 	
 	//mrpt::synch::CThreadSafeVariable<CActionCollectionPtr>       actions;
 	//mrpt::synch::CThreadSafeVariable<CSensoryFramePtr>           observations;
@@ -166,7 +164,7 @@ double turnAngle(CActivMediaRobotBase & aRobot, double phi, TThreadRobotParam th
 double turnAngle(double current_phi, double phi);
 static void turn( double phi, TThreadRobotParam &p);
 static int PathPlanning(std::deque<poses::TPoint2D> &thePath, CPoint2D  origin, CPoint2D  target);
-static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar);
+static void smoothDrive(deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar);
 static CObservation2DRangeScan* getKinect2DScan(const TThreadRobotParam & TP, CObservation3DRangeScanPtr & lastObs);
 void thread_LRF(TThreadRobotParam &p);
 void thread_update_pdf(TThreadRobotParam &p);
@@ -272,33 +270,7 @@ void thread_update_pdf(TThreadRobotParam &p)
 	/* reset all particle to a known location */	
 	pdf.resetDeterministic(previousOdo,1000);
 	
-	/* this part below uniformly distributes particles to the whole map */
-	
-//		if ( !guidebotConfFile.read_bool("LocalizationParams","init_PDF_mode",false, /*Fail if not found*/true) )
-//		pdf.resetUniformFreeSpace(
-//			&gridmap,
-//			0.7f,
-//			M ,
-//			guidebotConfFile.read_float("LocalizationParams","init_PDF_min_x",0,true),
-//			guidebotConfFile.read_float("LocalizationParams","init_PDF_max_x",0,true),
-//			guidebotConfFile.read_float("LocalizationParams","init_PDF_min_y",0,true),
-//			guidebotConfFile.read_float("LocalizationParams","init_PDF_max_y",0,true),
-//			DEG2RAD(guidebotConfFile.read_float("LocalizationParams","init_PDF_min_phi_deg",-180)),
-//			DEG2RAD(guidebotConfFile.read_float("LocalizationParams","init_PDF_max_phi_deg",180))
-//			);
-//	else
-//		pdf.resetUniform(
-//			guidebotConfFile.read_float("LocalizationParams","init_PDF_min_x",0,true),
-//			guidebotConfFile.read_float("LocalizationParams","init_PDF_max_x",0,true),
-//			guidebotConfFile.read_float("LocalizationParams","init_PDF_min_y",0,true),
-//			guidebotConfFile.read_float("LocalizationParams","init_PDF_max_y",0,true),
-//			DEG2RAD(guidebotConfFile.read_float("LocalizationParams","init_PDF_min_phi_deg",-180)),
-//			DEG2RAD(guidebotConfFile.read_float("LocalizationParams","init_PDF_max_phi_deg",180)),
-//			M
-//			);
 
-	//CObservation3DRangeScanPtr  last_obs;
-	
 	/* repeat pdf calculation until terminated */
 	while(p.quit.get() == false)
 	{
@@ -391,8 +363,7 @@ void thread_update_pdf(TThreadRobotParam &p)
 
 /*
  * @Description
- * Thread for grabbing: monitor kinect reading, this is required for getKinect2DScan()
- * calibration file can be used for more accurate reading.
+ * Thread for grabbing: grabbing lrf observations. This is a replacement for the thread_kinect in the guidebot code
  */
 void thread_LRF(TThreadRobotParam &p)
 {
@@ -412,7 +383,6 @@ void thread_LRF(TThreadRobotParam &p)
 
 		// Open:
 		cout << "Calling LRF::initialize()...";
-		//Put code to initialize LRF :::
 		cout << "OK\n";
 
 		CTicTac tictac;
@@ -472,6 +442,8 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 	 /* read up to 128 bytes from the fd */
 	write(fd,getCommand,1);
 	buf[0] = 0;
+
+	//read values from serial port
 	while(buf[0] != '!')
 	{
 	 	n = read(fd, buf, 7);
@@ -534,48 +506,24 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	tcflush(odo_fd, TCIFLUSH);
 	/* read up to 128 bytes from the fd */
 	write(odo_fd,getCommand,1);
-	cout<<"written"<<endl;
-	cout<<"odo_fd "<<odo_fd<<endl;
+	//cout<<"written"<<endl;
+	//cout<<"odo_fd "<<odo_fd<<endl;
 	buf[0] = 0;
 	while(buf[0] != '*')
 	{
-		cout<<"reading"<<endl;
 	 	n = read(odo_fd, buf, 7);
 		
 		sleep(100);
-	 	printf("%i bytes got read...\n", n);
-		printf("Buffer has \n%s\n",buf);
  	}
 	
 	sleep(150);	
 	 
-	//read data in
-//	n = read(fd, buf,6);
-	
-	// printf("Buffer has \n%s\n",buf);
-//	 printf("%i bytes got read...\n", n);
-//	 printf("Buffer 1 contains...\n%d\n", buf[0]);
-//	 printf("Buffer 2 contains...\n%d\n", buf[1]);
-//	 printf("Buffer 3 contains...\n%d\n", buf[2]);
-//	 printf("Buffer 4 contains...\n%d\n", buf[3]);
-//	 printf("Buffer 5 contains...\n%d\n", buf[4]);
-//	 printf("Buffer 5 contains...\n%d\n", buf[5]);
-//	 printf("Buffer 5 contains...\n%d\n", buf[6]);
-	cout<<"read"<<endl;
 	x = ((buf[2] & 255)<< 8) | (buf[1] & 255);	
 	y = ((buf[4] & 255) << 8) | (buf[3] & 255);
 	phi = ((buf[6] & 255) << 8) | (buf[5] & 255);
 
-	//flip phi over x axis
-//	if(phi != 0)
-//	{
-//		phi = 360 - phi;
-//	}	
 	printf("x = %d, y = %d, phi = %d\n",x,y,phi);
 	tempPose = thrPar.currentOdo.get();
-	//x = x + tempPose.x();
-	//y = y + tempPose.y();
-	//phi = phi + tempPose.phi();
 
 	out_odom.x(float(x)/100.0);
 	out_odom.y(float(y)/100.0);
@@ -586,6 +534,12 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 
 }
 
+/*
+ * @Description
+ * Setup serial communications to arduinos for getting sensor values
+ * @param	port: the name of the port the device is on
+ *		readBytes: The minimum number of bytes to be read before returning
+ */
 int setupArduino(char * port, int readBytes)
 {
 
@@ -649,14 +603,15 @@ int setupArduino(char * port, int readBytes)
  * adjust bearing toward the next step. 
  * 
  * @param	aPath:	calculated path
- *			aRobot:	access to robot odometry
  *			thrPar:	access and update thread parameter list
  * @return	none
  */
-static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar)
+static void smoothDrive( deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar)
 {
 	CPose2D initOdo;
 	int odo_fd = thrPar.odo_fd.get();
+	while(thrPar.gettingLRF.get());
+	thrPar.isMoving.set(true);
 	getOdometry(initOdo, odo_fd, thrPar);
 	fixOdometry( initOdo, thrPar.odometryOffset.get() );
 	
@@ -777,7 +732,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 			/* update sonar reading to display */
 			CObservationRange obs;
 			bool thereis;
-			aRobot.getSonarsReadings(thereis,obs);
+			//aRobot.getSonarsReadings(thereis,obs);
 			if (!thereis)
 			{
 				cout << "Sonars: NO" << endl;
@@ -805,7 +760,7 @@ static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aP
 			//cout << "end while" << endl;
 		}/* end while */
 		
-		/* FIXME: update robot odometry to mostlikely particle, below is an example, not tested.
+		/* FIXME(FOR GUIDEBOT): update robot odometry to mostlikely particle, below is an example, not tested.
 		 * The issue is in the changeOdometry() function, which does not work properly. Our current
 		 * fix for this is to do a mapping using odometryOffset
 		 */
@@ -954,9 +909,9 @@ double turnAngle(double current_phi, double phi)
  * @param	phi:	is the desired turn angle, which referenced to the map coordiate,
  *					not the current "phi" of robot phi must be normalized into range 
  *					[-pi,pi] before using. 
- *			robot:	access to robot odometry
  *			p:	 	access and update current odometry to thread parameter list
  * @return	none
+ * FIXME: Needs adjustments for MCECS BOT, will sometimes get stuck and spin in a circle
  */
 static void turn( double phi, TThreadRobotParam &p)
 {
@@ -966,6 +921,7 @@ static void turn( double phi, TThreadRobotParam &p)
 	int64_t	left_ticks, right_ticks;
 	double	speed;
 	double	turnAngle;
+	int turnFix; //if the delta between phi is negative switch direction
 	int odo_fd = p.odo_fd.get();	
 	while(1)
 	{
@@ -993,44 +949,48 @@ static void turn( double phi, TThreadRobotParam &p)
 		CPose2D odoTemp(odo);
 		odoTemp.phi_incr(turnAngle);
 		odoTemp.normalizePhi();
+		cout<<"TA "<<turnAngle<<endl;
+
 
 		/* check if we reach turn angle */		
-		if( turnAngle < TURN_THRESHOLD )	
+		if( abs(turnAngle) < TURN_THRESHOLD )	
 			break;	
-			
-		if ( abs(odoTemp.phi() - phi) < SMALL_NUMBER ) /* small diff */ 
+		
+	//	if((phi -odo.phi())<0) turnFix = -1;
+		else turnFix =1;		
+		if( abs(phi - odo.phi()) <= M_PI) //if ( abs(odoTemp.phi() - phi) < SMALL_NUMBER ) /* small diff */ 
 		{
 		cout<<"1"<<endl;
 			if( turnAngle < TURN_THRESHOLD * 2 ) /* slow down near desired angle */
 				//speed = ANGULAR_SPEED / 2;
-				speed = 1;
+				speed = -1;
 			else 
 				//speed = ANGULAR_SPEED;
-				speed = 1;
+				speed = -1;
 		}
 		else
 		{
 		cout<<"2"<<endl;
 			if( turnAngle < TURN_THRESHOLD * 2 ) 
 				//speed = -ANGULAR_SPEED / 2; /* slow down near desired angle */
-				speed = -1;
+				speed = 1;
 			else 
 				//speed = -ANGULAR_SPEED;
-				speed = -1;		
+				speed = 1;		
 		}
 		
-		//mrpt::system::sleep(500);
+		mrpt::system::sleep(1100);
 		/* do turn */
 		cout<<"Speed"<<speed<<endl;
-		setVelocities( 0,-1* speed , p );
+		setVelocities( 0,speed , p );
 		
 		/* delay between reading */
 		//mrpt::system::sleep(POLL_INTERVAL);
-		mrpt::system::sleep(500);
+		mrpt::system::sleep(350);
 		//sleep(250);
 		
 	setVelocities(0, 0, p); /* stop */
-		mrpt::system::sleep(1200);
+		mrpt::system::sleep(1100);
 	}
 	setVelocities(0, 0, p); /* stop */
 }
@@ -1040,6 +1000,15 @@ bool returnGettingLRF(TThreadRobotParam &thrPar)
 	return thrPar.gettingLRF.get();
 }
 
+/*
+ * @Description
+ * Send commands to set Velocities 
+ * 
+ * @param:	linear:		Set robot to move forwad (1) or backward (-1)	
+		angular:	set robot to move right (1) or left (-1)
+ *		thrPar:	 	access and update current odometry to thread parameter list
+ * @return	none
+ */
 void setVelocities(int linear, int angular, TThreadRobotParam &thrPar)
 {
 	int velocity_fd = thrPar.vel_fd.get(); //file descriptor for writing to robot velocity		
@@ -1061,13 +1030,6 @@ void setVelocities(int linear, int angular, TThreadRobotParam &thrPar)
 		sleep(100);
 	
 		write(velocity_fd,velocityCommand,1);
-		sleep(100);
-		write(velocity_fd,velocityCommand,1);
-		sleep(100);
-		write(velocity_fd,velocityCommand,1);
-		sleep(100);
-		write(velocity_fd,velocityCommand,1);
-		sleep(100);
 	}
 	//LEFT	
 	else if(linear == 0 && angular == -1)
@@ -2189,8 +2151,8 @@ int main(int argc, char **argv)
 				bool 		pollLRF = true;
 				cout<<"getting odo"<<endl;
 				thrPar.isMoving.set(true);
-				while(thrPar.gettingLRF.get());
 				//{
+				while(thrPar.gettingLRF.get());
 				//	pollLRF = returnGettingLRF(thrPar);
 				//	cout<<pollLRF<<endl;
 				//	sleep(1000);
@@ -2308,6 +2270,8 @@ int main(int argc, char **argv)
 				double 		v,w;
 				int64_t  	left_ticks, right_ticks;
 				double 		phi;
+				
+				while(thrPar.gettingLRF.get());
 				getOdometry( odo, odo_fd, thrPar );
 				fixOdometry( odo, thrPar.odometryOffset.get() );
 			
@@ -2319,7 +2283,7 @@ int main(int argc, char **argv)
 					thrPar.thePath.set(thePath);
 					thrPar.displayNewPath.set(true);
 					cout << "found a Path..." << endl;
-					smoothDrive(robot, thePath, thrPar );  
+					smoothDrive( thePath, thrPar );  
 					cout << "at target..." << endl;					
 				} /* end path following */
 				
