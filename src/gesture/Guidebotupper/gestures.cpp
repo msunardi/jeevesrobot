@@ -1,0 +1,167 @@
+/*
+cody hanks
+cody@byterule.com for support
+*/
+
+#include "servo.h"
+#include "gestures.h"
+#include <string>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <termios.h>
+#include <iostream>
+#include <fstream>
+
+///Default Constructor
+Gestures::Gestures()
+{
+    //initialize the mutex for multithreaded file access
+    count_mutex = PTHREAD_MUTEX_INITIALIZER;
+}
+///Connect to the file and get the file discriptor.
+int Gestures::Connect( )
+{
+    //open the device file with options for read write.
+    //stores the file descriptor to the class m_file object
+    m_file = open("/dev/ttyACM0", O_RDWR | O_NOCTTY);
+    struct termios options;
+
+    //check for error opening file print on error
+    if (m_file == -1)
+    {
+      cout<< "Error connecting to the default device"<<endl;
+        return -1;
+    }
+    //Set file options
+    tcgetattr(m_file, &options);
+    options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    options.c_oflag &= ~(ONLCR | OCRNL);
+    tcsetattr(m_file, TCSANOW, &options);
+    //cout<<"Connected"<<endl;
+    return 0;
+}
+///disconnect the file for later writes
+void Gestures::Disconnect()
+{
+    close(m_file);
+    m_file = -1;
+
+}
+//setup servo list with id and name details
+void Gestures::ServoSetup()
+{
+    //creates a servo in the servo list for each possible location
+   servolist = new servo[18];
+   for(int a =0; a<18;a++)
+   {
+        servolist[a].Setservoid(a);
+        servolist[a].Setmax(2000);
+        servolist[a].Setmin(992);
+   }
+   //connect to the file for writing
+    Connect();
+}
+
+///single thread set servo command
+void Gestures::SetServo(servo::servo_name id,unsigned short value)
+{
+
+
+
+        //cout<<"id:"<<id<<"value:"<<value<<endl;
+        char message[] = {6};
+        message[0] =0xAA;
+        message[1] =0x0C;
+        message[2] = 0x04;
+        message[3] = id;
+        message[4]= value & 0x7F;
+        message[5] = (value >>7) & 0x7F;
+
+        if(write(m_file,message,6)==EOF)
+        {
+            std::cout << "Error writing to file";
+        }
+        else
+            usleep(200000);
+
+}
+
+
+/**
+    Multi threaded call to the servo set
+    uses the mutex to lock and writes the command to the servo after delay
+*/
+static void *Thread(void* Data)
+{
+    //convert the data back to a servo command inthread
+    Gestures::ServoCommand *thiscommand = (struct Gestures::ServoCommand*)Data;
+    //troubleshooting
+    //cout<<"Entered Thread"<<endl;
+    cout<<"servoID:"<<thiscommand->id<<"value:"<<thiscommand->value<<endl;
+    //delay before committing
+    if(thiscommand->delay>0)
+    {
+        //delay * 100,000 in miliseconds provides the ability to schedule for short time later
+        usleep(thiscommand->delay*100000);
+    }
+
+
+    //create the message
+
+        char *message = (char *) malloc(6);
+        message[0] =0xAA;
+        message[1] =0x0C;
+        message[2] = 0x04;
+        message[3] = thiscommand->id;
+        message[4]= thiscommand->value & 0x7F;
+        message[5] = (thiscommand->value >> 7) & 0x7F;
+
+    //lock critical write to file such that we dont get failed writes
+    pthread_mutex_lock( &thiscommand->File_Mutex );
+    //write command
+    if(write(thiscommand->fd,message,6)==EOF)
+    {
+        cout<<"Error writing to file"<<endl;
+    }
+    //return to unlock
+    pthread_mutex_unlock( &thiscommand->File_Mutex );
+        delete message;
+}
+
+//thread call to set servo no delays
+void Gestures::tSetServo(servo::servo_name id,unsigned short value,int delay)
+{
+        //create a servo command and fill with the data needed
+        Gestures::ServoCommand *thiscommand = new Gestures::ServoCommand;
+        thiscommand->delay = delay;
+        thiscommand->fd = m_file;
+        thiscommand->File_Mutex = count_mutex;
+        thiscommand->id =id;
+        thiscommand->value = value;
+
+        //new thread object
+        pthread_t thread;
+        //new return
+        int rc;
+        //return from pthread,  create the thread. setup the pointer to command and send data to the thread.
+        rc = pthread_create(&thread,NULL,Thread,(void*)thiscommand);
+}
+
+void Gestures::tSetServo(Gestures::ServoCommand *thiscommand)
+{
+    cout<<"servo: "<<thiscommand->id<<" threadsetto: "<<thiscommand->value<<endl;
+        pthread_t thread;
+        int rc;
+        rc = pthread_create(&thread,NULL,Thread,(void*)thiscommand);
+}
+
+///disconnect from file and close service.
+Gestures::~Gestures()
+{
+    //disconnect from the file
+    Disconnect();
+    delete servolist;
+
+    //dtor
+}

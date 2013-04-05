@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug" />
+	<File name="gestures.cpp" open="0" top="0" tabpos="2">
+		<Cursor position="248" topLine="68" />
+	</File>
+	<File name="gestures.h" open="0" top="0" tabpos="3">
+		<Cursor position="0" topLine="0" />
+	</File>
+	<File name="main.cpp" open="1" top="1" tabpos="0">
+		<Cursor position="750" topLine="147" />
+	</File>
+	<File name="readfile.cpp" open="0" top="0" tabpos="2">
+		<Cursor position="1558" topLine="97" />
+	</File>
+	<File name="readfile.h" open="0" top="0" tabpos="0">
+		<Cursor position="131" topLine="0" />
+	</File>
+	<File name="servo.h" open="0" top="0" tabpos="0">
+		<Cursor position="995" topLine="0" />
+	</File>
+	<File name="speech.h" open="0" top="0" tabpos="0">
+		<Cursor position="146" topLine="0" />
+	</File>
+</CodeBlocks_layout_file>

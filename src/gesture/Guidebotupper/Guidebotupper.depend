@@ -1,0 +1,105 @@
+# depslib dependency file v1.0
+1364971913 source:/home/cody/Documents/GuidBot/upper/Guidebotupper/gestures.cpp
+	"servo.h"
+	"gestures.h"
+	<string>
+	<fcntl.h>
+	<stdlib.h>
+	<stdio.h>
+	<termios.h>
+	<iostream>
+	<fstream>
+
+1364317152 /home/cody/Documents/GuidBot/upper/Guidebotupper/servo.h
+
+1364756196 /home/cody/Documents/GuidBot/upper/Guidebotupper/gestures.h
+	<string>
+	<pthread.h>
+	"servo.h"
+
+1365054191 source:/home/cody/Documents/GuidBot/upper/Guidebotupper/main.cpp
+	<iostream>
+	<string>
+	<stdlib.h>
+	"servo.h"
+	"gestures.h"
+	"readfile.h"
+	<pthread.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<fcntl.h>
+	<string.h>
+	<unistd.h>
+	<stdio.h>
+
+1364430986 /home/cody/Documents/GuidBot/upper/Guidebotupper/readfile.h
+	<string>
+	<stdlib.h>
+	<iostream>
+	"gestures.h"
+	"servo.h"
+
+1364431103 source:/home/cody/Documents/GuidBot/upper/Guidebotupper/readfile.cpp
+	"readfile.h"
+	<string>
+	<stdio.h>
+	<stdlib.h>
+	<ctype.h>
+	<iostream>
+	<fstream>
+	<algorithm>
+
+1362819477 source:/home/cody/Documents/GuidBot/upper/Guidebotupper/servo.cpp
+	"servo.h"
+
+1362819687 source:/home/cody/Documents/GuidBot/upper/Guidebotupper/speech.cpp
+	"speech.h"
+
+1362820224 /home/cody/Documents/GuidBot/upper/Guidebotupper/speech.h
+	<string>
+	<festival/festival.h>
+	<pthread.h>
+
+1364971912 source:/home/mcecsbot/Documents/Guidebotupper/gestures.cpp
+	"servo.h"
+	"gestures.h"
+	<string>
+	<fcntl.h>
+	<stdlib.h>
+	<stdio.h>
+	<termios.h>
+	<iostream>
+	<fstream>
+
+1364317152 /home/mcecsbot/Documents/Guidebotupper/servo.h
+
+1364756196 /home/mcecsbot/Documents/Guidebotupper/gestures.h
+	<string>
+	<pthread.h>
+	"servo.h"
+
+1362819476 source:/home/mcecsbot/Documents/Guidebotupper/servo.cpp
+	"servo.h"
+
+1365135915 source:/home/mcecsbot/Documents/Guidebotupper/main.cpp
+	<iostream>
+	<string>
+	<stdlib.h>
+	"servo.h"
+	"gestures.h"
+	"readfile.h"
+	<pthread.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<fcntl.h>
+	<string.h>
+	<unistd.h>
+	<stdio.h>
+
+1364430986 /home/mcecsbot/Documents/Guidebotupper/readfile.h
+	<string>
+	<stdlib.h>
+	<iostream>
+	"gestures.h"
+	"servo.h"
+
