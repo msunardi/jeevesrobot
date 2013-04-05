@@ -28,8 +28,9 @@ void setup()
   kinect.enableHands();
   kinect.addGesture("RaiseHand");
   size (kinect.depthWidth()+200, kinect.depthHeight()+100);
-    String portName = Serial.list()[6];
-    port = new Serial(this, portName, 57600);
+    //String portName = Serial.list()[0];
+    String portName = "/dev/ttyACM0";
+    port = new Serial(this, portName, 9600);
 }
 void draw()
 {
