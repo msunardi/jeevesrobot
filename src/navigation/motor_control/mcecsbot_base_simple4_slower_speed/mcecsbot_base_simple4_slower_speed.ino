@@ -1,3 +1,5 @@
+
+
 /*  This program is designed to run on an Arduino Uno with 2 basic micro Roboclaw motor controllers connected, both running in packet serial mode.
  It recieves commands from a serial port in a specified format, that is: fixed length, byte0 = 0xFF (dedicated), byte1 = 0xFF (dedicated), byte2 = opcode, 
  bytes3-7 = motor command data.  This format is described in more detail in Jeramy's homework 3 found on the MCECS bot project page.
@@ -241,10 +243,10 @@ void rotateRight(uint8_t MotorSpeed){
     Wire.endTransmission();
   }
    was_interrupt = digitalRead(interruptPin);
-   if(was_interrupt == true){
+   /*if(was_interrupt == true){
      stopmoving = true; 
      detected_obstacle();
-    }
+    }*/
 
 }
 
@@ -340,6 +342,9 @@ has been removed.
 
 void detected_obstacle(){
   uint8_t sonar_number, obstacle;
+  int interrupted_movement;
+  interrupted_movement = new_movement;
+  
   
   //char sonar_number, obstacle;
   Wire.requestFrom(sonar_controller, 2);
@@ -374,15 +379,16 @@ void detected_obstacle(){
    Serial.print(obstacle);
    Serial.print(" sonar number:  "); 
    Serial.println(sonar_number);
-    if(obstacle < 10){
+    if(obstacle < 20){
      Serial.println("obstacle < 10"); 
       //goStop();
-      new_movement = STOP;
+      new_movement = RIGHT;
+      stopmoving = false; 
       doMove(new_movement);
       //decide(obstacle, sonar_number);
       
       } else{
-        new_movement = Stop_old_movement();
+        //new_movement = Stop_old_movement();
       }
    //delayMicroseconds(250);
    int count=0;
@@ -396,6 +402,7 @@ void detected_obstacle(){
      //Serial.write("  ");
      //Serial.write(obstacle);
      delayMicroseconds(250);
+     //
      decide(obstacle, sonar_number);
      
      if (count>100) {
@@ -406,8 +413,10 @@ void detected_obstacle(){
        Serial.println(count);
      }
    }
-   Serial.println("end detected_obstacle()");
+   new_movement = interrupted_movement;
    stopmoving = false;
+   doMove(new_movement);
+   Serial.println("end detected_obstacle()");
 
 }
 
