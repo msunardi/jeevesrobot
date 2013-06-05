@@ -80,17 +80,91 @@ void setup()
 void loop()
 {
  // Code that executes while waiting from I2C communication
+ // This commented part is part of Jesse's original code
   /*if(Serial.available()){                        // If new movement available, retreive.
     kinectVal = Serial.read();   
    Serial.print("Kinectval: ");
    Serial.println(kinectVal);
     }*/
-    pulse12 = getSonar(sonar12);
-        if(pulse12 < threshold){
-           stop_robot(sonar12, pulse12);
-        }
-        
     
+  if (kinectVal != 4) { // if not 'stop' 
+    pulse1 = getSonar(sonar1);
+    if(pulse1 < threshold){
+        stop_robot(sonar1, pulse1);
+        //Serial.println("Sonar 1");
+    }
+    delay(200);
+    pulse7 = getSonar(sonar7);
+    if(pulse7 < threshold){
+        stop_robot(sonar7, pulse7);
+        //Serial.println("Sonar 7");
+    }
+    delay(200);
+    pulse3 = getSonar(sonar3);
+    if(pulse3 < threshold){
+        stop_robot(sonar3, pulse3);
+        //Serial.println("Sonar 3");
+    }
+    delay(200);
+    pulse9 = getSonar(sonar9);
+    if(pulse9 < threshold){
+        stop_robot(sonar9, pulse9);
+        //Serial.println("Sonar 9");
+    }
+    delay(200);
+    pulse12 = getSonar(sonar12);
+    if(pulse12 < threshold){
+        stop_robot(sonar12, pulse12);
+        //Serial.println("Sonar 12");
+    }
+    delay(200);
+    pulse6 = getSonar(sonar6);
+    if(pulse6 < threshold){
+        stop_robot(sonar6, pulse6);
+        //Serial.println("Sonar 6");
+    }
+    delay(200);
+    pulse10 = getSonar(sonar10);
+    if(pulse10 < threshold){
+        stop_robot(sonar10, pulse10);
+        //Serial.println("Sonar 10");
+    }
+    delay(200);
+    pulse4 = getSonar(sonar4);
+    if(pulse4 < threshold){
+        stop_robot(sonar4, pulse4);
+        //Serial.println("Sonar 4");
+    }
+    delay(200);
+    pulse2 = getSonar(sonar2);
+    if(pulse2 < threshold){
+        stop_robot(sonar2, pulse2);
+        //Serial.println("Sonar 2");
+    }
+    delay(200);
+    pulse8 = getSonar(sonar8);
+    if(pulse8 < threshold){
+        stop_robot(sonar8, pulse8);
+        //Serial.println("Sonar 8");
+    }
+    delay(200);
+    pulse11 = getSonar(sonar11);
+    if(pulse11 < threshold){
+        stop_robot(sonar11, pulse11);
+        //Serial.println("Sonar 11");
+    }
+    delay(200);
+    pulse5 = getSonar(sonar5);
+    if(pulse5 < threshold){
+        stop_robot(sonar5, pulse5);
+        //Serial.println("Sonar 5");
+    }
+    delay(200);
+  }  
+  ///// From this point until the end of the loop() is the original code
+  /*  
+  
+  
   switch(kinectVal){
 
     case 0:                              // case 0: Turn Left 
@@ -184,7 +258,7 @@ void loop()
    Serial.println("Case 4");
     break;
 
-  }
+  }*/
 }
 
 ///             Get Sonar Function              ///

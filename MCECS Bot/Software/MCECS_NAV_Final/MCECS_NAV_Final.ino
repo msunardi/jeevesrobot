@@ -75,10 +75,30 @@ int32_t y = 0;
 const int32_t w = 44270000*PI/180;
 
 // assign Rx Tx serial comm for the motor controllers to pins 5 and 6
-RoboClaw roboclaw(50,52);
+RoboClaw roboclaw(46,48);
 
 // create servo object
 Servo myservo;                 
+
+// status byte for encoders
+uint8_t status;
+
+// bit to determine if encoder values are valid
+bool valid;
+
+// character buffer for opcode 
+//char pos;
+
+// local variables for caclulating odometry
+int32_t enc1;
+int32_t enc2;
+
+
+int32_t Dleft;
+int32_t Dright;
+
+// angle in radians for the trig functions
+float phi1fl;
 
 void setup()
 {
@@ -108,40 +128,69 @@ void setup()
   roboclaw.SetM2Constants(0x81,Kd,Kp,Ki,qpps);  
 
   // setup bumper interupt pins
-  pinMode(2, INPUT_PULLUP);
+  /*pinMode(2, INPUT_PULLUP);
   pinMode(3, INPUT_PULLUP);
   attachInterrupt(0, bumper_2, FALLING);
-  attachInterrupt(1, bumper_3, FALLING);
+  attachInterrupt(1, bumper_3, FALLING);*/
 }
 
 void loop()
 {
 
-  // status byte for encoders
-  uint8_t status;
-
-  // bit to determine if encoder values are valid
-  bool valid;
-
-  // character buffer for opcode 
-  char pos;
-
-  // local variables for caclulating odometry
-  int32_t enc1;
-  int32_t enc2;
-  int32_t Dleft;
-  int32_t Dright;
-
-  // angle in radians for the trig functions
-  float phi1fl;
-
   // if we get a valid byte, write it to our local variable  
   if (Serial.available() > 0) {    
     delay(150);
-    pos = Serial.read();           
+    pos = Serial.read();
+    Serial.print("Key: ");
+    Serial.println(pos);    
 
     // depending what that byte is, perform an action     
     switch (pos) {
+      case 'r':
+        simpleread(); 
+        /*Serial.println('Reading LRF ...');
+        byte readlrf;
+        delay(150);
+        Serial1.write('R');
+        delay(200);
+        if (Serial1.available() > 0) {
+          delay(150);
+          readlrf = Serial1.read();
+          delay(200);
+          Serial1.flush();
+          Serial.println(readlrf);
+        }
+        Serial.println('Done!');*/
+        break;
+      case 'm':
+        
+         myservo.write(pos1);
+         delay(1000);
+         //simpleread();
+         complicatedread();      
+         
+         myservo.write(pos2);
+         delay(1000);
+         //simpleread();
+         complicatedread();
+         //delay(1000);
+         myservo.write(center);
+         delay(1000);
+         //simpleread();
+         complicatedread();
+         //delay(1000);         
+         myservo.write(pos3);
+         delay(1000);
+         //simpleread();
+         complicatedread();
+         //delay(1000);
+         myservo.write(pos4);
+         delay(1000);
+         //simpleread();
+         complicatedread();
+         //delay(1000);
+         break;
+         
 
       // l is the agreed character to start the standard 5pt LRF reading 
     case 'l':
@@ -182,6 +231,8 @@ void loop()
 
       // send out the data array
       Serial.write(data,5);
+      
+      Serial.write('Blah!');
 
       break;
 
@@ -412,21 +463,143 @@ void loop()
 
 }
 
+// A simple method to read from the LRF
+void simpleread() {
+  Serial.println('Reading LRF ...');
+        char readlrf;
+        char readbuffer[4];
+        long result;
+        boolean gotresult = false;
+        // Sometimes serial buffer is not empty - clear it out first or you'll get erroneous data
+        Serial.write("Flushing ... ");
+        while(Serial1.available() > 0) {
+          Serial1.read();
+          Serial.write(".");
+        }
+        Serial.write("done.\n");
+          
+        delay(150);
+        Serial1.write('R');
+        int count = 0;
+        while(Serial1.available() < 15) {
+          Serial.println("Serial1.available < 15");          
+          //delay(100);
+          count = count + 1;
+          if (count > 20) {
+            //delay(150);
+            Serial1.write('R');
+            delay(200);
+            count = 0;
+          }
+        }
+        //delay(1000);
+        Serial.write("Serial1.available() = ");
+        Serial.println(Serial1.available());
+        while (Serial1.available() > 0) {
+          
+          //delay(150);
+          readlrf = Serial1.read();
+          delay(10);
+          if (readlrf == ':') {
+            Serial.println(':');
+            readlrf = Serial1.read();
+          }          
+          
+          Serial.print(readlrf);
+        }
+        
+        Serial1.flush();
+        Serial.println("Done!");
+}
+
+// A more complicated method to read from LRF, the output is formatted in long type
+void complicatedread() {
+  Serial.println('Reading LRF ...');
+        char readlrf;
+        char readbuffer[4];
+        long result;
+        boolean gotresult = false;
+        
+        // Sometimes serial buffer is not empty - clear it out first or you'll get erroneous data
+        Serial.write("Flushing ... ");
+        while(Serial1.available() > 0) {
+          Serial1.read();
+          Serial.write(".");
+        }
+        Serial.write("done.");
+          
+        delay(150);
+        Serial1.write('R');
+        int count = 0;
+        Serial.write("Scanning ... \n");
+        while(Serial1.available() < 15) {
+          //Serial.println("Serial1.available < 15");          
+          Serial.print(".");
+          delay(100);
+          count = count + 1;
+          if (count > 20) {
+            //delay(150);
+            Serial1.write('R');
+            delay(200);
+            count = 0;
+          }
+        }
+        Serial.write("\n");
+        //delay(1000);
+        Serial.write("Serial1.available() = ");
+        Serial.println(Serial1.available());
+        while (Serial1.available() > 0) {
+          
+          //delay(150);
+          readlrf = Serial1.read();
+          delay(10);
+          if (readlrf == ':') {
+            Serial.println(':');
+            readlrf = Serial1.read();
+          }
+          if ((readlrf == 'D') && !gotresult) {
+            Serial1.read();
+            Serial1.read();
+            Serial1.read();
+            readbuffer[0] = Serial1.read();
+            readbuffer[1] = Serial1.read();
+            readbuffer[2] = Serial1.read();
+            readbuffer[3] = Serial1.read();
+            result = (readbuffer[0]-'0')*1000 + (readbuffer[1]-'0')*100 + (readbuffer[2]-'0')*10 + (readbuffer[3]-'0');
+            Serial.write("Distance: ");
+            Serial.println(result);
+            gotresult = true;
+            break;
+          //delay(200);
+          }
+          
+          Serial.print(readlrf);
+        }
+        Serial.write("Flushing ... ");
+        while(Serial1.available()) {
+          Serial1.read();
+        }
+        Serial1.flush();
+        Serial.println("Done!");
+}
 
 // dataread will read the bytes from the LRF and buffer them, then assemble them into a value in cm
 long dataread() {
   long result;
-  char range[15];  
+  char range[15];
+  Serial.println("datareading...");  
   while (Serial1.available() < 15) {
   }
   for (int i = 0; i < 15; i++) {
     range[i] = Serial1.read();
     delay(50);
+    Serial.println("reading from LRF...");
   }
-  Serial1.flush();
+  
+  //Serial1.flush();
 
   /*
-  Serial.println(range[0]);
+   Serial.println(range[0]);
    Serial.println(range[1]);
    Serial.println(range[2]);
    Serial.println(range[3]);
@@ -442,6 +615,9 @@ long dataread() {
    Serial.println(range[13]);
    Serial.println(range[14]);
    */
+   
+   
+   
 
   //round the mm value to an integer cm value
   if (range[10] < 6) {

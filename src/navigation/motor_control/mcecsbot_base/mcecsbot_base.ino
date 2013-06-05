@@ -78,7 +78,7 @@ void setup() {
 ///////////////       Main Loop        ///////////////////
 void loop() { 
         readSerial();			// reads serial into new_movement
-	readInterrupt();		// reads interrupt to see if obstical
+	//readInterrupt();		// reads interrupt to see if obstical
 	doMove();
 	delay(150);
 }
@@ -109,7 +109,9 @@ void readInterrupt() {
 	was_interrupt = digitalRead(interruptPin);    // Poll interrupt pin from sonar controller. 
 	if(was_interrupt == true){
 		Serial.println("Interrupt true.");
-		detected_obstacle();                         // jump to stop routine for detected obstacle
+                if(new_movement == FORWARD || new_movement == BACKWARD) {
+                  detected_obstacle();                         // jump to stop routine for detected obstacle
+                }
 		was_interrupt = false;
     }
 }
@@ -369,14 +371,26 @@ has been removed.
 void detected_obstacle(){
   uint8_t sonar_number, obstacle;
   int interrupted_movement;
-  stopmoving = true;                           // If pin HIGH then set stopmoving to true. 
-		
   interrupted_movement = new_movement;
+
+  Serial.print("Obstacle Detected:   ");
+  
+  if(old_movement == BACKWARD) {
+    new_movement = FORWARD;
+  }
+  else {
+    new_movement = BACKWARD;
+  }
+  doMove();
+  delay(50);
+  new_movement = STOP;
+  doMove();
+  
   
   
   //char sonar_number, obstacle;
   Wire.requestFrom(sonar_controller, 2);
-  int i = 0;
+  //int i = 0;
   delay(100);
   Serial.print("Bytes available: ");
   Serial.println(Wire.available());
@@ -407,7 +421,7 @@ void detected_obstacle(){
    Serial.print(obstacle);
    Serial.print(" sonar number:  "); 
    Serial.println(sonar_number);
-    if(obstacle < 20){
+   /* if(obstacle < 20){
      Serial.println("obstacle < 10"); 
       //goStop();
       new_movement = RIGHT;
@@ -420,6 +434,7 @@ void detected_obstacle(){
       }
    //delayMicroseconds(250);
    int count=0;
+   
    while((obstacle < threshold) && (sonar_number > 0)){
      Serial.println("waiting until no more obstacle");
      Wire.requestFrom(sonar_controller, 2);
@@ -440,12 +455,14 @@ void detected_obstacle(){
        count = count + 1;
        Serial.println(count);
      }
+   }   
+   
+   while((obstacle < threshold) && (sonar_number > 0)){
+      decide(obstacle, sonar_number);
    }
-   new_movement = interrupted_movement;
-   stopmoving = false;
-   doMove();
+   */new_movement = interrupted_movement;
+   //stopmoving = false;
    Serial.println("end detected_obstacle()");
-
 }
 
 // End Detected Obstacle Function // 
@@ -462,26 +479,12 @@ void decide(int obstacle, int sonar_number) {
   Serial.print("Sonar number: ");
   Serial.println(sonar_number);
   Serial.println("Trying to decide what to do...");
-  if (sonar_number==7||sonar_number==6||sonar_number==5) {
-    Serial.println("Turn Right");
-    new_movement=RIGHT;
-    //doMove();  // turn right
-  } else if (sonar_number==4||sonar_number==8) {
-    Serial.println("Go Forward");
-    new_movement=FORWARD;
-    //doMove();  // go forward
-  } else if (sonar_number==12) {
-    Serial.println("Turn Left");
-    new_movement=LEFT;
-    //doMove();  // turn left
-  } else if (sonar_number==13||sonar_number==7) {
-    Serial.println("Go Reverse");
-    new_movement=BACKWARD;
-    //doMove();  // go reverse
+  if ((sonar_number > 7) || (sonar_number < 3)) {
+     new_movement = RIGHT;
   } else {
-    Serial.println("Stopping...");
-    new_movement=STOP;
+    new_movement = LEFT;
     //doMove();
   }
   doMove();
+  delay(150);
 }
