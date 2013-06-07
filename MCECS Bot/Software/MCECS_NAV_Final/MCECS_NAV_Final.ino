@@ -75,30 +75,16 @@ int32_t y = 0;
 const int32_t w = 44270000*PI/180;
 
 // assign Rx Tx serial comm for the motor controllers to pins 5 and 6
-RoboClaw roboclaw(46,48);
+/* IMPORTANT: Not all pins can be used. Usable pins are: Pins: 10, 11, 12, 13,  50, 51, 52, 53,  62, 63, 64, 65, 66, 67, 68, 69
+Using pins other than these would cause not being able to read the encoder
+See this thread for more info: http://forums.basicmicro.net/robo-claw-f504/can-send-commands-to-roboclaw-but-can-t-receive-data-t9885.html
+*/
+RoboClaw roboclaw(50,52);
 
 // create servo object
 Servo myservo;                 
 
-// status byte for encoders
-uint8_t status;
 
-// bit to determine if encoder values are valid
-bool valid;
-
-// character buffer for opcode 
-//char pos;
-
-// local variables for caclulating odometry
-int32_t enc1;
-int32_t enc2;
-
-
-int32_t Dleft;
-int32_t Dright;
-
-// angle in radians for the trig functions
-float phi1fl;
 
 void setup()
 {
@@ -136,18 +122,37 @@ void setup()
 
 void loop()
 {
+// status byte for encoders
+uint8_t status;
 
+// bit to determine if encoder values are valid
+bool valid;
+
+// character buffer for opcode 
+//char pos;
+
+// local variables for caclulating odometry
+int32_t enc1;
+int32_t enc2;
+
+
+int32_t Dleft;
+int32_t Dright;
+
+// angle in radians for the trig functions
+float phi1fl;
   // if we get a valid byte, write it to our local variable  
   if (Serial.available() > 0) {    
     delay(150);
     pos = Serial.read();
-    Serial.print("Key: ");
-    Serial.println(pos);    
+    //Serial.print("Key: ");
+    //Serial.println(pos);    
 
     // depending what that byte is, perform an action     
     switch (pos) {
       case 'r':
-        simpleread(); 
+        //simpleread(); 
+        complicatedread();
         /*Serial.println('Reading LRF ...');
         byte readlrf;
         delay(150);
@@ -189,6 +194,7 @@ void loop()
          //simpleread();
          complicatedread();
          //delay(1000);
+         centerPos();
          break;
          
 
@@ -202,42 +208,49 @@ void loop()
       myservo.write(pos1);
       delay(150);
       Serial1.write('R');
-      data[0] = dataread();
+      //data[0] = dataread();
+      data[0] = complicatedread();
       //delay(1500);
 
       myservo.write(pos2);
       delay(150);
       Serial1.write('R');
-      data[1] = dataread();    
+      //data[1] = dataread();
+      data[1] = complicatedread();
       //delay(1500);
 
       myservo.write(center);
       delay(150);
       Serial1.write('R');
-      data[2] = dataread();
+      //data[2] = dataread();
+      data[2] = complicatedread();
       //delay(1500);
 
       myservo.write(pos3);
       delay(150);
       Serial1.write('R');
-      data[3] = dataread(); 
+      //data[3] = dataread(); 
+      data[3] = complicatedread();
       //delay(1500);
 
       myservo.write(pos4);
       delay(150);
       Serial1.write('R');
-      data[4] = dataread();  
+      //data[4] = dataread();  
+      data[4] = complicatedread();
       //delay(1500);
 
       // send out the data array
+      centerPos();
       Serial.write(data,5);
-      
-      Serial.write('Blah!');
 
       break;
 
     case 'e':
-
+      Serial.flush();
+      while (Serial.available() > 0) {
+        Serial.read();
+      }
       // predetermined acknowledge char which motherboard requires to accept odometry data
       Serial.write('*');
 
@@ -257,8 +270,8 @@ void loop()
         // 1470cts/rev, 2.0944ft/rev, 3.2ft/map unit leads to 0.00044524 map units/encoder ct, or 44524 map units E-8/enc ct
         Dright = enc1*44524; 
 
-        /* debug prints
-         Serial.print("Encoder1:");
+        // debug prints
+        /* Serial.print("Encoder1:");
          Serial.print(enc1,DEC);
          Serial.print(" ");
          Serial.print(Dright,DEC);
@@ -267,7 +280,7 @@ void loop()
       }
 
       // read encoder 2, and set status and valid bits
-      enc2= roboclaw.ReadEncM2(address, &status, &valid);
+      enc2= roboclaw.ReadEncM2(address, &status, &valid);      
       if(valid) {
 
         // prevents underflow, since we are only looking for the relative change in enc cts and reseting it every loop,
@@ -281,8 +294,8 @@ void loop()
         // 1470cts/rev, 2.0944ft/rev, 3.2ft/map unit leads to 0.00044524 map units/encoder ct, or 44524 map units E-8/enc ct
         Dleft = enc2*44524;
 
-        /* debug prints
-         Serial.print("Encoder2:");
+        // debug prints
+         /*Serial.print("Encoder2:");
          Serial.print(enc2,DEC);
          Serial.print(" ");
          Serial.print(Dleft,DEC);
@@ -331,8 +344,8 @@ void loop()
       x1 /= 1000000;
       y1 /= 1000000;
 
-      /* debug prints
-       Serial.print("Distance: ");
+      // debug prints
+       /*Serial.print("Distance: ");
        Serial.println(D1);
        Serial.print("X coordinate: ");
        Serial.println(x1,DEC);
@@ -366,6 +379,10 @@ void loop()
       package[5] = (phi1 >> 8) & 255;      
 
       Serial.write(package,6);
+      //Serial.flush();
+      //while (Serial.available() > 0) {
+      //  Serial.read();
+      //}
 
       // reset the encoders so that we are recieving incremental change in encoder cts
       roboclaw.ResetEncoders(address);
@@ -462,6 +479,10 @@ void loop()
   }
 
 }
+void centerPos()
+{
+  myservo.write(center);
+}
 
 // A simple method to read from the LRF
 void simpleread() {
@@ -513,28 +534,28 @@ void simpleread() {
 }
 
 // A more complicated method to read from LRF, the output is formatted in long type
-void complicatedread() {
-  Serial.println('Reading LRF ...');
+long complicatedread() {
+  //Serial.println('Reading LRF ...');
         char readlrf;
         char readbuffer[4];
         long result;
         boolean gotresult = false;
         
         // Sometimes serial buffer is not empty - clear it out first or you'll get erroneous data
-        Serial.write("Flushing ... ");
+        //Serial.write("Flushing ... ");
         while(Serial1.available() > 0) {
           Serial1.read();
-          Serial.write(".");
+          //Serial.write(".");
         }
-        Serial.write("done.");
+        //Serial.write("done.");
           
         delay(150);
         Serial1.write('R');
         int count = 0;
-        Serial.write("Scanning ... \n");
+        //Serial.write("Scanning ... \n");
         while(Serial1.available() < 15) {
           //Serial.println("Serial1.available < 15");          
-          Serial.print(".");
+          //Serial.print(".");
           delay(100);
           count = count + 1;
           if (count > 20) {
@@ -544,19 +565,23 @@ void complicatedread() {
             count = 0;
           }
         }
-        Serial.write("\n");
+        if (Serial1.available() == 16) {
+          //Serial.write("LRF scan failed.\n");
+          return 0;
+        }
+        //Serial.write("\n");
         //delay(1000);
-        Serial.write("Serial1.available() = ");
-        Serial.println(Serial1.available());
+        //Serial.write("Serial1.available() = ");
+        //Serial.println(Serial1.available());
         while (Serial1.available() > 0) {
           
           //delay(150);
           readlrf = Serial1.read();
           delay(10);
-          if (readlrf == ':') {
-            Serial.println(':');
+          /*if (readlrf == ':') {
+            //Serial.println(':');
             readlrf = Serial1.read();
-          }
+          }*/
           if ((readlrf == 'D') && !gotresult) {
             Serial1.read();
             Serial1.read();
@@ -565,22 +590,25 @@ void complicatedread() {
             readbuffer[1] = Serial1.read();
             readbuffer[2] = Serial1.read();
             readbuffer[3] = Serial1.read();
-            result = (readbuffer[0]-'0')*1000 + (readbuffer[1]-'0')*100 + (readbuffer[2]-'0')*10 + (readbuffer[3]-'0');
-            Serial.write("Distance: ");
-            Serial.println(result);
-            gotresult = true;
+            // in mm: result = (readbuffer[0]-'0')*1000 + (readbuffer[1]-'0')*100 + (readbuffer[2]-'0')*10 + (readbuffer[3]-'0');
+            result = (readbuffer[0]-'0')*100 + (readbuffer[1]-'0')*10 + (readbuffer[2]-'0');
+            //Serial.write("Distance: ");
+            Serial.print(result);
+            //Serial.write(" cm\n");
+            //gotresult = true;
             break;
           //delay(200);
           }
           
-          Serial.print(readlrf);
+          //Serial.print(readlrf);
         }
-        Serial.write("Flushing ... ");
+        //Serial.write("Flushing ... ");
         while(Serial1.available()) {
           Serial1.read();
         }
         Serial1.flush();
-        Serial.println("Done!");
+        //Serial.println("Done!");
+        return result;
 }
 
 // dataread will read the bytes from the LRF and buffer them, then assemble them into a value in cm
