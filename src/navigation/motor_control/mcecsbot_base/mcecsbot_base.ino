@@ -312,6 +312,9 @@ void goForward(uint8_t MotorSpeed){
   roboclaw.ForwardM2(0x80,MotorSpeed);
   roboclaw.ForwardM1(0x81,MotorSpeed);
   roboclaw.ForwardM2(0x81,MotorSpeed);
+  Wire.beginTransmission(sonar_controller);
+  Wire.write(new_movement)
+  Wire.endTransmission();
 }
 
 void goBackward(uint8_t MotorSpeed){
@@ -321,6 +324,9 @@ void goBackward(uint8_t MotorSpeed){
   roboclaw.BackwardM2(0x80,MotorSpeed);
   roboclaw.BackwardM1(0x81,MotorSpeed);
   roboclaw.BackwardM2(0x81,MotorSpeed);
+  Wire.beginTransmission(sonar_controller);
+  Wire.write(new_movement);
+  Wire.endTransmission();
 }
 
 void goStop(){
