@@ -22,8 +22,8 @@
 #define LEFT 1
 
 BMSerial terminalSerial(0,1);          // TerminalSerial is the debug serial windows when 0,1 is selected
-//RoboClaw roboclaw(50,52);              // 5,6 represent the pins on the arduino that the motor controller is connected to
-RoboClaw roboclaw(46,48);              // 5,6 represent the pins on the arduino that the motor controller is connected to
+RoboClaw roboclaw(50,52);              // 5,6 represent the pins on the arduino that the motor controller is connected to
+//RoboClaw roboclaw(46,48);              // 5,6 represent the pins on the arduino that the motor controller is connected to
 
     uint8_t MotorSpeed = 0;            // Holds the current motorspeed of the robot, initialized at 5
     uint8_t TopMotorSpeed = 30;        // Top speed is actually TopMotorSpeed + 1
@@ -78,8 +78,9 @@ void setup() {
 ///////////////       Main Loop        ///////////////////
 void loop() { 
         readSerial();			// reads serial into new_movement
-	//readInterrupt();		// reads interrupt to see if obstical
+	readInterrupt();		// reads interrupt to see if obstical
 	doMove();
+        //Serial.println("main loop");
 	delay(150);
 }
 /////////////////       Main Loop end          /////////////////////////////
@@ -106,13 +107,16 @@ void readSerial() {
 
 
 void readInterrupt() {
-	was_interrupt = digitalRead(interruptPin);    // Poll interrupt pin from sonar controller. 
-	if(was_interrupt == true){
-		Serial.println("Interrupt true.");
-                if(new_movement == FORWARD || new_movement == BACKWARD) {
-                  detected_obstacle();                         // jump to stop routine for detected obstacle
-                }
-		was_interrupt = false;
+    was_interrupt = digitalRead(interruptPin);    // Poll interrupt pin from sonar controller. 
+    if(was_interrupt == true){
+	Serial.println("Interrupt true.");
+        if(new_movement == FORWARD || new_movement == BACKWARD) {
+             detected_obstacle();                         // jump to stop routine for detected obstacle
+        }
+        was_interrupt = false;
+    }
+    else {
+      Serial.println("No interrupt.");
     }
 }
 
@@ -313,7 +317,7 @@ void goForward(uint8_t MotorSpeed){
   roboclaw.ForwardM1(0x81,MotorSpeed);
   roboclaw.ForwardM2(0x81,MotorSpeed);
   Wire.beginTransmission(sonar_controller);
-  Wire.write(new_movement)
+  Wire.write(new_movement);
   Wire.endTransmission();
 }
 

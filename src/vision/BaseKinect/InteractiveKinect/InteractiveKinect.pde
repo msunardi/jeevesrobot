@@ -35,6 +35,8 @@ int totalTime = 5000;
 //============== setup function =========//
 void setup()
 {
+  String portName = "/dev/ttyACM3";
+  port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   kinect = new SimpleOpenNI(this); // initialize the kinect object
   kinect.setMirror(true); // Mirror the depth image
   kinect.enableDepth(); // enable the depth camera of the kinect
@@ -44,9 +46,9 @@ void setup()
   minim = new Minim(this); // initialize the Minim object
   size (kinect.depthWidth()+200, kinect.depthHeight()+100); // display the depth image and extra space for User Interface
     //String portName = Serial.list()[6]; // Select the Serial port number CUSTIMIZE!!!!!!!!!!!!! this is hardware specific 
-  String portName = "/dev/ttyACM0";
-  port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
-  player = minim.loadFile("i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
+  //String portName = "/dev/ttyACM0";
+  //port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
+  player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
   savedTime = millis();  //start internal timer, counts in milliseconds
 }
 //======================== Main Function=============//
