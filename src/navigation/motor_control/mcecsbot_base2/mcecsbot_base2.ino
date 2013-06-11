@@ -14,7 +14,7 @@
 #define Ki 0x00008000
 #define Kd 0x00004000
 #define qpps 44000
-#define sonar_controller 2
+//#define sonar_controller 2
 #define STOP 4
 #define FORWARD 2
 #define BACKWARD 3
@@ -28,7 +28,7 @@ RoboClaw roboclaw(50,52);              // 5,6 represent the pins on the arduino 
     uint8_t MotorSpeed = 0;            // Holds the current motorspeed of the robot, initialized at 5
     uint8_t TopMotorSpeed = 30;        // Top speed is actually TopMotorSpeed + 1
     uint8_t NoMotorSpeed = 0;          // variable to name a speed of zero
-    uint8_t increment = 5;             // Rate of acceleration. Make sure it is a multiple of TopMotorSpeed
+    uint8_t increment = 3;//5;             // Rate of acceleration. Make sure it is a multiple of TopMotorSpeed
     boolean stopmoving = false;        // Tells whether the robot has been asked to stop moving
 
     boolean first_iteration = false;   // As the robot accelerates it only needs to send the Uno (sonar_controller)
@@ -46,7 +46,7 @@ RoboClaw roboclaw(50,52);              // 5,6 represent the pins on the arduino 
                                        // there is only forward, backward, rotate left, and rotate right. If you add
                                        // any movement increment this by one. It is used to make sure nothing happens
                                        // if incorrect input values are received. 
-
+    int sonar_controller = 2;
     int new_movement = STOP;           // Holds the command value from any input device telling what movement to make. 
     int old_movement = STOP;           // Holds the last value of new_movement. Used to transition out of an old movement
                                        // and into a new movement. 
@@ -61,7 +61,10 @@ RoboClaw roboclaw(50,52);              // 5,6 represent the pins on the arduino 
     int avoid_count = 0;      // how many turns it did to avoid/clear the obstacle
     int avoid_direction = 4;  // which direction did it turn to avoid/clear the obstacle
     int AVOID_DELAY = 1200;   // arbitrary time delay to turn
-    int AVOID_SPEED = 15;
+    uint8_t AVOID_SPEED = 20;
+    uint8_t AVOID_SPEED_0 = 20;
+    uint8_t AVOID_SPEED_1 = 13;
+
 	
 	
 void setup() {
@@ -69,6 +72,7 @@ void setup() {
   roboclaw.begin(2400);          // Baud rate of connection to motor driver
   pinMode(22, OUTPUT);           // not sure? 
   Serial.begin(9600);            // serial to pc
+  //initialize();
   Wire.begin();
 
   // instantiate PID constants
@@ -77,6 +81,29 @@ void setup() {
   roboclaw.SetM1Constants(0x81,Kd,Kp,Ki,qpps);
   roboclaw.SetM2Constants(0x81,Kd,Kp,Ki,qpps);
   POST();
+}
+
+void initialize() {
+  byte incomingByte = 0;
+  boolean initialize = true;
+  byte response = '0';
+ 
+  while (initialize) {
+    if (Serial.available() > 0) {
+     incomingByte = Serial.read();
+     if (incomingByte == '1') { // main program acknowledge
+       initialize = false;
+     }
+      else if (incomingByte == '2') {
+       response = '0';
+       
+     }
+     
+   }
+    delay(123);
+    Serial.write(response);
+   
+  }
 }
 
 
@@ -124,8 +151,8 @@ void readInterrupt() {
       
       Serial.println("No interrupt.");
       if (avoid_count > 0) {
-        goForward(15);
-        delay(AVOID_DELAY);
+        //goForward(15);
+        //delay(AVOID_DELAY);
         Serial.print("Avoid count: ");
         Serial.println(avoid_count);
         Serial.print("Direction: ");
@@ -145,11 +172,17 @@ void readInterrupt() {
 /////////////////		Read Interrupt End		////////////////////////////
 
 void returnToPath() {
-  
+   
   if (avoid_direction == 0) {
-    rotateLeft(AVOID_SPEED);
+    goForwardDiag(AVOID_SPEED_0, AVOID_SPEED_1);
+  } else if (avoid_direction == 1) {    
+    goForwardDiag(AVOID_SPEED_1, AVOID_SPEED_0);
+  } else if (avoid_direction == 2) {
+    goBackwardDiag(AVOID_SPEED_0, AVOID_SPEED_1);
+  } else if (avoid_direction == 3) {
+    goBackwardDiag(AVOID_SPEED_1, AVOID_SPEED_0);
   } else {
-    rotateRight(AVOID_SPEED);
+    avoid_count = 1;
   }
   delay(AVOID_DELAY);  
   avoid_count -= 1;
@@ -214,7 +247,7 @@ int keyboardDebug(int movement){
 void doMove() {
 	if(new_movement == STOP && old_movement != STOP) {
 		while(MotorSpeed > 10) {
-                  MotorSpeed = MotorSpeed - 1;
+                  MotorSpeed = MotorSpeed - increment;
                   function[old_movement](MotorSpeed);
                   delay(1);
                 }
@@ -223,7 +256,7 @@ void doMove() {
 	}
 	else if(new_movement != old_movement) {
                 while(MotorSpeed > 10) {
-                  MotorSpeed = MotorSpeed - 1;
+                  MotorSpeed = MotorSpeed - increment;
                   function[old_movement](MotorSpeed);
                   delay(1);
                 }
@@ -376,6 +409,24 @@ void goStop(){
   roboclaw.ForwardM2(0x81,MotorSpeed);
 }
 
+void goForwardDiag(uint8_t MotorSpeedRight, uint8_t MotorSpeedLeft){
+  Serial.print("Diagonal Forward:   ");
+  Serial.println(MotorSpeed);
+  roboclaw.ForwardM1(0x80,MotorSpeedRight);
+  roboclaw.ForwardM2(0x80,MotorSpeedLeft);
+  roboclaw.ForwardM1(0x81,MotorSpeedRight);
+  roboclaw.ForwardM2(0x81,MotorSpeedLeft);
+}
+
+void goBackwardDiag(uint8_t MotorSpeedRight, uint8_t MotorSpeedLeft){
+  Serial.print("Diagonal Reverse:   ");
+  Serial.println(MotorSpeed);
+  roboclaw.BackwardM1(0x80,MotorSpeedRight);
+  roboclaw.BackwardM2(0x80,MotorSpeedLeft);
+  roboclaw.BackwardM1(0x81,MotorSpeedRight);
+  roboclaw.BackwardM2(0x81,MotorSpeedLeft);
+}
+
 
 ////////////////		Movement Functions end		///////////////////////
 
@@ -466,19 +517,35 @@ void detected_obstacle(){
    Serial.print(" sonar number:  "); 
    Serial.println(sonar_number);
    
+   ////////  evasive manuever method /////
    if ((sonar_number == 12) || (sonar_number == 11)) {
      //new_movement = LEFT;
+     avoid_direction = 1;
      rotateLeft(AVOID_SPEED);
-     delay(AVOID_DELAY);
-     new_movement = STOP;
-     doMove();
+     //delay(AVOID_DELAY);
+     //new_movement = STOP;
+     //doMove();
    } else if ((sonar_number == 7) || (sonar_number == 6) || (sonar_number == 5)) {
+     avoid_direction = 0;
      rotateRight(AVOID_SPEED);
-     delay(AVOID_DELAY);
-     new_movement = STOP;
-     doMove();
+     //delay(AVOID_DELAY);
+     //new_movement = STOP;
+     //doMove();
+   } else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
+     avoid_direction = 2;
+     rotateLeft(AVOID_SPEED);
+   } else if ((sonar_number == 8) || (sonar_number == 9) || (sonar_number == 10)) {
+     avoid_direction = 3;
+     rotateRight(AVOID_SPEED);
    }
+     //delay(AVOID_DELAY);
+     //new_movement = STOP;
+     //doMove();
+   delay(AVOID_DELAY);
+   new_movement = STOP;
+   doMove();
    avoid_count += 1;
+   ////////  End of evasive manuever method /////
    /* if(obstacle < 20){
      Serial.println("obstacle < 10"); 
       //goStop();
