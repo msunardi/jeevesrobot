@@ -68,7 +68,7 @@ using namespace std;
 /*                                            NAVIGATION PARAMS                                   */		
 /**************************************************************************************************/
 /* DEFAULT PARAM, SEE "guidebotNavConf.ini" */
-static string TTY_PORT       =     "/dev/ttyUSB0";
+static string TTY_PORT       =     "/dev/ttyACM3";
 static string COM_PORT       =     "COM4";
 static int BAUD_RATE         =     9600;
 
@@ -95,9 +95,9 @@ static int Y_CENTRAL_PIXEL		=	-1;
 static CMonteCarloLocalization2D pdf;
 static float kinectMinTruncateDistance = 0.5;
 
-static char* LRF_PORT_NAME		=	"/dev/ttyACM0";
-static char* ODO_PORT_NAME		=	"/dev/ttyACM0";
-static char* MOTOR_PORT_NAME		=	"/dev/ttyACM0";
+static char* LRF_PORT_NAME		=	"/dev/ttyACM3";
+static char* ODO_PORT_NAME		=	"/dev/ttyACM3";
+static char* MOTOR_PORT_NAME		=	"/dev/ttyACM3";
 static int   ODO_READ_MIN		=	7;
 static int   LRF_READ_MIN		=	7;
 #define PORT "80" // the port client will be connecting to 
@@ -178,7 +178,7 @@ void adjustCObservationRangeSonarPose( CObservationRange &obs );
 void thread_wall_detect(TThreadRobotParam &p);
 void fixOdometry(CPose2D & pose, CPose2D offset);
 int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd,TThreadRobotParam &thrPar);
-void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar);
+void getOdometry(CPose2D &out_odom, int odo_fd, TThreadRobotParam &thrPar);
 int setupArduino(char * port, int readBytes);
 int clientCommunication();
 int parseServerReply(char * server_reply);
@@ -465,9 +465,19 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 	CPose2D curOdo = thrPar.currentOdo.get();
 	CPose2D newOffset(curOdo.x(),curOdo.y(),curOdo.phi());
 	out_obs.scan.clear();	
+	try {
 	fixOdometry( newOffset, thrPar.odometryOffset.get() );
+	}
+	catch (...) {
+		printf("error fixodometry\n");
+	}
 	out_obs.validRange.clear();
+	try {
 	out_obs.setSensorPose(thrPar.odometryOffset.get());
+	}
+	catch (...) {
+		printf("error out_obs.setSensorPose\n");
+	}
 	out_obs.aperture = M_PI*40/180;	
 	sleep(1000);
 	
@@ -481,7 +491,8 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 		}
 	}
 	thrPar.gettingLRF.set(false);
-	cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;	 
+        cout<<"Getting LRf value is set to false"<<endl;
+	cout<<thrPar.gettingLRF.get()<<"LRF VALUEx"<<endl;	 
 		
 	return 0;
 }
@@ -492,7 +503,7 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
  * @param	out_odom: a pointer to the object in which the current odometry of the robot will get filled in
  *
  */
-void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
+void getOdometry(CPose2D &out_odom, int odo_fd, TThreadRobotParam &thrPar)
 {
 
 	unsigned char buf[256];
@@ -501,13 +512,14 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	CPose2D tempPose;
 	short x,y,phi;
 	getCommand[0]='e';
-	cout<<"In getting ODO"<<endl; 
+	cout<<"In getting ODO, thread works!"<<endl; 
+	try {
 	/* Flush anything already in the serial buffer */
 	tcflush(odo_fd, TCIFLUSH);
 	/* read up to 128 bytes from the fd */
 	write(odo_fd,getCommand,1);
-	//cout<<"written"<<endl;
-	//cout<<"odo_fd "<<odo_fd<<endl;
+	cout<<"written"<<endl;
+	cout<<"odo_fd "<<odo_fd<<endl;
 	buf[0] = 0;
 	while(buf[0] != '*')
 	{
@@ -530,7 +542,10 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	out_odom.phi(float(phi)*M_PI/180.0);
 	
 	sleep(1000);
-	
+	}
+	catch (...) {
+		cout << "Default exception occured!";
+	}
 
 }
 
@@ -1954,7 +1969,7 @@ int main(int argc, char **argv)
 		ASSERT_(fileExists(CONFIG_FILE_NAME))
 		CConfigFile guidebotConfFile(CONFIG_FILE_NAME);
 		
-		TTY_PORT       =     guidebotConfFile.read_string("NavigationParams","TTY_PORT","/dev/ttyUSB0", true);
+		TTY_PORT       =     guidebotConfFile.read_string("NavigationParams","TTY_PORT","/dev/ttyACM3", true);
 		COM_PORT       =     guidebotConfFile.read_string("NavigationParams","COM_PORT","COM4", true);
 		BAUD_RATE      =     guidebotConfFile.read_int("NavigationParams","BAUD_RATE",9600, true);
 		ROBOT_RADIUS   =     guidebotConfFile.read_float("NavigationParams","ROBOT_RADIUS",0.30f, true);
