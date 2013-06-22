@@ -1,7 +1,7 @@
 // Slave Sonar
 // Jesse Adams 
 #include <Wire.h>
-#define arraysize 5 // size of array that stores sonar data
+#define arraysize 3 // size of array that stores sonar data
 
 uint8_t pulse1;
 uint8_t pulse2;
@@ -36,7 +36,7 @@ uint8_t data_to_send[2];        // In I2C protocol, if sending multiple bytes, t
                                 // must be stored in a uint8_t array
 int threshold = 15;             // distance in inches that will trigger robot to stop
 int kinectVal = -1;             // initializing value. ie don't do anything until instructed
-int rangevalue[arraysize] = { 0, 0, 0, 0, 0 };  // data array for sonars
+int rangevalue[arraysize] = { 0, 0, 0 };  // data array for sonars
 int slave_address = 2;          // I2C slave address of Arduino
 
 void setup()
@@ -86,83 +86,9 @@ void loop()
 	Serial.print("Kinectval: ");
 	Serial.println(kinectVal);
   }
-  else {
-    
-    if (kinectVal != 4) { // if not 'stop' 
-      pulse1 = getSonar(sonar1);
-      if(pulse1 < threshold){
-          stop_robot(sonar1, pulse1);
-          //Serial.println("Sonar 1");
-      }
-      /*delay(200);
-      pulse7 = getSonar(sonar7);
-      if(pulse7 < threshold){
-          stop_robot(sonar7, pulse7);
-          //Serial.println("Sonar 7");
-      }*/
-      delay(200);
-      pulse3 = getSonar(sonar3);
-      if(pulse3 < threshold){
-          stop_robot(sonar3, pulse3);
-          //Serial.println("Sonar 3");
-      }
-      /*delay(200);
-      pulse9 = getSonar(sonar9);
-      if(pulse9 < threshold){
-          stop_robot(sonar9, pulse9);
-          //Serial.println("Sonar 9");
-      }*/
-      /*delay(200);
-      pulse12 = getSonar(sonar12);
-      if(pulse12 < threshold){
-          stop_robot(sonar12, pulse12);
-          //Serial.println("Sonar 12");
-      }*/
-      /*delay(200);
-      pulse6 = getSonar(sonar6);
-      if(pulse6 < threshold){
-          stop_robot(sonar6, pulse6);
-          //Serial.println("Sonar 6");
-      }*/
-      delay(200);
-      pulse10 = getSonar(sonar10);
-      if(pulse10 < threshold){
-          stop_robot(sonar10, pulse10);
-          //Serial.println("Sonar 10");
-      }
-      /*delay(200);
-      pulse4 = getSonar(sonar4);
-      if(pulse4 < threshold){
-          stop_robot(sonar4, pulse4);
-          //Serial.println("Sonar 4");
-      }*/
-      delay(200);
-      pulse2 = getSonar(sonar2);
-      if(pulse2 < threshold){
-          stop_robot(sonar2, pulse2);
-          //Serial.println("Sonar 2");
-      }
-      /*delay(200);
-      pulse8 = getSonar(sonar8);
-      if(pulse8 < threshold){
-          stop_robot(sonar8, pulse8);
-          //Serial.println("Sonar 8");
-      }*/
-      delay(200);
-      pulse11 = getSonar(sonar11);
-      if(pulse11 < threshold){
-          stop_robot(sonar11, pulse11);
-          //Serial.println("Sonar 11");
-      }
-      /*delay(200);
-      pulse5 = getSonar(sonar5);
-      if(pulse5 < threshold){
-          stop_robot(sonar5, pulse5);
-          //Serial.println("Sonar 5");
-      }*/
-      delay(200);
-    }
-  }  
+  //else {
+  //  scan();
+  //}  
   ///// From this point until the end of the loop() is the original code
  
   
@@ -229,10 +155,10 @@ void loop()
         if(pulse11 < threshold){
            stop_robot(sonar11, pulse11);
         }
-      pulse12 = getSonar(sonar12);   
-        if(pulse12 < threshold){
-           stop_robot(sonar12, pulse12);
-        }
+      //pulse12 = getSonar(sonar12);   
+      //  if(pulse12 < threshold){
+      //     stop_robot(sonar12, pulse12);
+      //  }
 
     break;
 
@@ -261,26 +187,6 @@ void loop()
        Serial.println("Case 4");
        break;
        
-    case 2:                              // case 2: Move Forward 
-    Serial.println("Case 2");
-      pulse1 = getSonar(sonar1);
-        if(pulse1 < threshold){
-           stop_robot(sonar1, pulse1);
-        }
-      pulse2 = getSonar(sonar2);   
-        if(pulse2 < threshold){
-           stop_robot(sonar2, pulse2);
-        }
-      pulse11 = getSonar(sonar11);
-        if(pulse11 < threshold){
-           stop_robot(sonar11, pulse11);
-        }
-      //pulse12 = getSonar(sonar12);   
-      //  if(pulse12 < threshold){
-      //     stop_robot(sonar12, pulse12);
-      //  }
-
-    break;
     
     default:
        Serial.println("Nothing");
@@ -407,3 +313,81 @@ int mode(int *x,int n){
   }
 }
 ////////////////////         end mode       /////////////////////// 
+
+
+void scan() {    
+    if (kinectVal != 4) { // if not 'stop' 
+      /*!pulse1 = getSonar(sonar1);
+      if(pulse1 < threshold){
+          stop_robot(sonar1, pulse1);
+          //Serial.println("Sonar 1");
+      }!*/
+      /*delay(200);
+      pulse7 = getSonar(sonar7);
+      if(pulse7 < threshold){
+          stop_robot(sonar7, pulse7);
+          //Serial.println("Sonar 7");
+      }*/
+      /*!delay(200);
+      pulse3 = getSonar(sonar3);
+      if(pulse3 < threshold){
+          stop_robot(sonar3, pulse3);
+          //Serial.println("Sonar 3");
+      }!*/
+      /*delay(200);
+      pulse9 = getSonar(sonar9);
+      if(pulse9 < threshold){
+          stop_robot(sonar9, pulse9);
+          //Serial.println("Sonar 9");
+      }*/
+      /*delay(200);
+      pulse12 = getSonar(sonar12);
+      if(pulse12 < threshold){
+          stop_robot(sonar12, pulse12);
+          //Serial.println("Sonar 12");
+      }*/
+      /*delay(200);
+      pulse6 = getSonar(sonar6);
+      if(pulse6 < threshold){
+          stop_robot(sonar6, pulse6);
+          //Serial.println("Sonar 6");
+      }*/
+      delay(200);
+      pulse10 = getSonar(sonar10);
+      if(pulse10 < threshold){
+          stop_robot(sonar10, pulse10);
+          //Serial.println("Sonar 10");
+      }
+      /*delay(200);
+      pulse4 = getSonar(sonar4);
+      if(pulse4 < threshold){
+          stop_robot(sonar4, pulse4);
+          //Serial.println("Sonar 4");
+      }*/
+      delay(200);
+      pulse2 = getSonar(sonar2);
+      if(pulse2 < threshold){
+          stop_robot(sonar2, pulse2);
+          //Serial.println("Sonar 2");
+      }
+      /*delay(200);
+      pulse8 = getSonar(sonar8);
+      if(pulse8 < threshold){
+          stop_robot(sonar8, pulse8);
+          //Serial.println("Sonar 8");
+      }*/
+      delay(200);
+      pulse11 = getSonar(sonar11);
+      if(pulse11 < threshold){
+          stop_robot(sonar11, pulse11);
+          //Serial.println("Sonar 11");
+      }
+      /*delay(200);
+      pulse5 = getSonar(sonar5);
+      if(pulse5 < threshold){
+          stop_robot(sonar5, pulse5);
+          //Serial.println("Sonar 5");
+      }*/
+      delay(200);
+    }
+}

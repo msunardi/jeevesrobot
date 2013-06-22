@@ -23,6 +23,7 @@
 
 BMSerial terminalSerial(0,1);          // TerminalSerial is the debug serial windows when 0,1 is selected
 //RoboClaw roboclaw(50,52);              // 5,6 represent the pins on the arduino that the motor controller is connected to
+
 RoboClaw roboclaw(46,48);              // 5,6 represent the pins on the arduino that the motor controller is connected to
 
     uint8_t MotorSpeed;                // Holds the current motorspeed of the robot
@@ -57,14 +58,17 @@ RoboClaw roboclaw(46,48);              // 5,6 represent the pins on the arduino 
     int interruptPin = 2;              // Pin used to signal an obstacle has been detected by sonars. Logic High. 
 
     void (*function[4])(uint8_t) = {&rotateRight, &rotateLeft, &goForward, &goBackward};  // An array of pointers to movement functions. 
+	
+    boolean postPOST = false;
 
 void setup() {
+  
   pinMode(interruptPin, INPUT);  // Set Mega pin 2 to input. 
   roboclaw.begin(2400);          // Baud rate of connection to motor driver
   pinMode(22, OUTPUT);           // not sure? 
   Serial.begin(9600);            // serial to pc
   Wire.begin();
-
+  delay(100);
   // instantiate PID constants
   roboclaw.SetM1Constants(0x80,Kd,Kp,Ki,qpps);
   roboclaw.SetM2Constants(0x80,Kd,Kp,Ki,qpps); 
@@ -72,9 +76,26 @@ void setup() {
   roboclaw.SetM2Constants(0x81,Kd,Kp,Ki,qpps);  
 }
 
-///////////////       Main Loop        ///////////////////
 
+///////////////       Main Loop        ///////////////////
 void loop() { 
+	mainProg();
+
+	/*
+	if(postPOST){
+		mainProg();
+	}
+	else{
+		POST();
+	}
+	*/
+
+
+}
+/////////////////       End Main Loop            /////////////////////////////
+
+
+void mainProg() {
 
     if(Serial.available()){                        // If new movement available, retreive.
     new_movement = Serial.read();      
@@ -132,9 +153,20 @@ void loop() {
          new_movement = Start_new_movement();                             // set first_iteration to true, signaling
        }                                                                  // the first time in the acceleration loop. 
     }*/
-
 }
-/////////////////       End Main Loop            /////////////////////////////
+
+/////////////////       Main Prog End	////////////////////////////
+
+
+void POST() {
+  doMove(FORWARD);
+  doMove(BACKWARD);
+  doMove(LEFT);  
+  doMove(RIGHT);
+  doMove(STOP);
+  postPOST = true;
+}
+
 
 void doMove(int new_move) {
  if(stopmoving == false && new_movement < available_movements){        // If robot was not instructed to stop 
@@ -344,6 +376,7 @@ void detected_obstacle(){
   uint8_t sonar_number, obstacle;
   int interrupted_movement;
   interrupted_movement = new_movement;
+  
   
   
   //char sonar_number, obstacle;

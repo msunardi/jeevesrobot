@@ -205,7 +205,10 @@ void draw()
       line(BoxX, BoxY, HlineX2, HlineY2);
       strokeWeight(1);
       //======= end of right display==========//
-  }
+  }while (port.available() > 0) {
+        int inByte = port.read();
+        print(char(inByte));
+      }
   }else if (mapHandVector.x <= 0.75*kinect.depthWidth() && mapHandVector.x >= 0.25*kinect.depthWidth()){ 
     // otherwise, check if the hand is in the middle
             roto = true;// if so, set the rotation flag to true, so it is not executed again before executing the Distance satisfation
@@ -235,7 +238,10 @@ void draw()
             line(HlineX1, HlineY1, HlineX2, HlineY2);
             line(VlineX1, VlineY1, VlineX2, VlineY2);
           }// end of stop display
-  }// otherwise, this is unharmful error, resume execution
+  }while (port.available() > 0) {
+        int inByte = port.read();
+        print(char(inByte));
+      }// otherwise, this is unharmful error, resume execution
 }else if(DisBF == false)// otherwise, check if the distance satisfaction flag is false
   {
     if (millimeters < 900 && millimeters > 0){// if so, check if the hand is close. execlude the 0! its NOISE!!
@@ -267,6 +273,10 @@ void draw()
         strokeWeight(1);
         //=============== end of backward display ====================//
       }
+      while (port.available() > 0) {
+        int inByte = port.read();
+        print(char(inByte));
+      }
     }else if (millimeters > 1200 && millimeters > 0){//otherwise, check if the hand is far. execlude the 0! it is NOISE!!!
       if(send != forward){// chekc if we have already sent this command
         send= forward;// if not, set the send variable to move forward to be sent
@@ -296,6 +306,10 @@ void draw()
         strokeWeight(1);
         //=========== end of forward command =====================//
       }
+      while (port.available() > 0) {
+        int inByte = port.read();
+        print(char(inByte));
+      }
     }else if (millimeters < 1200 && millimeters > 900){// check if the hand is in the middle
         DisBF = true;// if so, set the distance satisfaction flag to true, so it does not get executed again before the rotation satisfaction
         roto = false;// also, set the rotation satisfaction flag to false so it get executed next
@@ -324,6 +338,10 @@ void draw()
             line(HlineX1, HlineY1, HlineX2, HlineY2);
             line(VlineX1, VlineY1, VlineX2, VlineY2);
             //============= end of stop display =====================//
+      }
+      while (port.available() > 0) {
+        int inByte = port.read();
+        print(char(inByte));
       }
     }// other wise, this is unharmful error, resume execution
  }// otherwise, distance satisfied, resume execution
