@@ -150,7 +150,7 @@ void readInterrupt() {
     else {
       
       Serial.println("No interrupt.");
-      if (avoid_count > 0) {
+      /*if (avoid_count > 0) {
         //goForward(15);
         //delay(AVOID_DELAY);
         Serial.print("Avoid count: ");
@@ -165,7 +165,7 @@ void readInterrupt() {
       }
       if (avoid_count == 0) {
         avoid_direction = 4;
-      }
+      }*/
     }
 }
 
@@ -471,13 +471,15 @@ void detected_obstacle(){
   Serial.print("Obstacle Detected:   ");
   
   if(old_movement == BACKWARD) {
-    new_movement = FORWARD;
+    //new_movement = FORWARD;
+    avoid(FORWARD);
   }
   else {
-    new_movement = BACKWARD;
+    //new_movement = BACKWARD;
+    avoid(BACKWARD);
   }
-  doMove();
-  delay(50);
+  //doMove();
+  //delay(50);
   new_movement = STOP;
   doMove();
   
@@ -519,74 +521,32 @@ void detected_obstacle(){
    
    ////////  evasive manuever method /////
    if ((sonar_number == 12) || (sonar_number == 11)) {
-     //new_movement = LEFT;
-     avoid_direction = 1;
-     rotateLeft(AVOID_SPEED);
-     //delay(AVOID_DELAY);
-     //new_movement = STOP;
-     //doMove();
+     //avoid_direction = 1;
+     //rotateLeft(AVOID_SPEED);
+		 avoid(LEFT);
    } else if ((sonar_number == 7) || (sonar_number == 6) || (sonar_number == 5)) {
-     avoid_direction = 0;
-     rotateRight(AVOID_SPEED);
-     //delay(AVOID_DELAY);
-     //new_movement = STOP;
-     //doMove();
-   } else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
-     avoid_direction = 2;
-     rotateLeft(AVOID_SPEED);
+     //avoid_direction = 0;
+     //rotateRight(AVOID_SPEED);
+     avoid(RIGHT);
+   } /*else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
+     //avoid_direction = 2;
+     //rotateLeft(AVOID_SPEED);
+     avoid(LEFT);
    } else if ((sonar_number == 8) || (sonar_number == 9) || (sonar_number == 10)) {
-     avoid_direction = 3;
-     rotateRight(AVOID_SPEED);
-   }
+     //avoid_direction = 3;
+     //rotateRight(AVOID_SPEED);
+		 avoid(RIGHT);
+   }*/
      //delay(AVOID_DELAY);
      //new_movement = STOP;
      //doMove();
-   delay(AVOID_DELAY);
-   new_movement = STOP;
-   doMove();
-   avoid_count += 1;
+   //delay(AVOID_DELAY);
+   //new_movement = STOP;
+   //doMove();
+   //avoid_count += 1;
    ////////  End of evasive manuever method /////
-   /* if(obstacle < 20){
-     Serial.println("obstacle < 10"); 
-      //goStop();
-      new_movement = RIGHT;
-      stopmoving = false; 
-      doMove();
-      //decide(obstacle, sonar_number);
-      
-      } else{
-        //new_movement = Stop_old_movement();
-      }
-   //delayMicroseconds(250);
-   int count=0;
-   
-   while((obstacle < threshold) && (sonar_number > 0)){
-     Serial.println("waiting until no more obstacle");
-     Wire.requestFrom(sonar_controller, 2);
-    
-     obstacle = Wire.read();
-     sonar_number = Wire.read();
-     Serial.write(sonar_number);
-     //Serial.write("  ");
-     //Serial.write(obstacle);
-     delayMicroseconds(250);
-     //
-     decide(obstacle, sonar_number);
-     
-     if (count>100) {
-       count = 0;
-       break;
-     } else {
-       count = count + 1;
-       Serial.println(count);
-     }
-   }   
-   
-   while((obstacle < threshold) && (sonar_number > 0)){
-      decide(obstacle, sonar_number);
-   }
-   */new_movement = interrupted_movement;
-   //stopmoving = false;
+
+	 new_movement = interrupted_movement;
    Serial.println("end detected_obstacle()");
 }
 
@@ -612,4 +572,14 @@ void decide(int obstacle, int sonar_number) {
   }
   doMove();
   delay(150);
+}
+
+void avoid(int direction) {
+  long now = millis();
+  int maxtime = 1501;
+  int mintime = 800;
+  new_movement = direction;
+  while (millis() - now < random(800,1501)) {
+    doMove();
+	}
 }
