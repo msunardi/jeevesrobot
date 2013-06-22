@@ -263,7 +263,7 @@ void doMove() {
 		function[new_movement](MotorSpeed);
 	}
 	else if(MotorSpeed < TopMotorSpeed && old_movement != STOP) {
-	  MotorSpeed = MotorSpeed + 3;
+	  MotorSpeed = MotorSpeed + increment;
           if(MotorSpeed > TopMotorSpeed){
             MotorSpeed = TopMotorSpeed;
           }            
@@ -520,22 +520,15 @@ void detected_obstacle(){
    Serial.println(sonar_number);
    
    ////////  evasive manuever method /////
-   if ((sonar_number == 12) || (sonar_number == 11)) {
-     //avoid_direction = 1;
-     //rotateLeft(AVOID_SPEED);
-		 avoid(LEFT);
+   decide(obstacle, sonar_number);
+   /*if ((sonar_number == 12) || (sonar_number == 11)) {
+     avoid(LEFT);
    } else if ((sonar_number == 7) || (sonar_number == 6) || (sonar_number == 5)) {
-     //avoid_direction = 0;
-     //rotateRight(AVOID_SPEED);
      avoid(RIGHT);
-   } /*else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
-     //avoid_direction = 2;
-     //rotateLeft(AVOID_SPEED);
+   } else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
      avoid(LEFT);
    } else if ((sonar_number == 8) || (sonar_number == 9) || (sonar_number == 10)) {
-     //avoid_direction = 3;
-     //rotateRight(AVOID_SPEED);
-		 avoid(RIGHT);
+     avoid(RIGHT);
    }*/
      //delay(AVOID_DELAY);
      //new_movement = STOP;
@@ -564,14 +557,15 @@ void decide(int obstacle, int sonar_number) {
   Serial.print("Sonar number: ");
   Serial.println(sonar_number);
   Serial.println("Trying to decide what to do...");
-  if ((sonar_number > 7) || (sonar_number < 3)) {
-     new_movement = RIGHT;
-  } else {
-    new_movement = LEFT;
-    //doMove();
-  }
-  doMove();
-  delay(150);
+  if ((sonar_number == 12) || (sonar_number == 11)) {
+    avoid(LEFT);
+  } else if ((sonar_number == 7) || (sonar_number == 6) || (sonar_number == 5)) {
+    avoid(RIGHT);
+  } /*else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
+    avoid(LEFT);
+  } else if ((sonar_number == 8) || (sonar_number == 9) || (sonar_number == 10)) {
+    avoid(RIGHT);
+  }*/
 }
 
 void avoid(int direction) {
@@ -581,5 +575,14 @@ void avoid(int direction) {
   new_movement = direction;
   while (millis() - now < random(800,1501)) {
     doMove();
-	}
+  }
+}
+void avoid2(int direction) {
+  long now = millis();
+  int maxtime = 1501;
+  int mintime = 800;
+  new_movement = direction;
+  while (millis() - now < random(800,1501)) {
+    doMove();
+  }
 }
