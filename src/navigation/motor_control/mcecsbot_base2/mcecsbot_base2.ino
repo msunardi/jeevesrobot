@@ -133,13 +133,14 @@ void loop() {
 /////////////////       Read Serial Start	////////////////////////////
 
 void readSerial() {
-    if(Serial.available()){                        // If new movement available, retreive.
-		//old_movement = new_movement;
-		new_movement = Serial.read();
-		if(new_movement > 40){
-			new_movement = keyboardDebug(new_movement);
-		}
+  if(Serial.available()){                        // If new movement available, retreive.
+    //old_movement = new_movement;
+    new_movement = Serial.read();
+    
+    if(new_movement > 40) {
+	new_movement = keyboardDebug(new_movement);
     }
+  }
 }
 
 
@@ -258,6 +259,7 @@ int keyboardDebug(int movement){
 
 void doMove() {
 	if(new_movement == STOP && old_movement != STOP) {
+        Serial.println("new_movement==STOP && old_movement!=STOP");
 		while(MotorSpeed > 10) {
                   MotorSpeed = MotorSpeed - increment;
                   function[old_movement](MotorSpeed);
@@ -267,6 +269,7 @@ void doMove() {
 		goStop();
 	}
 	else if(new_movement != old_movement) {
+        Serial.println("new_movement!=old_movement");
                 while(MotorSpeed > 10) {
                   MotorSpeed = MotorSpeed - increment;
                   function[old_movement](MotorSpeed);
@@ -275,12 +278,17 @@ void doMove() {
 		function[new_movement](MotorSpeed);
 	}
 	else if(MotorSpeed < TopMotorSpeed && old_movement != STOP) {
+        Serial.println("MotorSpeed<TopMotorSpeed && old_movement!=STOP");
 	  MotorSpeed = MotorSpeed + increment;
           if(MotorSpeed > TopMotorSpeed){
             MotorSpeed = TopMotorSpeed;
           }            
 	  function[new_movement](MotorSpeed);
 	}
+        Serial.print("Old_movement= ");
+        Serial.print(old_movement);
+        Serial.print(", new_movement= ");
+        Serial.println(new_movement);
         old_movement = new_movement;
 }
 
@@ -568,15 +576,21 @@ void decide(int obstacle, int sonar_number) {
   Serial.println(obstacle);
   Serial.print("Sonar number: ");
   Serial.println(sonar_number);
-  Serial.println("Trying to decide what to do...");
+  Serial.print("Trying to decide what to do...");
   if ((sonar_number == 12) || (sonar_number == 11)) {
+    Serial.println("Go Left");
     avoid(LEFT);
   } else if ((sonar_number == 7) || (sonar_number == 6) || (sonar_number == 5)) {
+    Serial.println("Go Right");
     avoid(RIGHT);
   } else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
+    Serial.println("Go Left");
     avoid(LEFT);
   } else if ((sonar_number == 8) || (sonar_number == 9) || (sonar_number == 10)) {
+    Serial.println("Go Right");
     avoid(RIGHT);
+  } else {
+    avoid(STOP);
   }
 }
 
@@ -585,7 +599,7 @@ void avoid(int direction) {
   int maxtime = 1501;
   int mintime = 800;
   new_movement = direction;
-  while (millis() - now < random(800,1501)) {
+  while (millis() - now < random(mintime,maxtime)) {
     doMove();
   }
 }
@@ -594,7 +608,7 @@ void avoid2(int direction) {
   int maxtime = 1501;
   int mintime = 800;
   new_movement = direction;
-  while (millis() - now < random(800,1501)) {
+  while (millis() - now < random(mintime,maxtime)) {
     doMove();
   }
 }

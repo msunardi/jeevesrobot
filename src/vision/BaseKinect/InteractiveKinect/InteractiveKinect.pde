@@ -23,7 +23,8 @@ boolean roto  = false; // rotation satisfaction Flag, set to False at start to g
 int close; // integer variable to host the closest point
 int closeX; // the x position of the closest point
 int closeY; // the y position of the closest point
-int left = 108, right = 106, stop= 107, forward = 105, backward = 44; // integer varialbles to host commands protocol with Arduino
+//int left = 108, right = 106, stop= 107, forward = 105, backward = 44; // integer varialbles to host commands protocol with Arduino
+int left = 97, right = 100, stop= 120, forward = 119, backward = 115, strafe_left = 122, strafe_right = 99; // integer varialbles to host commands protocol with Arduino
 int BoxX = 740, BoxW = 50,  HlineX1 = 665, HlineX2= 815, VlineX1 = 740, VlineX2 = 740;  // Horizontal variables for robot base animation
 int BoxY = 500, BoxH = 50, HlineY1 = 500, HlineY2 = 500, VlineY1 = 425, VlineY2 = 575;  // vertical variables for robot base animation
 String song = "Play Music"; // String variable hosting the music button display, set to play music at start
@@ -148,15 +149,20 @@ void draw()
             }// otherwise, resume executon
     if(roto == false){// check if the rotation satisfaction is not satisfied
   if (mapHandVector.x < 0.25*kinect.depthWidth()){ // if so, check if the hand is in the left
-    if (send != left){// if so, check if we have alrwady  sent this command
-      send = left;// if not, then set the send variable to left to be sent
+    if ((send != right) || (send != strafe_right)) {// if so, check if we have alrwady  sent this command
+      float r = random(10);
+      if (r > 5) {
+        send = right;// if not, then set the send variable to left to be sent
+      } else {
+        send = strafe_right;
+      }
       port.write(send);// send it
-      println("Left  "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
+      println("Right  "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
       //======== display the command =======//
       textSize(20);
       fill(255, 0, 0);
       textAlign(CENTER, CENTER);
-      text("Left",700,20);
+      text("Right",700,20);
 
     }else{// otherwise, we do not need to re-send the command, just display to the user to inform 
     //=========== left display======================//
@@ -178,8 +184,13 @@ void draw()
       //======= end of left display =========//
     }
   }else if (mapHandVector.x > 0.75*kinect.depthWidth()){ // otherwise, check if hand is inthre right side
-    if (send != right){// if so, check if we have already sent this command
-      send = right;// if not, set the sne dvariable to right to be sent
+    if ((send != left) || (send != strafe_left)) {// if so, check if we have already sent this command
+      float r = random(10);
+      if (r > 5) {
+        send = left;// if not, set the sne dvariable to right to be sent
+      } else {
+        send = strafe_left;
+      }
       port.write(send);//send it
       println("Right "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
       //===== display the command ======//
