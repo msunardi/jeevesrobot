@@ -149,7 +149,7 @@ void draw()
             }// otherwise, resume executon
     if(roto == false){// check if the rotation satisfaction is not satisfied
   if (mapHandVector.x < 0.25*kinect.depthWidth()){ // if so, check if the hand is in the left
-    if ((send != right) || (send != strafe_right)) {// if so, check if we have alrwady  sent this command
+    if ((send != right) && (send != strafe_right)) {// if so, check if we have alrwady  sent this command
       float r = random(10);
       if (r > 5) {
         send = right;// if not, then set the send variable to left to be sent
@@ -184,7 +184,7 @@ void draw()
       //======= end of left display =========//
     }
   }else if (mapHandVector.x > 0.75*kinect.depthWidth()){ // otherwise, check if hand is inthre right side
-    if ((send != left) || (send != strafe_left)) {// if so, check if we have already sent this command
+    if ((send != left) && (send != strafe_left)) {// if so, check if we have already sent this command
       float r = random(10);
       if (r > 5) {
         send = left;// if not, set the sne dvariable to right to be sent
@@ -192,12 +192,12 @@ void draw()
         send = strafe_left;
       }
       port.write(send);//send it
-      println("Right "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
+      println("Left "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
       //===== display the command ======//
       textSize(20);
       fill(255, 0, 0);
       textAlign(CENTER, CENTER);
-      text("Right",700,20);
+      text("Left",700,20);
   }else{//otherwise, we do not need to re-send the command
   //============ right display==============//
       textSize(20);
@@ -216,10 +216,7 @@ void draw()
       line(BoxX, BoxY, HlineX2, HlineY2);
       strokeWeight(1);
       //======= end of right display==========//
-  }while (port.available() > 0) {
-        int inByte = port.read();
-        print(char(inByte));
-      }
+  }
   }else if (mapHandVector.x <= 0.75*kinect.depthWidth() && mapHandVector.x >= 0.25*kinect.depthWidth()){ 
     // otherwise, check if the hand is in the middle
             roto = true;// if so, set the rotation flag to true, so it is not executed again before executing the Distance satisfation
@@ -249,10 +246,7 @@ void draw()
             line(HlineX1, HlineY1, HlineX2, HlineY2);
             line(VlineX1, VlineY1, VlineX2, VlineY2);
           }// end of stop display
-  }while (port.available() > 0) {
-        int inByte = port.read();
-        print(char(inByte));
-      }// otherwise, this is unharmful error, resume execution
+  }// otherwise, this is unharmful error, resume execution
 }else if(DisBF == false)// otherwise, check if the distance satisfaction flag is false
   {
     if (millimeters < 900 && millimeters > 0){// if so, check if the hand is close. execlude the 0! its NOISE!!
@@ -284,10 +278,6 @@ void draw()
         strokeWeight(1);
         //=============== end of backward display ====================//
       }
-      while (port.available() > 0) {
-        int inByte = port.read();
-        print(char(inByte));
-      }
     }else if (millimeters > 1200 && millimeters > 0){//otherwise, check if the hand is far. execlude the 0! it is NOISE!!!
       if(send != forward){// chekc if we have already sent this command
         send= forward;// if not, set the send variable to move forward to be sent
@@ -317,10 +307,6 @@ void draw()
         strokeWeight(1);
         //=========== end of forward command =====================//
       }
-      while (port.available() > 0) {
-        int inByte = port.read();
-        print(char(inByte));
-      }
     }else if (millimeters < 1200 && millimeters > 900){// check if the hand is in the middle
         DisBF = true;// if so, set the distance satisfaction flag to true, so it does not get executed again before the rotation satisfaction
         roto = false;// also, set the rotation satisfaction flag to false so it get executed next
@@ -349,10 +335,6 @@ void draw()
             line(HlineX1, HlineY1, HlineX2, HlineY2);
             line(VlineX1, VlineY1, VlineX2, VlineY2);
             //============= end of stop display =====================//
-      }
-      while (port.available() > 0) {
-        int inByte = port.read();
-        print(char(inByte));
       }
     }// other wise, this is unharmful error, resume execution
  }// otherwise, distance satisfied, resume execution
