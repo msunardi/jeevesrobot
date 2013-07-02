@@ -20,15 +20,22 @@
 #define BACKWARD 3
 #define RIGHT 0
 #define LEFT 1
+#define FORWARDRIGHT 5
+#define FORWARDLEFT 6
+#define BACKWARDRIGHT 7
+#define BACKWARDLEFT 8
+#define SLIDERIGHT 9
+#define SLIDELEFT 10
+
 
 BMSerial terminalSerial(0,1);          // TerminalSerial is the debug serial windows when 0,1 is selected
-RoboClaw roboclaw(50,52);              // 5,6 represent the pins on the arduino that the motor controller is connected to
-//RoboClaw roboclaw(46,48);              // 5,6 represent the pins on the arduino that the motor controller is connected to
+RoboClaw roboclaw(50,52);              // 50,52 represent the pins on the arduino that the motor controller is connected to
+				       // NOTE: only a few set of pins are suitable for 
 
     uint8_t MotorSpeed = 0;            // Holds the current motorspeed of the robot, initialized at 5
     uint8_t TopMotorSpeed = 30;        // Top speed is actually TopMotorSpeed + 1
     uint8_t NoMotorSpeed = 0;          // variable to name a speed of zero
-    uint8_t increment = 3;//5;             // Rate of acceleration. Make sure it is a multiple of TopMotorSpeed
+    uint8_t increment = 5;             // Rate of acceleration. Make sure it is a multiple of TopMotorSpeed
     boolean stopmoving = false;        // Tells whether the robot has been asked to stop moving
 
     boolean first_iteration = false;   // As the robot accelerates it only needs to send the Uno (sonar_controller)
@@ -61,9 +68,12 @@ RoboClaw roboclaw(50,52);              // 5,6 represent the pins on the arduino 
     int avoid_count = 0;      // how many turns it did to avoid/clear the obstacle
     int avoid_direction = 4;  // which direction did it turn to avoid/clear the obstacle
     int AVOID_DELAY = 1200;   // arbitrary time delay to turn
-    uint8_t AVOID_SPEED = 20;
-    uint8_t AVOID_SPEED_0 = 20;
-    uint8_t AVOID_SPEED_1 = 13;
+    long avd_delay;
+    uint8_t AVOID_SPEED = 30;
+    uint8_t AVOID_SPEED_0 = AVOID_SPEED;
+    uint8_t AVOID_SPEED_1 = 20;
+    const int avoidstepsize = 5;
+    int avoid_steps[5] = {4,4,4,4,4};  // Array to store the last 10 avoidance directions
 
 	
 	
@@ -81,6 +91,7 @@ void setup() {
   roboclaw.SetM1Constants(0x81,Kd,Kp,Ki,qpps);
   roboclaw.SetM2Constants(0x81,Kd,Kp,Ki,qpps);
   POST();
+  randomSeed(analogRead(0));
 }
 
 void initialize() {
@@ -161,7 +172,8 @@ void readInterrupt() {
         } 
         else { Serial.println("LEFT");
         }
-        returnToPath();
+        //returnToPath();
+        //avoid_count = 0;
       }
       if (avoid_count == 0) {
         avoid_direction = 4;
@@ -539,7 +551,7 @@ void detected_obstacle(){
    //avoid_count += 1;
    ////////  End of evasive manuever method /////
 
-	 new_movement = interrupted_movement;
+   new_movement = interrupted_movement;
    Serial.println("end detected_obstacle()");
 }
 
@@ -561,11 +573,11 @@ void decide(int obstacle, int sonar_number) {
     avoid(LEFT);
   } else if ((sonar_number == 7) || (sonar_number == 6) || (sonar_number == 5)) {
     avoid(RIGHT);
-  } /*else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
+  } else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
     avoid(LEFT);
   } else if ((sonar_number == 8) || (sonar_number == 9) || (sonar_number == 10)) {
     avoid(RIGHT);
-  }*/
+  }
 }
 
 void avoid(int direction) {
@@ -586,3 +598,25 @@ void avoid2(int direction) {
     doMove();
   }
 }
+
+void shiftArray(int thearray[], int arraysize) {
+	for(int i = 0; i < arraysize-1; i++) {
+		thearray[i] = thearray[i+1];
+	}  
+}
+
+void avoid(int direction) {
+	int min = 800;
+	int max = 1501;
+  avd_delay = random(min,max);
+	//new_movement = STOP;
+	//doMove();
+	new_movement = direction;
+	int currenttime = millis();
+	while (millis() - currenttime < avd_delay) { // move for 1 second
+   	doMove();
+	}
+	//new_movement = STOP;
+	//doMove();
+}
+

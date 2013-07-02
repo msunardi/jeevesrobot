@@ -31,7 +31,7 @@ SET(EXECUTABLE_OUTPUT_PATH ".")
 #   The dependencies of a library are automatically added, so you only 
 #    need to specify the top-most libraries your code depend on.
 # --------------------------------------------------------------------------
-FIND_PACKAGE(MRPT REQUIRED slam;vision;gui;topography;base;hwdrivers)
+FIND_PACKAGE(MRPT REQUIRED slam;vision;gui;topography;base;hwdrivers;maps;system;utils;poses)
 
 # ---------------------------------------------
 # TARGET:
