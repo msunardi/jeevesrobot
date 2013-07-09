@@ -180,12 +180,16 @@ void readSerial() {
     //pos = Serial.read();
     //Serial.print("Key: ");
     //Serial.println(pos);
+    int prev_movement = new_movement;
     new_movement = Serial.read();
     
     if(new_movement > 40) {
 	temp_cmd = keyboardDebug(new_movement);
         if (temp_cmd > -1) { // if temp_cmd is -1, it's not movement related
           new_movement = temp_cmd;
+        }
+        else {
+          new_movement = prev_movement;
         }
     }
   }
