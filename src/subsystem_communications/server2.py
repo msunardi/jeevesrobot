@@ -18,7 +18,7 @@ class MessageListener(LineReceiver):
 	# invoked when client first connects to server (one-time) event
 	def connectionMade(self):
 		print "Connection from: ", self.transport.getPeer()
-		self.sendLine("Id please?")
+		self.sendLine("Id please?\n")
 
 	# invoked when client disconnects from server
 	def connectionLost(self, reason):
@@ -26,30 +26,31 @@ class MessageListener(LineReceiver):
 			del self.components[self.name]
 
 	# invoked when there is a new message coming
-	def lineReceived(self, line):
+	def dataReceived(self, line):
 		try:
 			msg = line.split(':')
 			if self.state == "INIT":
 				if msg[0] == "iam":
 					self.callback_NEWCOMPONENT(msg[1])
 				else:
-					self.sendLine("Please identify yourself to proceed. Message me: \"iam:your_name\"")
+					self.sendLine("Please identify yourself to proceed. Message me: \"iam:your_name\"\n")
 					return
 			else:
 				self.callback_BROADCAST(line)
 		except:
-			self.sendLine("Unknown message format")
+			self.sendLine("Unknown message format\n")
 
 	# method when a new component registers itself
 	def callback_NEWCOMPONENT(self, name):
 		# Check if component already existed
 		if self.components.has_key(name):
-			self.sendLine("Name already taken. Try something else.")
+			self.sendLine("Name already taken. Try something else.\n")
 			return
 		self.sendLine("%s connected!" % (name,))
 		self.name = name
 		self.components[name] = self
 		self.state = "CONN"
+		#print "%s is connected\n" % name
 
 	# method when components (i.e. client) sends commands
 	def callback_BROADCAST(self, message):
@@ -60,12 +61,12 @@ class MessageListener(LineReceiver):
 
 		if target == "all":
 			for name, protocol in self.components.iteritems():
-				protocol.sendLine(':'.join(command))
+				protocol.sendLine(':'.join(command)+"\n")
 		else:
 			for name, protocol in self.components.iteritems():
 				# Only send command to specific targets
 				if (protocol != self) and (name == target):
-					protocol.sendLine(':'.join(command)) 
+					protocol.sendLine(':'.join(command)+"\n") 
 
 class ChatFactory(Factory):
 

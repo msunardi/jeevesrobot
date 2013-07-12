@@ -25,11 +25,12 @@ class IphoneChat(Protocol):
 				#if target == "body":
 				#	msg = target + ":" + command
 				#	print msg
-				msg = target + ":" + command
+				#msg = target + ":" + command
+				msg = sender + ":" + target + ":" + command
 				print msg
 					
-				for c in self.factory.clients:
-					c.message(msg)
+				#for c in self.factory.clients:
+				#	c.message(msg)
 
 			else:
 				command = a[0]
@@ -66,5 +67,5 @@ factory = Factory()
 factory.protocol = IphoneChat
 factory.clients = []
 reactor.listenTCP(8008, factory)
-print "Iphone Chat server started"
+print "Jeeves' server started"
 reactor.run()
