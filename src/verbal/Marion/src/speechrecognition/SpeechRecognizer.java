@@ -115,17 +115,30 @@ public class SpeechRecognizer {
 			
 			Scanner scan = new Scanner(System.in);
 			Result result = null;
+			String resultText = null;
 			int choice;
 			do {
 				System.out.println("1. Enter a sentence\t\t0. Quit");
 				choice = Integer.parseInt(scan.nextLine());
 				if(choice == 1) {
 					System.out.println("Type in the sentence");
-					marion.comprehend(scan.nextLine().toLowerCase());
+					String marionresponse = marion.comprehend(scan.nextLine().toLowerCase());
+					System.out.println(marionresponse);
 				} else if (choice == 2) {
 					result = recognizer.recognize();
-					if (result != null) break;
-					else continue;
+					if (result != null) {
+						resultText = result.getBestResultNoFiller();
+						break;
+					}
+					//else continue;
+					/*int min = 0, max = 4;
+					Random rand = new Random();
+					int randomnum = rand.nextInt(max - min + 1) + min;
+					System.out.println(randomnum);
+					String [] commands = {"lean left", "can you wave", "stand up straight", "hi robot", "see you later"};
+					resultText = commands[randomnum];
+					break;
+					*/
 				}
 			} while(choice!=0);
 			
@@ -133,12 +146,14 @@ public class SpeechRecognizer {
             
             
 			//If there is a result
-            if (result != null) {
+            //if (result != null) {
+			if (resultText != null) {
 				//Get String of result
                 //String resultText = result.getBestFinalResultNoFiller();
-            	String resultText = result.getBestResultNoFiller();
-                java.lang.String toString = (resultText);
-                System.out.print(String.format("Recognized speech: %s\n", toString));
+            	//String resultText = result.getBestResultNoFiller();
+                //java.lang.String toString = (resultText);
+                //System.out.print(String.format("Recognized speech: %s\n", toString));
+				System.out.print(String.format("Recognized speech: %s\n", resultText));
                 
                 //////////////// Using hashmap response_map //////////////////////
                 try {
