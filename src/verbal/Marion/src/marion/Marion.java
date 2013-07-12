@@ -78,17 +78,18 @@ public class Marion {
 	
 	//creates a list of SUnits (syntactical units)
 	//words are single nodes, phrases are trees with words as leaf nodes
-	public void comprehend(String sentence) {
+	public String comprehend(String sentence) {
 		Scanner scan = new Scanner(sentence);
 		List<SUnit> list = new LinkedList<SUnit>();
 		String name;
+		String response = "comprehend()";
 		while(scan.hasNext()) {
 			name = scan.next();
 			System.out.println(name);
 			SUnit neo = new Word(name, pos.get(name)); //creates word objects
 			if(neo.type==null) {
 				wordError(name); //when present with a word that it does not know, displays info about the unknown word (not an exception)
-				return;
+				return "I don't get it";
 			}
 			list.add(neo);
 		}
@@ -102,32 +103,40 @@ public class Marion {
 		}
 		if(status){
 			if (list.size() > 1) {
-				understand((Phrase) list.get(0));//if the program understands the sentence
+				response = understand((Phrase) list.get(0));//if the program understands the sentence
 			} else {
 				String fs;
 				fs = String.format("What about %s?", list.get(0).toString());
 				System.out.println(fs);
+				return fs;
 			}
 		} else {
 			grammarError(); //if it doesn't
+			return "grammar error.";
 		}
+		return response;
 	}
 
-	private void understand(Phrase phrase) { //very minimal will need to be vastly expanded 
+	private String understand(Phrase phrase) { //very minimal will need to be vastly expanded 
 											//for this to actually understand meaning rather than just structure
+		String response = "understand()";
 		System.out.println("You sentence is a "+ phrase.type+".");
 		if(phrase.type.equals("sentence")) {
 			System.out.println("This is an indicative statement. I'm going to ignore this.");
+			response = "This is an indicative statement. I'm going to ignore this.";
 		}else if(phrase.type.equals("command")) {
 			System.out.println("This is a command.");
 				Word verb = findVerb(phrase);
 				System.out.println(perform(verb, phrase));
+				response = perform(verb, phrase);
 		}else {
 			System.out.println("This is a question.");
 			if(questionType(phrase).equals("Where")) {
 				find(phrase);
+				response = "some question";
 			}
 		}
+		return response;
 	}
 
 	private void find(SUnit phrase) {
