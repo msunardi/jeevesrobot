@@ -127,7 +127,7 @@ public class SpeechRecognizer {
 				} else if (choice == 2) {
 					result = recognizer.recognize();
 					if (result != null) {
-						resultText = result.getBestResultNoFiller();
+						resultText = result.getBestFinalResultNoFiller();
 						break;
 					}
 					//else continue;
