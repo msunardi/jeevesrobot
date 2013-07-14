@@ -4,19 +4,24 @@ import edu.cmu.sphinx.frontend.util.Microphone;
 import edu.cmu.sphinx.recognizer.Recognizer;
 //import edu.cmu.sphinx.result.ConfidenceResult;
 //import edu.cmu.sphinx.result.ConfidenceScorer;
-import edu.cmu.sphinx.result.Result;
+import edu.cmu.sphinx.result.*;
 import edu.cmu.sphinx.util.props.ConfigurationManager;
-import java.util.Scanner;
+
 import com.sun.speech.freetts.Voice;
 import com.sun.speech.freetts.VoiceManager;
+
+import java.util.Scanner;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.text.DecimalFormat;
+
 import org.apache.commons.lang3.*;
 import marion.Marion;
 
 
 public class SpeechRecognizer {
+	private static DecimalFormat format = new DecimalFormat("#.#####");
 	public static void main(String[] args) {
 
         Voice voice;
@@ -116,10 +121,34 @@ public class SpeechRecognizer {
 			Scanner scan = new Scanner(System.in);
 			Result result = null;
 			String resultText = null;
-			int choice;
+			String resultText3 = null;
+			int choice = 0;
+			Boolean hello = false;
 			do {
-				System.out.println("1. Enter a sentence\t\t0. Quit");
-				choice = Integer.parseInt(scan.nextLine());
+				//System.out.println("1. Enter a sentence\t\t0. Quit");
+				//choice = Integer.parseInt(scan.nextLine());
+				System.out.println("Say \"Hello\" to initiate.");
+				result = recognizer.recognize();
+				if (result != null) {
+					resultText = result.getBestFinalResultNoFiller();
+					if ((resultText.equalsIgnoreCase("hello")) && !hello) {
+						hello = true;
+						System.out.println("Say 1 to type, 2 to talk");						
+						Result result2 = recognizer.recognize();					
+						if (result2 != null) {
+							String resultText2 = result2.getBestFinalResultNoFiller();
+							if (resultText2.equals("one")) {
+								choice = 1;
+								//hello = false;
+							} else if (resultText2.equals("two")) {
+								choice = 2;
+								//hello = false;
+							}
+							System.out.println("What can I help you with?");
+							
+						} else { hello = false; }
+					} else { hello = false; }
+				}
 				if(choice == 1) {
 					System.out.println("Type in the sentence");
 					String marionresponse = marion.comprehend(scan.nextLine().toLowerCase());
@@ -127,7 +156,59 @@ public class SpeechRecognizer {
 				} else if (choice == 2) {
 					result = recognizer.recognize();
 					if (result != null) {
-						resultText = result.getBestFinalResultNoFiller();
+						resultText3 = result.getBestFinalResultNoFiller();
+						/* From the Confidence.java example */
+						ConfidenceScorer cs = (ConfidenceScorer) cm.lookup("confidenceScorer");
+						ConfidenceResult cr = cs.score(result);
+						Path best = cr.getBestHypothesis();
+						
+						/* confidence of the best path */
+						System.out.println(best.getTranscription());
+						System.out.println("\t(confidence: " +
+												format.format(best.getLogMath().logToLinear((float) best.getConfidence())) +
+												')');
+						System.out.println();
+						
+						/*
+						 * print out confidence of individual words in the best path
+						 */
+						WordResult[] words = best.getWords();
+						for (WordResult wr : words) {
+							printWordConfidence(wr);
+						}
+						System.out.println();
+						
+						if ((resultText3 != null) && hello) {
+							//Get String of result
+			                //String resultText = result.getBestFinalResultNoFiller();
+			            	//String resultText = result.getBestResultNoFiller();
+			                //java.lang.String toString = (resultText);
+			                //System.out.print(String.format("Recognized speech: %s\n", toString));
+							System.out.print(String.format("Recognized speech: %s\n", resultText3));
+			                
+			                //////////////// Using hashmap response_map //////////////////////
+			                try {
+			                	// Trying to find the map element with key=resultText
+			                	String response = response_map.get(resultText3).toString();
+			                	
+			                	String [] response_list = response.split(";");
+			                	System.out.println(response_list[0]);
+			                	if (response_list.length > 1) {
+			                		try {
+			                			out.println(response_list[1]);
+			                			System.out.println(in.readLine());
+			                		} catch (Exception e) {
+			                			System.out.println("Failed sending to socket");
+			                		}
+			                	}
+			                	blah=true;
+			                } catch (Exception e) {
+			                	System.out.println("Sorry, I didn't quite get that.");
+			                }
+						
+						} else {
+			                System.out.println("I can't hear what you said.\n");
+			            }
 						break;
 					}
 					//else continue;
@@ -147,18 +228,18 @@ public class SpeechRecognizer {
             
 			//If there is a result
             //if (result != null) {
-			if (resultText != null) {
+			/*if ((resultText3 != null) && hello) {
 				//Get String of result
                 //String resultText = result.getBestFinalResultNoFiller();
             	//String resultText = result.getBestResultNoFiller();
                 //java.lang.String toString = (resultText);
                 //System.out.print(String.format("Recognized speech: %s\n", toString));
-				System.out.print(String.format("Recognized speech: %s\n", resultText));
+				System.out.print(String.format("Recognized speech: %s\n", resultText3));
                 
                 //////////////// Using hashmap response_map //////////////////////
                 try {
                 	// Trying to find the map element with key=resultText
-                	String response = response_map.get(resultText).toString();
+                	String response = response_map.get(resultText3).toString();
                 	
                 	String [] response_list = response.split(";");
                 	System.out.println(response_list[0]);
@@ -173,7 +254,7 @@ public class SpeechRecognizer {
                 	blah=true;
                 } catch (Exception e) {
                 	System.out.println("Sorry, I didn't quite get that.");
-                }
+                }*/
                 //////////////////////////////////////////////////////////////////
               
                 
@@ -254,14 +335,37 @@ public class SpeechRecognizer {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
-            }
+            /*}
             else {
                 System.out.println("I can't hear what you said.\n");
-            }
+            }*/
             if (blah) {
             	System.out.println("Yes it got something");
             } else System.out.println("No it didn't catch anything");
+            hello = false;
+            blah = false;
+            choice = -1;
+            resultText = "";
+            
         } 
 		 
+    }
+	private static void printWordConfidence(WordResult wr) {
+        String word = wr.getPronunciation().getWord().getSpelling();
+
+        System.out.print(word);
+
+        /* pad spaces between the word and its score */
+        int entirePadLength = 10;
+        if (word.length() < entirePadLength) {
+            for (int i = word.length(); i < entirePadLength; i++) {
+                System.out.print(" ");
+            }
+        }
+
+        System.out.println
+                (" (confidence: " +
+                        format.format
+                                (wr.getLogMath().logToLinear((float) wr.getConfidence())) + ')');
     }
 }

@@ -1,0 +1,134 @@
+one;One;null
+two;Two;null
+hello;Go away
+stop;OK, OK!;speech:base:stop
+go forward;I'm going forward...;speech:base:forward
+go left;I'm going left...;speech:base:left
+go right;I'm going right...;speech:base:right
+go backward;I'm going backward...;speech:base:reverse
+go slide left;I'm sliding left...;speech:base:strafeleft
+go slide right;I'm sliding right...;speech:base:straferight
+who is mister perkowski;Doctor Perkowski is a cool guy;speech:tablet:perkowksi
+hello robot;Hello! How are you doing today!;speech:body:right
+hi robot;Hi! What would you like to do?;speech:body:right
+how are you;I am well! I think...?;speech:body:left
+wave arm;Helloooo!;speech:arm:wave
+can you wave;Yes I can;speech:arm:wave
+lean right;Right is alright;speech:body:right
+lean left;Left it is;speech:body:left
+stand up straight;yes sir!;speech:body:straight
+i am leaving;I am sad to see you go;speech:tablet:null
+goodbye robot;Goodbye Human!;speech:tablet:null
+see you later;Nice talking to you! Visit again soon!;speech:tablet:null
+what is your favorite color;My favorite color is infrared;speech:tablet:null
+how do you move;I move on four mech can um wheels which allow me to be very mobile;speech:tablet:null
+what are you made of;I am made of lots of angled alluminum, motors, servos, and wires;speech:tablet:null
+how do you see;I see with a variety of sensors including a kinect, sonars, and a laser range finder;speech:tablet:null
+how do you speak;I speak using a speaker;speech:tablet;null
+do you like me;That depends, do you like me?;speech:tablet:null
+i like you;I like you too;speech:tablet:null
+i love you;we just met, lets not be too crazy;speech:table:null
+where is the bathroom;There is a bathroom near the north entrance of the FAB, say more bathroom and I can tell you others;speech:tablet:bathroom
+more bathroom;There is another bathroom by the circuit lounge stairs
+how do you listen;I try to listen the best I can with my microphone, but sometimes I make mistakes, for that I am sorry;speech:tablet:null
+how's it hanging;All of my circuits are arranged properly today! Thanks for asking;speech:body:wave
+who is robert bass;Robert Bass is an Associate Professor who teaches Power Engineering with a Ph.D. from the University of Virginia;speech:tablet:bass	
+who is richard campbell;Richard Campbell is an Associate Professor of RFIC Design with a Ph.D. from the University of Washington;speech:tablet:campbell
+who is mall gore zeta shah now ski jeske;Malgorzata Chrzanowska is a Professor of Design Automation with a Ph.D. from Auburn University;speech:tablet:chrzanowska	
+who is shah now ski;Malgorzata Chrzanowska is a Professor of Design Automation with a Ph.D. from Auburn University;speech:tablet:chrzanowska
+who is robert dash;W. Robert Daasch is a Professor of IC Design and Test with a Ph.D. from the University of Washington;speech:tablet:daasch
+who is donald duncan;Donald Duncan is a Research Professor of Physical and Statistical Optics with a Ph.D. from Ohio State University;speech:tablet:duncan	
+who is mark faust;Mark Faust is an Assistant Professor of Computer Architecture with a M.S.E.E. from Carnegie-Mellon University;speech:tablet:faust
+who is garrison greenwood;Garrison Greenwood is an Associate Professor of Computational Intelligence with a Ph.D. from the University of Washington;speech:tablet:greenwood
+who is douglas hall;Douglas Hall is an Associate Professor of Computer Architecture with a Ph.D. from Portland State University;speech:tablet:hall	
+who is dan hammerstrom;Dan Hammerstrom is a Professor of Biologically Inspired Nanoelectronics with a Ph.D. from the  University of Illinois Urbana-Champaign;speech:tablet:hammerstrom
+who is melinda holtzman;Melinda Holtzman is a Senior Instructor of Electromagnetics with a Ph.D. University of Nevada, Reno;speech:tablet:holtzman	
+who is why see jank;Y.C. Jenq is a Professor of Digital Signal Processing with a Ph.D. from Princeton University;speech:tablet:jenq
+who is roy kravitz;Roy Kravitz is an Professor Embedded Systems and FPGA System-On-Chip Design	with a M.S.E.E. from the University of Illinois at Urbana-Champaign;speech:tablet:kravitz
+who is foo lee;Fu Li is a Professor of Communications with a Ph.D. from the University of Rhode Island;speech:tablet:li	
+who is james mick names;James McNames is a Professor of Signal Processing and Department Chair with a Ph.D. from Stanford University;speech:tablet:mcnames
+who is james morris;James E. Morris is a Professor of Nanoelectronics Packaging with a Ph.D. University of Saskatchewan, Canada;speech:tablet:moris	
+who is bra no mirror pee jee no vick;Branimir Pejcinovic is a Professor of Microelectronics with a Ph.D. from the University of Massachusetts, Amherst;speech:tablet:pejcinovic	
+who is marek perkowski;Doctor Marek Perkowski is a Professor of Intelligent Robotics with a Ph.D. from the Technical University of Warsaw in Poland, and my Friend;speech:tablet:perkowski
+who is doctor perkowski;Doctor Marek Perkowski is a Professor of Intelligent Robotics with a Ph.D. from the Technical University of Warsaw in Poland, and my Friend;speech:tablet:perkowski
+who is perkowski;Doctor Marek Perkowski is a Professor of Intelligent Robotics with a Ph.D. from the Technical University of Warsaw in Poland, and my Friend;speech:tablet:perkowski
+who is martin si dare ee us;Martin Siderius is an Associate Professor of Acoustics and Electromagnetics with a Ph.D. from the University of Washington;speech:tablet:siderius	
+who is ow song;Xiaoyu Song is a Professor of Design Automation and Formal Methods with a Ph.D. from the University of Pisa, Italy;speech:tablet:song
+who is christoff teuscher;Christof Teuscher is an Assistant Professor of Emerging Computing Paradigms and Architectures with a Ph.D. from the Swiss Federal Institute of Technology, Switzerland;speech:tablet:teuscher	
+who is richard tie murr ski;Richard Tymerski is an Associate Professor of Power Electronics with a Ph.D. from the Virginia Polytechnic Institute and State University;speech:tablet:tymerski	
+who is lisa zirk;Lisa M. Zurk is a Professor of Electromagnetics and Acoustics with a Ph.D. from the University of Washington;speech:tablet:zurk
+who is jun ow;Jun Jiao is a Professor of Physics and ECE specializing in Nanotechnology with a Ph.D. University of Arizona;speech:tablet:jiao
+who is erik sanchez;Erik Sanchez is an Assistant Professor of Physics and ECE with a Ph.D. from Portland State University;speech:tablet:sanchez	
+who is raj so lan key;Raj Solanki is a Professor of Physics and ECE Nanotechnology with a Ph.D. from Colorado State University;speech:tablet:solanki	
+who is andrew greenberg;Andrew Greenberg is an Associate with a M.S. from Portland State University;speech:tablet:greenberg	
+who is daniel rue seff;Daniel Rouseff is an Adjunct Research Associate Professor of Electromagnetics and Acoustics with a Ph.D. from the University of Washington;speech:tablet:rouseff	
+who is glenn shirley;Glenn Shirley is an Adjunct Research Associate Professor of IC Assembly/Test, Quality and Reliability with a Ph.D. from Arizona State University;speech:tablet:shirley	
+who is ivan sutherland;Ivan Sutherland is a visiting Scientist of Asychronous Research Center with a Ph.D. from the Massachusetts Institute of Technology;speech:tablet:sutherland	
+who is eric wan;Eric Wan is a Research Associate Professor with a Ph.D. from Stanford University;speech:tablet:wan
+who is all ah all mel dean;Alaa Alameldeen is a Associate Professor of Computer Architecture with a Ph.D. from the University of Wisconsin-Madison;speech:tablet:alameldeen	
+where is smith hall;smitth hall is near south west brodaway and south west harrison street cross;speech:question:null
+where is neuberger hall;neugberger hall is near south west brodway and south west hall street cross;speech:question:null
+where is cramer hall;cramer hall is near south west broadway and montgomery street cross;speech:question:null
+where is lincoln hall;lincoln hall is near south west broadway and south west market street;speech:question:null
+where is shattuck hall;shattuck hall is near south west bradway and south west college street;speech:question:null
+where is the public safety office;public safety is located in room 148 Shattuck Hall;speech:question:null
+where are the research greenhouses;the research greenhouse is continue to south west pedestrain trail from south west college street;speech:question:null
+where is the native american student and community center; the NASAC center is near jackson street and south west broadway street;speech:question:null
+where is peter stott center;the peter stott center is next to the millar library;speech:question:null
+where is the millar library;the millar library is near the peter stott center on the south west pedestrain trail in the park blocks;speech:question:null
+where are the blackstone appartments;the blackstone apartments are near south west pedestrain trail and harrison street cross ;speech:question:null
+where is the peter stott field;the peter stott field is behind miller library on south west harrison street;speech:question:null
+where is the science research and teaching center;the science research and teaching center is near south west mill street and south west eleventh avenue;speech:question:null
+where are the vue apartments;the vue apartments are near south west mill street and south west park avenue cross ;speech:question:null
+where is the science building;the science building is near south west eleventh avenue and south west market street;speech:question:null
+where is parking structure two;parking structure two is near montgomery street cross and south west broadway crosss;speech:question:null
+where is the school of education;the school of education is near south west harrison street and south west brodaway cross;speech:question:null
+where is the school of business;the school of business is near south west harrison street and south west brodaway and cross;speech:question:null
+where is parking structure one;parking structure one is near south west hall street andsouth west brodway cross;speech:question:null
+where is east hall;east hall is near south west hall street cross near south west brodway cross;speech:question:null
+where is the broadway building;the broadway building is near south west college street near south west bradway and ;speech:question:null
+where is the market square building;the market square building is near south west sixth avenue and south west market street;speech:question:null
+where is urban center;the urban center is near south west sixth avenue and south west mill street cross;speech:question:null
+where is the academic and student rec center;The academic and student rec center is near south west sixth avenue and south west harrison street cross;speech:question:null
+where is the university center building;the university center building is near south west sixth avenue and south west hall street cross;speech:question:null
+where is the university pointe;the university pointe building is near south west sixth avenue and south west jackson street cross;speech:question:null
+where is the market center building;the market center building near south west fourth and south west market street;speech:question:null
+where is the fifth avenue parking lot;the fifth avenue building near south west fifth avenue and south west montgomery street cross;speech:question:null
+where is the art building;the art building near south west licoln and south west jackson street ;speech:question:null
+where is the science and education center;the science and education center is near south west fourth avenue and south west grant street;speech:question:null
+where is the you knight us building;the unitus building next to Where is the science and educaion center on south west grant street;speech:question:null
+where is the fourth avenue building;the fourth avenue building near south west fourth avenue and south west harrison street;speech:question:null
+where is the city development center;the city development center is near to south west fourth avenue and south west hall street cross;speech:question:null
+where is the engineering building;the engineering building is near south west fourth avenue and south west college street;speech:question:null
+where is the tech tron ex lab;ECE Tektronix Lab is in the room number FAB 60-01;speech:question:null 
+where is the vee ell ess eye lab; VLSI Design Lab is in room number FAB 60-19;speech:question:null
+where is linux lab;The Linux Lab in the room number FAB 88-10;speech:question:null 
+where is the proto typing lab; ECE Electronics Prototyping Lab is in room number FAB 60-10;speech:question:null 
+what is the analog circuit design lab;Analog Circuit Design and Test laboratory has workstations and the necessary design and simulation software (Cadence, Mentor Graphics, Tektronix Analog Design System (ADE), Magic, SPICE) Director: Branimir Pejcinovic FAB 60-23;speech:question:null 
+what is the biomedical signal processing lab;Biomedical Signal Processing Laboratory The mission of this laboratory is to increase our collective knowledge of how useful information can be extracted from physiologic signals. Director:James McNames FAB 89-02;speech:question:null 
+what is the emulation lab;Emulation Laboratory - home to "Veloce" donated by Mentor Graphics is used to design, Embedded Systems Director: Malgorzata Chrzanowska-Jeske FAB 60-15;speech:question:null 
+what is the evolve able systems lab;The purpose of Evolvable Systems Laboratory is to investigate how hardware can self-adapt, via autonomous reconfiguration, to compensate for failures or a changing operational environment. Director: Garrison Greenwood FAB 70-06;speech:question:null 
+what is the eye see design lab;The goal of the Integrated Circuits Design and Test Laboratory is to become the local, regional and national focal point for innovative research and education in the area of integrated circuit design and test. Director: Robert Daasch FAB 60-24;speech:question:null 
+what is the intelligent robotics lab;In the Intelligent Robotics Laboratory we design and program mobile, stationary and humanoid robots on levels of mechanical, electrical and software design. Director: Marek Perkowski FAB 70-09;speech:question:null 
+what is the robotics lab;In the Intelligent Robotics Laboratory we design and program mobile, stationary and humanoid robots on levels of mechanical, electrical and software design. Director: Marek Perkowski FAB 70-09;speech:question:null 
+what is the near lab;The mission of the NEAR-Lab is to develop knowledge of electromagnetic and acoustic wave scattering and propagation phenomenon in order to devise and evaluate advanced signal processing techniques. Director Lisa Zurk and Martin Siderius FAB 25-00,25-01;speech:question:null 
+what is the pee gee ee lab;PGE Foundation Power Engineering Education Laboratory research within power engineering lab pertains to electrical power systems. Director: Robert Bass,FAB 25-03;speech:question:null 
+what is the terra hertz lab;Terahertz Laboratory with four THz (and laser) equipment stations fully supported by instrumentation and computation workpaces. Director: Lisa Zurk, Director FAB 60-06;speech:question:null 
+what is the teuscher lab;The mission of teuscher.:Lab is to study, rethink, model, and design the implementation of computations in living and non-living systems. Director: Christof Teuscher,FAB 60-11;speech:question:null 
+what is the verification lab;The research objective of the verification lab is to explore modeling and validation techniques for reliable cyber-physical systems. Director: Xiaoyu Song,FAB 60-26;speech:question:null 
+what is the vee eye pee lab;VIP Lab provides Motion Picture Expert Group (MPEG) portable analyzer, MPEG transport stream monitors, MPEG test systems for video analysis. Director: Fu Li, FAB 25-04;speech:question:null 
+what is the vee ell ess eye lab;VLSI & Emerging Technologies Laboratory focuses on exciting 3D VLSI technology that enables easier integration of memory, analog, digital, RF, optical, MEMS, BioMEMS, sensors, and possibly bio-systems into one small package. Director: Malgorzata Chrzanowska-Jeske,FAB 60-17;speech:question:null 
+where is the analog circuit design lab;The Analog Circuit Design and Test laboratory is in FAB 60-23;speech:question:null 
+where is the biomedical signal processing lab;The Biomedical Signal Processing Laboratory is FAB 89-02;speech:question:null 
+where is the emulation lab;The Emulation Laboratory is in FAB 60-15;speech:question:null 
+where is the evolve able systems lab;The Evolvable Systems Laboratory is in FAB 70-06;speech:question:null 
+where is the eye see design lab;The Integrated Circuits Design and Test Laboratory is in FAB 60-24;speech:question:null 
+where is the intelligent robotics lab;The Intelligent Robotics Laboratory is in FAB 70-09;speech:question:null 
+where is the robotics lab;The Intelligent Robotics Laboratory is in FAB 70-09;speech:question:null
+where is the near lab;The NEAR-Lab is in FAB 25-00,25-01;speech:question:null 
+where is the pee gee ee lab;The PGE Foundation Power Engineering Education Laboratory is in FAB 25-03;speech:question:null 
+where is the terra hertz lab;The Terahertz Laboratory is in FAB 60-06;speech:question:null 
+where is the teuscher lab;The Teuscher is in FAB 60-11;speech:question:null 
+where is the verification lab;The research objective of the verification lab is in FAB 60-26;speech:question:null 
+where is the vee eye pee lab;The VIP Lab is in FAB 25-04;speech:question:null 
+where is the vee ell ess eye lab;The V.L.S.I. lab is in FAB 60-17;speech:question:null 
