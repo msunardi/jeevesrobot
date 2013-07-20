@@ -29,6 +29,8 @@ public class SpeechRecognizer {
              
         voice = voiceManager.getVoice("kevin16");
         voice.allocate();
+        
+        String [] responses_noget = {"Sorry,--I-didn't-quite-get-that.", "I-beg-your-pardon?", "Could-you-please-repeat-that?--I-didn't-quite-get-it."};
 	
 	
 		//Set up microphone and speech recognizer
@@ -124,15 +126,27 @@ public class SpeechRecognizer {
 			String resultText3 = null;
 			int choice = 0;
 			Boolean hello = false;
+			Boolean base_control = false;
+			String [] base_commands = {"go forward",
+									   "go left",
+									   "go right",											   
+									   "go backward",
+									   "go slide left",
+									   "go slide right"};
+			
+			
 			do {
 				//System.out.println("1. Enter a sentence\t\t0. Quit");
 				//choice = Integer.parseInt(scan.nextLine());
 				System.out.println("Say \"Hello\" to initiate.");
+				say("Say-hello-to-start");
 				result = recognizer.recognize();
 				if (result != null) {
 					resultText = result.getBestFinalResultNoFiller();
 					if ((resultText.equalsIgnoreCase("hello")) && !hello) {
 						hello = true;
+						say("Why,-hello-there");
+						say("Say-one-to-type,--say-two-to-talk-with-me");
 						System.out.println("Say 1 to type, 2 to talk");						
 						Result result2 = recognizer.recognize();					
 						if (result2 != null) {
@@ -140,11 +154,14 @@ public class SpeechRecognizer {
 							if (resultText2.equals("one")) {
 								choice = 1;
 								//hello = false;
+								say("you-said-one");
 							} else if (resultText2.equals("two")) {
 								choice = 2;
 								//hello = false;
+								say("you-said-two");
 							}
 							System.out.println("What can I help you with?");
+							say("How-can-I-help-you?");
 							
 						} else { hello = false; }
 					} else { hello = false; }
@@ -153,11 +170,14 @@ public class SpeechRecognizer {
 					System.out.println("Type in the sentence");
 					String marionresponse = marion.comprehend(scan.nextLine().toLowerCase());
 					System.out.println(marionresponse);
+					String marionsays = marionresponse.replace(" ","-");
+					say(marionsays);
 				} else if (choice == 2) {
 					result = recognizer.recognize();
 					if (result != null) {
 						resultText3 = result.getBestFinalResultNoFiller();
 						/* From the Confidence.java example */
+						//if (resultText3)
 						ConfidenceScorer cs = (ConfidenceScorer) cm.lookup("confidenceScorer");
 						ConfidenceResult cr = cs.score(result);
 						Path best = cr.getBestHypothesis();
@@ -193,6 +213,11 @@ public class SpeechRecognizer {
 			                	
 			                	String [] response_list = response.split(";");
 			                	System.out.println(response_list[0]);
+			                	String tosay = response_list[0].replace(" ", "--");
+			                	tosay.replace("!", ".");
+			                	say(tosay);
+			                	
+			                	
 			                	if (response_list.length > 1) {
 			                		try {
 			                			out.println(response_list[1]);
@@ -204,10 +229,12 @@ public class SpeechRecognizer {
 			                	blah=true;
 			                } catch (Exception e) {
 			                	System.out.println("Sorry, I didn't quite get that.");
+			                	say("Sorry,--I-didn't-quite-get-that.");
 			                }
 						
 						} else {
 			                System.out.println("I can't hear what you said.\n");
+			                say("Sorry,--I-can't-hear-what-you-just-said");
 			            }
 						break;
 					}
@@ -341,7 +368,13 @@ public class SpeechRecognizer {
             }*/
             if (blah) {
             	System.out.println("Yes it got something");
-            } else System.out.println("No it didn't catch anything");
+            } else {
+            	Random r = new Random();
+            	///System.out.println("No it didn't catch anything");
+            	String response = responses_noget[r.nextInt(3)];
+            	System.out.println(response);
+            	say(response);
+            }
             hello = false;
             blah = false;
             choice = -1;
@@ -368,4 +401,27 @@ public class SpeechRecognizer {
                         format.format
                                 (wr.getLogMath().logToLinear((float) wr.getConfidence())) + ')');
     }
+	
+	private static void say(String sentence) {
+		Process p;
+		try {
+			p = Runtime.getRuntime().exec("espeak " + sentence );
+			try {
+				p.waitFor();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+    	
+	}
 }
+
+/*class SpeechThread extends Thread {
+	public SpeechThread(int port) {
+		
+}
+}*/
