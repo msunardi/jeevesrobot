@@ -112,7 +112,12 @@ int update;                        // Variable to hold an intermediate value. If
                                    // is used to compare against new/old movements. 
 
 int interruptPin = 2;              // Pin used to signal an obstacle has been detected by sonars. Logic High
-int interruptLED = 7;
+// LED obstacle indicators
+int interruptLED = 7;              // Pin to LED signalling interrupt is high
+int interruptFR = 5;  // obstacle in front right
+int interruptFL = 6;  // obstacle in front left
+int interruptBR = 3;  // obstacle in back right
+int interruptBL = 4;  // obstacle in back left
 
 //void (*function[4])(uint8_t) = {&rotateRight, &rotateLeft, &goForward, &goBackward};  // An array of pointers to movement functions. 
 void (*function[6])(uint8_t) = {&rotateRight, &rotateLeft, &goForward, &goBackward, &strafeRight, &strafeLeft};  // An array of pointers to movement functions. 
@@ -155,6 +160,10 @@ void setup()
   roboclaw.SetM2Constants(0x81,Kd,Kp,Ki,qpps);  
   
   pinMode(interruptLED, OUTPUT);
+  pinMode(interruptFR, OUTPUT);
+  pinMode(interruptFL, OUTPUT);
+  pinMode(interruptBR, OUTPUT);
+  pinMode(interruptBL, OUTPUT);
 
   // setup bumper interupt pins
   /*pinMode(2, INPUT_PULLUP);
@@ -280,6 +289,10 @@ int keyboardDebug(int pos) {
     // forward command  
     case 'w':
       debug_pos = FORWARD;
+      /*digitalWrite(interruptFR, HIGH);
+      digitalWrite(interruptFL, HIGH);
+      digitalWrite(interruptBR, HIGH);
+      digitalWrite(interruptBL, HIGH);*/
       /*kinectVal = 2;
       stopmoving = false;
 
@@ -345,6 +358,10 @@ void readInterrupt() {
     }
     else {
       digitalWrite(interruptLED, LOW);
+      digitalWrite(interruptFR, LOW);
+      digitalWrite(interruptFL, LOW);
+      digitalWrite(interruptBR, LOW);
+      digitalWrite(interruptBL, LOW);
       //Serial.println("No interrupt.");
       /*if (avoid_count > 0) {
         //goForward(15);
@@ -1142,6 +1159,32 @@ void detected_obstacle(){
 
   Serial.print("Obstacle Detected:   ");
   
+  avoid(STOP);
+  //char sonar_number, obstacle;
+  Wire.requestFrom(sonar_controller, 2);
+  //int i = 0;
+  delay(20);
+  Serial.print("Bytes available: ");
+  Serial.println(Wire.available());
+  
+   delay(20);
+   obstacle = Wire.read();
+   delay(20);
+   sonar_number = Wire.read();
+   Serial.print(" obstacle:    ");
+   Serial.print(obstacle);
+   Serial.print(" sonar number:  "); 
+   Serial.println(sonar_number);
+   if ((sonar_number == 12) || (sonar_number == 11)) {    
+    digitalWrite(interruptFR, HIGH);    
+  } else if ((sonar_number == 7) || (sonar_number == 6) || (sonar_number == 5)) {
+    digitalWrite(interruptFL, HIGH);
+  } else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
+    digitalWrite(interruptBL, HIGH);
+  } else if ((sonar_number == 8) || (sonar_number == 9) || (sonar_number == 10)) {
+    digitalWrite(interruptBR, HIGH);
+  } 
+  
   if(old_movement == BACKWARD) {
     //new_movement = FORWARD;
     avoid(FORWARD);
@@ -1153,21 +1196,7 @@ void detected_obstacle(){
   
   avoid(STOP);
    
-  //char sonar_number, obstacle;
-  Wire.requestFrom(sonar_controller, 2);
-  //int i = 0;
-  delay(100);
-  Serial.print("Bytes available: ");
-  Serial.println(Wire.available());
   
-   delay(100);
-   obstacle = Wire.read();
-   delay(100);
-   sonar_number = Wire.read();
-   Serial.print(" obstacle:    ");
-   Serial.print(obstacle);
-   Serial.print(" sonar number:  "); 
-   Serial.println(sonar_number);
    
    ////////  evasive manuever method /////
    decide(obstacle, sonar_number);
@@ -1194,15 +1223,19 @@ void decide(int obstacle, int sonar_number) {
   Serial.print("Trying to decide what to do...");
   if ((sonar_number == 12) || (sonar_number == 11)) {
     Serial.println("Go Left");
+    //digitalWrite(interruptFR, HIGH);
     avoid(LEFT);
   } else if ((sonar_number == 7) || (sonar_number == 6) || (sonar_number == 5)) {
     Serial.println("Go Right");
+    //digitalWrite(interruptFL, HIGH);
     avoid(RIGHT);
   } else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
     Serial.println("Go Left");
+    //digitalWrite(interruptBL, HIGH);
     avoid(LEFT);
   } else if ((sonar_number == 8) || (sonar_number == 9) || (sonar_number == 10)) {
     Serial.println("Go Right");
+    //digitalWrite(interruptBR, HIGH);
     avoid(RIGHT);
   } else {
     avoid(STOP);
