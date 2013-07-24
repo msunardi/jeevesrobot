@@ -111,7 +111,8 @@ int old_movement = STOP;           // Holds the last value of new_movement. Used
 int update;                        // Variable to hold an intermediate value. If robot is accelerating/decelerating this
                                    // is used to compare against new/old movements. 
 
-int interruptPin = 2;              // Pin used to signal an obstacle has been detected by sonars. Logic High. 
+int interruptPin = 2;              // Pin used to signal an obstacle has been detected by sonars. Logic High
+int interruptLED = 7;
 
 //void (*function[4])(uint8_t) = {&rotateRight, &rotateLeft, &goForward, &goBackward};  // An array of pointers to movement functions. 
 void (*function[6])(uint8_t) = {&rotateRight, &rotateLeft, &goForward, &goBackward, &strafeRight, &strafeLeft};  // An array of pointers to movement functions. 
@@ -152,6 +153,8 @@ void setup()
   roboclaw.SetM2Constants(address,Kd,Kp,Ki,qpps);
   roboclaw.SetM1Constants(0x81,Kd,Kp,Ki,qpps);
   roboclaw.SetM2Constants(0x81,Kd,Kp,Ki,qpps);  
+  
+  pinMode(interruptLED, OUTPUT);
 
   // setup bumper interupt pins
   /*pinMode(2, INPUT_PULLUP);
@@ -333,15 +336,16 @@ int keyboardDebug(int pos) {
 void readInterrupt() {
     was_interrupt = digitalRead(interruptPin);    // Poll interrupt pin from sonar controller. 
     if(was_interrupt == true){
-	Serial.println("Interrupt true.");
+	//Serial.println("Interrupt true.");
+        digitalWrite(interruptLED, HIGH);
         if(new_movement == FORWARD || new_movement == BACKWARD) {
              detected_obstacle();                         // jump to stop routine for detected obstacle
         }
         was_interrupt = false;
     }
     else {
-      
-      Serial.println("No interrupt.");
+      digitalWrite(interruptLED, LOW);
+      //Serial.println("No interrupt.");
       /*if (avoid_count > 0) {
         //goForward(15);
         //delay(AVOID_DELAY);
@@ -373,22 +377,22 @@ void lrfScan1()
    complicatedread();      
    
    myservo.write(pos2);
-   delay(1000);
+   delay(20);
    //simpleread();
    complicatedread();
    //delay(1000);
    myservo.write(center);
-   delay(1000);
+   delay(20);
    //simpleread();
    complicatedread();
    //delay(1000);         
    myservo.write(pos3);
-   delay(1000);
+   delay(20);
    //simpleread();
    complicatedread();
    //delay(1000);
    myservo.write(pos4);
-   delay(1000);
+   delay(20);
    //simpleread();
    complicatedread();
    //delay(1000);
@@ -402,35 +406,35 @@ void lrfScan2()
 
   // Move servo, start LRF reading, store in outgoing array, repeat 5 times
   myservo.write(pos1);
-  delay(150);
+  delay(20);
   Serial1.write('R');
   //lrf_data[0] = dataread();
   lrf_data[0] = complicatedread();
   //delay(1500);
 
   myservo.write(pos2);
-  delay(150);
+  delay(20);
   Serial1.write('R');
   //lrf_data[1] = dataread();
   lrf_data[1] = complicatedread();
   //delay(1500);
 
   myservo.write(center);
-  delay(150);
+  delay(20);
   Serial1.write('R');
   //lrf_data[2] = dataread();
   lrf_data[2] = complicatedread();
   //delay(1500);
 
   myservo.write(pos3);
-  delay(150);
+  delay(20);
   Serial1.write('R');
   //lrf_data[3] = dataread(); 
   lrf_data[3] = complicatedread();
   //delay(1500);
 
   myservo.write(pos4);
-  delay(150);
+  delay(20);
   Serial1.write('R');
   //lrf_data[4] = dataread();  
   lrf_data[4] = complicatedread();
@@ -479,6 +483,7 @@ void readEncoder()
     // incremental case, for example an enc value reported as 4294967290 will be converted to -5 which is the true
     // relative change from 0 as we expect it.  This could possibly be improved by using the status byte which will
     // indicate an over or underflow.
+    
     if (enc1 > (2^16)) {
       enc1 = enc1 - (2^32) + 1;
     }        
@@ -489,7 +494,7 @@ void readEncoder()
     // debug prints
     Serial.print("Encoder1:");
     Serial.print(enc1,DEC);
-    Serial.print(" ");
+    Serial.print(", ");
     Serial.print(Dright,DEC);
     Serial.println(" ");
     
@@ -513,7 +518,7 @@ void readEncoder()
     // debug prints
      Serial.print("Encoder2:");
      Serial.print(enc2,DEC);
-     Serial.print(" ");
+     Serial.print(", ");
      Serial.print(Dleft,DEC);
      Serial.println(" ");
      
@@ -549,8 +554,8 @@ void readEncoder()
 
   // iterative calculation which accumulates the x, y position of the robot based on these previous values obtained from 
   // encoder cts 
-  x1 = x + D1*cos(phi1fl);
-  y1 = y + D1*sin(phi1fl);
+  x1 = x + D1*sin(phi1fl);
+  y1 = y + D1*cos(phi1fl);
 
   // iterate the transform variables
   x=x1;
@@ -625,7 +630,7 @@ void simpleread() {
         }
         Serial.print("done.\n");
           
-        delay(150);
+        delay(10);
         Serial1.write('R');
         int count = 0;
         while(Serial1.available() < 15) {
@@ -635,7 +640,7 @@ void simpleread() {
           if (count > 20) {
             //delay(150);
             Serial1.write('R');
-            delay(200);
+            delay(20);
             count = 0;
           }
         }
@@ -675,19 +680,19 @@ long complicatedread() {
   }
   //Serial.write("done.");
     
-  delay(150);
+  delay(10);
   Serial1.write('R');
   int count = 0;
   //Serial.write("Scanning ... \n");
   while(Serial1.available() < 15) {
     //Serial.println("Serial1.available < 15");          
     //Serial.print(".");
-    delay(100);
+    delay(10);
     count = count + 1;
     if (count > 20) {
       //delay(150);
       Serial1.write('R');
-      delay(200);
+      delay(20);
       count = 0;
     }
   }
@@ -746,7 +751,7 @@ long dataread() {
   }
   for (int i = 0; i < 15; i++) {
     range[i] = Serial1.read();
-    delay(50);
+    delay(10);
     Serial.println("reading from LRF...");
   }
   
@@ -793,7 +798,7 @@ void POST() {
 
 void doMove() {
 	if(new_movement == STOP && old_movement != STOP) {
-        Serial.println("new_movement==STOP && old_movement!=STOP");
+        //Serial.println("new_movement==STOP && old_movement!=STOP");
 		while(MotorSpeed > 10) {
                   MotorSpeed = MotorSpeed - increment;
                   function[old_movement](MotorSpeed);
@@ -803,7 +808,7 @@ void doMove() {
 		goStop();
 	}
 	else if(new_movement != old_movement) {
-        Serial.println("new_movement!=old_movement");
+        //Serial.println("new_movement!=old_movement");
                 while(MotorSpeed > 10) {
                   MotorSpeed = MotorSpeed - increment;
                   function[old_movement](MotorSpeed);
@@ -812,17 +817,17 @@ void doMove() {
 		function[new_movement](MotorSpeed);
 	}
 	else if(MotorSpeed < TopMotorSpeed && old_movement != STOP) {
-        Serial.println("MotorSpeed<TopMotorSpeed && old_movement!=STOP");
+        //Serial.println("MotorSpeed<TopMotorSpeed && old_movement!=STOP");
 	  MotorSpeed = MotorSpeed + increment;
           if(MotorSpeed > TopMotorSpeed){
             MotorSpeed = TopMotorSpeed;
           }            
 	  function[new_movement](MotorSpeed);
 	}
-        Serial.print("Old_movement= ");
+        /*Serial.print("Old_movement= ");
         Serial.print(old_movement);
         Serial.print(", new_movement= ");
-        Serial.println(new_movement);
+        Serial.println(new_movement);*/
         old_movement = new_movement;
 }
 
