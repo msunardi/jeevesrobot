@@ -551,14 +551,17 @@ void readEncoder()
   phi1 = phi + (Dleft/w) - (Dright/w);
 
   // keeps angle wrapping around the circle either positively or negatively
-  if (phi1 < 0) 
+  /*if (phi1 < 0) 
   {
     phi1 += 360;
   }
   else if (phi1 >= 360) 
   {
     phi1 -= 360;
-  }
+  }*/
+  Serial.print("phi1: ");
+  Serial.println(phi1);
+  phi1 = phi1%360;
 
   // new change in distance, approximating curved path as a straight line.  The max speed of the robot and the sample period
   // for the encoders determines the amount of error, that is the faster the robot moves and the larger the period the larger 
