@@ -411,6 +411,19 @@ void draw()
         }
       }// other wise, this is unharmful error, resume execution
     }// otherwise, distance satisfied, resume execution
+  } else if (kinect_flag || speech_flag) {
+   
+      textSize(20);
+      fill(255);
+      textAlign(CENTER, CENTER);
+      text("Interaction mode",status_x,status_y);
+      if (speech_flag) {
+        text("Speak, mortal.",status_x,status_y+30);
+      } else if (kinect_flag) {
+        text("Gesture!", status_x,status_y+30);
+      }
+      displayDirectionIndicator();
+   
   } else { // otherwise, the hand is not being tracked. could be the begining of session, or hand is lost. Display instruction to detect hand  
     
     if (previousCmd != "idle") {
@@ -465,7 +478,7 @@ void draw()
     println("speech_flag: "+speech_flag);
     
     //if (idle_wait_done) { // NOTE*** ADD CHECKS; only execute if all interaction flags are false: kinect_flag, speech_flag, and tablet_flag
-    if (idle_wait_done) {
+    if (idle_wait_done && !kinect_flag && !speech_flag) {
       fill(0,255,0);
       if (idle_action==0) {
         text("Roaming ...",idle_x,idle_y);
@@ -474,7 +487,7 @@ void draw()
         text("Searching ...",idle_x-10,idle_y);
         searching(savedTime, idle_action_duration, dir);
       }
-    }
+    } 
     
     
     textSize(20);
@@ -493,6 +506,19 @@ void draw()
      }//otherwise, music not playing, just resume execution
   }
 }// return to the begining (End of draw loop)
+
+void displayDirectionIndicator() {
+  textSize(20);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text("Raise a hand\nto start\ninteraction",instruction_x, instruction_y);
+    rectMode(CENTER);
+    fill(0);
+    stroke(255);
+    rect(BoxX, BoxY, BoxW, BoxH);
+    line(HlineX1, HlineY1, HlineX2, HlineY2);
+    line(VlineX1, VlineY1, VlineX2, VlineY2);
+}
 
 void roam(int passedTime) {
     if (passedTime > 5000 && passedTime <10000){  // after a five second delay, go forward for five seconds
@@ -676,23 +702,24 @@ void parseMessage(String msg) {
     }
   } else if (msg_length == 4 && message[1].equals("all")) {
       // Broadcasted message, all clients must pay attention to this
-      String flag = message[2];
-      String value = message[3];
-      if (flag == "speech_flag") {
-        if (value == "true") {
+      String flag = trim(message[2]);
+      String value = trim(message[3]);
+      println("Flag = " + flag);
+      if (flag.equals("speech_flag")) {
+        if (value.equals("true")) {
           speech_flag = true;          
         } else {
           speech_flag = false;
         }
         
-      } else if (flag == "tablet_flag") {
-        if (value == "true") {
+      } else if (flag.equals("tablet_flag")) {
+        if (value.equals("true")) {
           tablet_flag = true;
         } else {
           tablet_flag = false;
         }
-      } else if (flag == "kinect_flag") {
-        if (value == "true") {
+      } else if (flag.equals("kinect_flag")) {
+        if (value.equals("true")) {
           kinect_flag = true;
         } else {
           kinect_flag = false;

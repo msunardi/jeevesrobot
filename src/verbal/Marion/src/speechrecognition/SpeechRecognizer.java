@@ -159,7 +159,7 @@ public class SpeechRecognizer {
 				
 				if (result != null) {
 					resultText = result.getBestFinalResultNoFiller();
-					if ((resultText.equalsIgnoreCase("hello")) && !hello) {
+					if ((resultText.equalsIgnoreCase("hello") || (resultText.equalsIgnoreCase("hi"))) && !hello) {
 						hello = true;
 						out.println("speech:all:speech_flag:true");
 						say("Why,-hello-there");
