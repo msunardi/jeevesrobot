@@ -32,7 +32,7 @@ class IphoneChat(Protocol):
 				#for c in self.factory.clients:
 				#	c.message(msg)
 
-			else:
+			elif len(a) == 2:
 				command = a[0]
 				content = a[1].rstrip()
 				content = content.lstrip()
@@ -51,6 +51,8 @@ class IphoneChat(Protocol):
 					#	log.msg("Client connection from %s" % c)
 				else:
 					print "I don't understand."	
+                        else:
+                        	msg = data
 	
 		else:
 			print "I don't understand!"

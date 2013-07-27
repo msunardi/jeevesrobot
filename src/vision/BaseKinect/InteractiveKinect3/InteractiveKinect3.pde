@@ -461,8 +461,11 @@ void draw()
         idle_wait_done = true;  
       }          
     }
-     
-    if (idle_wait_done) { // NOTE*** ADD CHECKS; only execute if all interaction flags are false: kinect_flag, speech_flag, and tablet_flag
+    println("kinect_flag: "+kinect_flag);
+    println("speech_flag: "+speech_flag);
+    
+    //if (idle_wait_done) { // NOTE*** ADD CHECKS; only execute if all interaction flags are false: kinect_flag, speech_flag, and tablet_flag
+    if (idle_wait_done) {
       fill(0,255,0);
       if (idle_action==0) {
         text("Roaming ...",idle_x,idle_y);
@@ -677,10 +680,11 @@ void parseMessage(String msg) {
       String value = message[3];
       if (flag == "speech_flag") {
         if (value == "true") {
-          speech_flag = true;
+          speech_flag = true;          
         } else {
           speech_flag = false;
         }
+        
       } else if (flag == "tablet_flag") {
         if (value == "true") {
           tablet_flag = true;
@@ -696,6 +700,7 @@ void parseMessage(String msg) {
       } else {
         println(message[2] + message[3]);
       }
+      println(flag + ": " + value);
   } else {
     println("Message length is: " + message.length);
     //println(msg);

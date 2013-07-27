@@ -31,6 +31,7 @@ public class SpeechRecognizer {
         voice.allocate();
         
         String [] responses_noget = {"Sorry,--I-didn't-quite-get-that.", "I-beg-your-pardon?", "Could-you-please-repeat-that?--I-didn't-quite-get-it."};
+        Boolean connected = false;
 	
 	
 		//Set up microphone and speech recognizer
@@ -60,21 +61,33 @@ public class SpeechRecognizer {
         Socket kkSocket = null;
         PrintWriter out = null;
         BufferedReader in = null;
-        try {
-            //kkSocket = new Socket("131.252.166.173", 80);
-        	kkSocket = new Socket("127.0.0.1", 8008);
-            out = new PrintWriter(kkSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(kkSocket.getInputStream()));
-            out.println("iam:speech\n");
-            String servermsg = in.readLine();
-            System.out.println("blah:"+servermsg);            
-                        
-        } catch (UnknownHostException e) {
-            System.err.println("Don't know about host");
-            //System.exit(1);
-        } catch (IOException e) {
-            System.err.println("Couldn't get I/O for the connection to host");
-            System.exit(1);
+        int attempts = 30;
+        int attempt_count = 0;
+        int wait = 3000;
+        while (!connected) {
+        	
+		    try {
+	            //kkSocket = new Socket("131.252.166.173", 80);
+	        	kkSocket = new Socket("127.0.0.1", 8008);
+	            out = new PrintWriter(kkSocket.getOutputStream(), true);
+	            in = new BufferedReader(new InputStreamReader(kkSocket.getInputStream()));
+	            out.println("iam:speech\n");
+	            String servermsg = in.readLine();
+	            System.out.println("blah:"+servermsg);
+	            connected = true;
+	                        
+	        } catch (UnknownHostException e) {
+	            System.err.println("Don't know about host");
+	            //System.exit(1);
+	        } catch (IOException e) {
+	            System.err.println("Couldn't get I/O for the connection to host");
+	            if (attempt_count > attempts) {
+	            	System.exit(1);
+	            }
+	            attempt_count += 1;
+	            //System.exit(1);
+	        }	    
+		    
         }
         
         
@@ -138,16 +151,21 @@ public class SpeechRecognizer {
 			do {
 				//System.out.println("1. Enter a sentence\t\t0. Quit");
 				//choice = Integer.parseInt(scan.nextLine());
+				
 				System.out.println("Say \"Hello\" to initiate.");
 				say("Say-hello-to-start");
+				out.println("speech:all:speech_flag:false");
 				result = recognizer.recognize();
+				
 				if (result != null) {
 					resultText = result.getBestFinalResultNoFiller();
 					if ((resultText.equalsIgnoreCase("hello")) && !hello) {
 						hello = true;
+						out.println("speech:all:speech_flag:true");
 						say("Why,-hello-there");
 						say("Say-one-to-type,--say-two-to-talk-with-me");
 						System.out.println("Say 1 to type, 2 to talk");						
+						
 						Result result2 = recognizer.recognize();					
 						if (result2 != null) {
 							String resultText2 = result2.getBestFinalResultNoFiller();
@@ -172,72 +190,84 @@ public class SpeechRecognizer {
 					System.out.println(marionresponse);
 					String marionsays = marionresponse.replace(" ","-");
 					say(marionsays);
+					
 				} else if (choice == 2) {
-					result = recognizer.recognize();
-					if (result != null) {
-						resultText3 = result.getBestFinalResultNoFiller();
-						/* From the Confidence.java example */
-						//if (resultText3)
-						ConfidenceScorer cs = (ConfidenceScorer) cm.lookup("confidenceScorer");
-						ConfidenceResult cr = cs.score(result);
-						Path best = cr.getBestHypothesis();
-						
-						/* confidence of the best path */
-						System.out.println(best.getTranscription());
-						System.out.println("\t(confidence: " +
-												format.format(best.getLogMath().logToLinear((float) best.getConfidence())) +
-												')');
-						System.out.println();
-						
-						/*
-						 * print out confidence of individual words in the best path
-						 */
-						WordResult[] words = best.getWords();
-						for (WordResult wr : words) {
-							printWordConfidence(wr);
+					int fail_count = 3;
+					int fails = 0;
+					while (fails < fail_count) {
+						if (fails > 0) {
+							say("Let's-try-that-again");
 						}
-						System.out.println();
-						
-						if ((resultText3 != null) && hello) {
-							//Get String of result
-			                //String resultText = result.getBestFinalResultNoFiller();
-			            	//String resultText = result.getBestResultNoFiller();
-			                //java.lang.String toString = (resultText);
-			                //System.out.print(String.format("Recognized speech: %s\n", toString));
-							System.out.print(String.format("Recognized speech: %s\n", resultText3));
-			                
-			                //////////////// Using hashmap response_map //////////////////////
-			                try {
-			                	// Trying to find the map element with key=resultText
-			                	String response = response_map.get(resultText3).toString();
-			                	
-			                	String [] response_list = response.split(";");
-			                	System.out.println(response_list[0]);
-			                	String tosay = response_list[0].replace(" ", "--");
-			                	tosay.replace("!", ".");
-			                	say(tosay);
-			                	
-			                	
-			                	if (response_list.length > 1) {
-			                		try {
-			                			out.println(response_list[1]);
-			                			System.out.println(in.readLine());
-			                		} catch (Exception e) {
-			                			System.out.println("Failed sending to socket");
-			                		}
-			                	}
-			                	blah=true;
-			                } catch (Exception e) {
-			                	System.out.println("Sorry, I didn't quite get that.");
-			                	say("Sorry,--I-didn't-quite-get-that.");
-			                }
-						
-						} else {
-			                System.out.println("I can't hear what you said.\n");
-			                say("Sorry,--I-can't-hear-what-you-just-said");
-			            }
-						break;
+						result = recognizer.recognize();
+						if (result != null) {
+							resultText3 = result.getBestFinalResultNoFiller();
+							/* From the Confidence.java example */
+							//if (resultText3)
+							ConfidenceScorer cs = (ConfidenceScorer) cm.lookup("confidenceScorer");
+							ConfidenceResult cr = cs.score(result);
+							Path best = cr.getBestHypothesis();
+							
+							/* confidence of the best path */
+							System.out.println(best.getTranscription());
+							System.out.println("\t(confidence: " +
+													format.format(best.getLogMath().logToLinear((float) best.getConfidence())) +
+													')');
+							System.out.println();
+							
+							/*
+							 * print out confidence of individual words in the best path
+							 */
+							WordResult[] words = best.getWords();
+							for (WordResult wr : words) {
+								printWordConfidence(wr);
+							}
+							System.out.println();
+							
+							if ((resultText3 != null) && hello) {
+								//Get String of result
+				                //String resultText = result.getBestFinalResultNoFiller();
+				            	//String resultText = result.getBestResultNoFiller();
+				                //java.lang.String toString = (resultText);
+				                //System.out.print(String.format("Recognized speech: %s\n", toString));
+								System.out.print(String.format("Recognized speech: %s\n", resultText3));
+				                
+				                //////////////// Using hashmap response_map //////////////////////
+				                try {
+				                	// Trying to find the map element with key=resultText
+				                	String response = response_map.get(resultText3).toString();
+				                	
+				                	String [] response_list = response.split(";");
+				                	System.out.println(response_list[0]);
+				                	String tosay = response_list[0].replace(" ", "--");
+				                	tosay.replace("!", ".");
+				                	say(tosay);
+				                	
+				                	
+				                	if (response_list.length > 1) {
+				                		try {
+				                			out.println(response_list[1]);
+				                			System.out.println(in.readLine());
+				                		} catch (Exception e) {
+				                			System.out.println("Failed sending to socket");
+				                		}
+				                	}
+				                	blah=true;
+				                	break;
+				                } catch (Exception e) {
+				                	System.out.println("Sorry, I didn't quite get that.");
+				                	say("Sorry,--I-didn't-quite-get-that.");
+				                	fails +=1;
+				                }
+							
+							} else {
+				                System.out.println("I can't hear what you said.\n");
+				                say("Sorry,--I-can't-hear-what-you-just-said");
+				                fails +=1;
+				            }
+							//break;
+						}
 					}
+					break;
 					//else continue;
 					/*int min = 0, max = 4;
 					Random rand = new Random();
@@ -248,6 +278,7 @@ public class SpeechRecognizer {
 					break;
 					*/
 				}
+				choice = -1; // so it won't repeat the same mode
 			} while(choice!=0);
 			
             //Result result = recognizer.recognize();

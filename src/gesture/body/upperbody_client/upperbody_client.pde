@@ -75,7 +75,7 @@ void parseMessage(String msg) {
     target = trim(message[1]);
     command = trim(message[2]);
     if (message[1].equals("body")) {          
-      if (msg_length > 3) {
+      if (msg_length == 3) {
         String [] command_args = {};
         for (int i = 3; i < msg_length; i++) {
           command_args[i-3] = message[i];
