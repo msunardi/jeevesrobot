@@ -32,8 +32,13 @@ int LEFT = 97, RIGHT = 100, STOP= 120, FORWARD = 119, BACKWARD = 115, STRAFE_LEF
 int BoxX = 740, BoxW = 50,  HlineX1 = 665, HlineX2= 815, VlineX1 = 740, VlineX2 = 740;  // Horizontal variables for robot base animation
 int BoxY = 500, BoxH = 50, HlineY1 = 500, HlineY2 = 500, VlineY1 = 425, VlineY2 = 575;  // vertical variables for robot base animation
 String song = "Play Music"; // String variable hosting the music button display, set to play music at start
+String followhand = "Follow Hand";
 int send = 4; // integer variable to host the outgoing command to serial
 boolean handsTrackFlag = false; // Hand tracking flag, set to false at start since we are not tracking the hand at first
+boolean followHandFlag = false; // Move base to follow hand if true
+boolean inFollowHandBox = false;
+boolean inPlayMusicBox = false;
+boolean playMusicFlag = false;
 
 int savedTime;
 int totalTime = 5000;
@@ -43,22 +48,25 @@ int idle_action=0;
 boolean idle_wait_done = false;
 float dir=0;
 
+int buttonTimeout = 0;
+
 //============== Client variables ========
 String messageFromServer = "";
 String previousType = "";
 String previousCmd = "";
+String cmdToDisplay = "";
 boolean kinect_flag = false;
 boolean speech_flag = false;
 boolean tablet_flag = false;
 
 //============== Text positions ===========
-int status_x = 735;
+int status_x = 740;
 int status_y = 20;
-int instruction_x = 735;
+int instruction_x = 740;
 int instruction_y = 180;
-int idle_x = 735;
+int idle_x = 740;
 int idle_y = 50;
-int command_x = 735;
+int command_x = 740;
 int command_y = 400;
 int linespacing = 30;
 int textsize1 = 15;
@@ -119,7 +127,7 @@ void draw()
    if (send != STOP){ // If so, then check if we have already sent this command
    send = STOP;// if not, set the send variable to STOP
    port.write(send); // send it   
-   println("STOP, obstcle  "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
+   println("STOP, obstacle  "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
    client.write(formatMessage("base", "stop"));
     if (previousCmd != "tooclose") {
         client.write(formatMessage("status","tooclose"));
@@ -131,23 +139,32 @@ void draw()
    //============Warning Display======================//
    rectMode(CENTER);
    fill(255,255,0);
-   rect(closeX, closeY, 85, 30);
+   rect(closeX, closeY, 125, 40,15);
    textAlign(CENTER);
    textSize(20);
    fill(255, 0, 0);
    textAlign(CENTER, CENTER);
-   text("OBSTCLE",closeX, closeY);
-   rectMode(CORNER);
+   text("OBSTACLE",closeX, closeY);
+   /*rectMode(CORNER);
    fill(255, 255, 0);
    rect(4, 40, 600, 40);
    textAlign(CENTER, CENTER);
-   fill(255, 0, 0);
-   text("Obstcle on the way, CANNOT follow you anymore!!!", 300, 50);
+   fill(255, 0, 0);*/
+   rectMode(CENTER);
+   fill(255,255,0);
+   rect(status_x, status_y, 200, 158);
+   textAlign(CENTER,CENTER);
+   fill(255,0,0);
+   textSize(24);
+   text("OBSTACLE\nDETECTED", status_x, status_y+30);
+   //text("Obstacle on the way, CANNOT follow you anymore!!!", 300, 50);
+   //writeInstructionStatus("Obstacle",1);
+   writeInstructionStatus("Something is\ntoo close.\nI won't move\nuntil the path\nis cleared.",0);
    rectMode(CENTER);
    fill(255, 0, 0);
    stroke(255,255, 0);
    strokeWeight(10);
-   rect(BoxX, BoxY, BoxW, BoxH);
+   rect(BoxX, BoxY, BoxW, BoxH,15);
    line(HlineX1, HlineY1, HlineX2, HlineY2);
    line(VlineX1, VlineY1, VlineX2, VlineY2);
    strokeWeight(1);
@@ -160,10 +177,10 @@ void draw()
      client.write(formatMessage("arm","wave"));
      previousCmd = "trackhand";
    }
-   textSize(20);
-   fill(255);
-   textAlign(CENTER, CENTER);
-   text("Tracking hand", status_x, status_y);
+   if (!followHandFlag) {
+     writeInstructionStatus("A hand has been\n detected.\nHover hand over\n\"Play Music\" or\n\"Follow Hand\"\nbuttons Into interact.",0);
+     writeInstructionStatus("Tracking Hand", 1);
+   }
    // if so, get its information
    savedTime = millis();                // reset millis time
    kinect.convertRealWorldToProjective(handVector, mapHandVector); // convert hand position coordinates to projective
@@ -174,43 +191,79 @@ void draw()
    int millimeters = depthValues[handDistance]; // read the depth value of that pixel on which is the hand
    //========== end of getting hand distance =========//
    textSize(20);
-   fill(255, 255, 0);
+   fill(128, 128, 220);
    textAlign(CENTER, CENTER);
    // a choice to display the hand position and distance instead of a circle
-   //text(millimeters+"\n"+"("+int(mapHandVector.x)+" , "+int(mapHandVector.y)+")", mapHandVector.x, mapHandVector.y);
+   text(millimeters+"\n"+"("+int(mapHandVector.x)+" , "+int(mapHandVector.y)+")", mapHandVector.x, mapHandVector.y-30);
    // ============= hand has been detected, inform the user (UI) ==========//
-            textSize(textsize2);  // textsize1 = 15, textsize2 = 20
-            fill(255);
-            textAlign(CENTER, CENTER);
-            text("Session is ON \n The Robot \n should be \n following \n your hand\nNOW", instruction_x, instruction_y);
-            rectMode(CENTER);
-            fill(255);
-            stroke(255);
-            rect(BoxX, BoxY, BoxW, BoxH);
-            line(HlineX1, HlineY1, HlineX2, HlineY2);
-            line(VlineX1, VlineY1, VlineX2, VlineY2);
-            rectMode(CENTER);
-            rect(300, 145, 110, 32);
-            textAlign(CENTER, CENTER);
-            fill(255,0,0);
-            text(song, 300, 145);
+            
+    //writeInstructionStatus("Session is ON \n The Robot \n should be \n following \n your hand\nNOW",0);
+    
+    rectMode(CENTER);
+    fill(255);
+    stroke(255);
+    rect(BoxX, BoxY, BoxW, BoxH);
+    line(HlineX1, HlineY1, HlineX2, HlineY2);
+    line(VlineX1, VlineY1, VlineX2, VlineY2);
+    /*stroke(200,200,200);
+    fill(100,100,200,0.5);
+    strokeWeight(3);
+    rect(300, 125, 130, 40, 15);
+    rectMode(CENTER);            
+    textAlign(CENTER, CENTER);
+    fill(255);
+    text(song, 300, 125);*/
+    makeCommandBox(song, 200, 125, 130, 40);
+    makeCommandBox(followhand, 380, 125, 150, 40); 
 //============== end of display ========================//
-            if (mapHandVector.x > 280 && mapHandVector.x < 320 && mapHandVector.y > 129 && mapHandVector.y < 161){
-              // check if the hand is on the music button we created in the display?
-                if(!player.isPlaying()){// if so, check if the music is not playing
-                       player.play();// if so, play music
-                       song = "Pause Music";// replace music button text with "Pause" instaed of "Play"
+    if (mapHandVector.x-30 > 100 && mapHandVector.x-30 < 230 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inPlayMusicBox){
+      // check if the hand is on the music button we created in the display?
+      if(!player.isPlaying() && song.equals("Play Music") && !playMusicFlag){// if so, check if the music is not playing
+         player.play();// if so, play music
+         song = "Pause Music";// replace music button text with "Pause" instaed of "Play"
+         playMusicFlag = true;
 
-                   }else if (player.isPlaying()){// otherwise, check if the music is playing
-                     player.pause();// if so, pause the music
-                     song = "Play Music";// replace music button text with "Play" instaed of "pause"
+       }else if (player.isPlaying() && playMusicFlag){// otherwise, check if the music is playing
+         player.pause();// if so, pause the music
+         song = "Play Music";// replace music button text with "Play" instaed of "pause"
+         playMusicFlag = false;
 
-                   }//otherwise, resume execution
-            }// otherwise, resume executon
+       }//otherwise, resume execution
+       inPlayMusicBox = true;
+         
+    }// otherwise, resume executon
+    if (mapHandVector.x-30 < 100 || mapHandVector.x-30 > 230 || mapHandVector.y < 100 || mapHandVector.y > 150) {
+      inPlayMusicBox = false; 
+    }
+    
+    if (mapHandVector.x-30 > 300 && mapHandVector.x-30 < 430 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inFollowHandBox){
+      // check if the hand is on the music button we created in the display?
+      buttonTimeout = millis();
+      if (followhand.equals("Follow Hand") && !followHandFlag) {
+        followhand = "Stop Following";
+        followHandFlag = true;
+        
+       
+      } else if (followhand.equals("Stop Following")) {
+        followhand = "Follow Hand";
+        followHandFlag = false;
+        //send = STOP;// if not, set the send variables to STOP to be sent
+        port.write(STOP);// send it        
+      }
+      inFollowHandBox = true;        
+    }
+    if (mapHandVector.x-30 < 300 || mapHandVector.x-30 > 430 || mapHandVector.y < 100 || mapHandVector.y > 150) {      
+      inFollowHandBox = false;      
+    }
+    if (followHandFlag) {
+      writeInstructionStatus("Following Hand...",1);
+      writeInstructionStatus("Move hand around\nto lead the robot.",0);
+    }
+    //println(inFollowHandBox);
             
     if(roto == false) {// check if the rotation satisfaction is not satisfied
-      if (mapHandVector.x < 0.25*kinect.depthWidth()) { // if so, check if the hand is in the left
-        if ((send != RIGHT) && (send != STRAFE_RIGHT)) {// if so, check if we have alrwady  sent this command
+      if (mapHandVector.x < 0.25*kinect.depthWidth() && followHandFlag) { // if so, check if the hand is in the left
+        if ((send != RIGHT) && (send != STRAFE_RIGHT)) {// if so, check if we have already sent this command
           float r = random(10);
           String cmd = "";
           if (r > 5) {
@@ -220,22 +273,22 @@ void draw()
             send = STRAFE_RIGHT;
             cmd = "straferight";
           }
+         
           port.write(send);// send it
           println("Right  "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           client.write(formatMessage("base",cmd)); 
           //======== display the command =======//
-          textSize(20);
-          fill(255, 0, 0);
-          textAlign(CENTER, CENTER);
-          text("Right", command_x, command_y);
+          
+          //println("rotofalse, right");
+          writeCommand("Right",0);
+          
     
         } else {// otherwise, we do not need to re-send the command, just display to the user to inform 
         //=========== LEFT display======================//
-          textSize(20);
-          fill(255, 0, 0);
-          textAlign(CENTER, CENTER);
-          text("Left", command_x, command_y);
-          text("Rotation satisfied? "+roto,340, 20);
+          //println("rotofalse, left");
+          
+          writeCommand("Left",0);
+          //text("Rotation satisfied? "+roto,340, 20);
           rectMode(CENTER);
           fill(255, 136, 0);
           stroke(255);
@@ -248,7 +301,7 @@ void draw()
           strokeWeight(1);
           //======= end of LEFT display =========//
         }
-      } else if (mapHandVector.x > 0.75*kinect.depthWidth()) { // otherwise, check if hand is inthre right side
+      } else if (mapHandVector.x > 0.75*kinect.depthWidth() && followHandFlag) { // otherwise, check if hand is inthre right side
         if ((send != LEFT) && (send != STRAFE_LEFT)) {// if so, check if we have already sent this command
           float r = random(10);
           String cmd = "";
@@ -259,21 +312,21 @@ void draw()
             send = STRAFE_LEFT;
             cmd = "strafeleft";
           }
+         
           port.write(send);//send it
           println("Left "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           client.write(formatMessage("base",cmd));
           //===== display the command ======//
-          textSize(20);
-          fill(255, 0, 0);
-          textAlign(CENTER, CENTER);
-          text("Left", command_x, command_y);
+          writeCommand("Left", 0);
+          
+          
         } else {//otherwise, we do not need to re-send the command
         //============ RIGHT display==============//
             textSize(20);
             fill(255, 0, 0);
             textAlign(CENTER, CENTER);
             text("Right", command_x, command_y);
-            text("Rotation satisfied? "+roto,340, 20);
+            //text("Rotation satisfied? "+roto,340, 20);
             rectMode(CENTER);
             fill(255, 136, 0);
             stroke(255);
@@ -286,29 +339,23 @@ void draw()
             strokeWeight(1);
             //======= end of RIGHT display==========//
         }
-      } else if (mapHandVector.x <= 0.75*kinect.depthWidth() && mapHandVector.x >= 0.25*kinect.depthWidth()) { 
+      } else if (mapHandVector.x <= 0.75*kinect.depthWidth() && mapHandVector.x >= 0.25*kinect.depthWidth() && followHandFlag) { 
         // otherwise, check if the hand is in the middle
                 roto = true;// if so, set the rotation flag to true, so it is not executed again before executing the Distance satisfation
                 DisBF = false;// also, set the distance satisfaction flag to false so it can be executed next
                 fill(0,255, 0);
                 textAlign(CENTER, CENTER);
-                text("Rotation satisfied? "+roto,340, 20);
+                //text("Rotation satisfied? "+roto,340, 20);
               if (send != STOP) {// check if we have already sent this command 
                 send = STOP;// if not, set the send variables to STOP to be sent
                 port.write(send);// send it
                 println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
                 client.write(formatMessage("base","stop"));
                 //==== display the command====//
-                textSize(20);
-                fill(0,255,0);
-                textAlign(CENTER, CENTER);
-                text("Stay", command_x, command_y);
+               
               } else {// otherwise, we do not need to re-send the command, just inform the user
               //================= STOP display=================//
-                textSize(20);
-                fill(0,255,0);
-                textAlign(CENTER, CENTER);
-                text("Stay",command_x, command_y);
+                
                 rectMode(CENTER);
                 fill(0, 255, 0);
                 stroke(255);
@@ -316,8 +363,9 @@ void draw()
                 line(HlineX1, HlineY1, HlineX2, HlineY2);
                 line(VlineX1, VlineY1, VlineX2, VlineY2);
               }// end of STOP display
+              writeCommand("Stay",0);
       }// otherwise, this is unharmful error, resume execution
-    } else if(DisBF == false) {// otherwise, check if the distance satisfaction flag is false
+    } else if(DisBF == false && followHandFlag) {// otherwise, check if the distance satisfaction flag is false
       
       if (millimeters < 900 && millimeters > 0) {// if so, check if the hand is close. execlude the 0! its NOISE!!
         if (send != BACKWARD){// if so, check if we have already 
@@ -326,17 +374,11 @@ void draw()
           println("BACKWARD "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           client.write(formatMessage("base","reverse"));
           //====== display the backaward command============//
-          textSize(20);
-          fill(255, 0, 0);
-          textAlign(CENTER, CENTER);
-          text("Backward", command_x, command_y);
+          
         }else{// otherwise, we do not need to re-send the back ward command again
         //====================== BACKWARD display=====================//
-          textSize(20);
-          fill(255, 0, 0);
-          textAlign(CENTER, CENTER);
-          text("Backward", command_x, command_y);
-          text("Distance satisfied? "+DisBF,110,20);
+          
+          //text("Distance satisfied? "+DisBF,110,20);
           rectMode(CENTER);
           fill(255, 136, 0);
           stroke(255);
@@ -349,6 +391,7 @@ void draw()
           strokeWeight(1);
           //=============== end of BACKWARD display ====================//
         }
+        writeCommand("Backward",0);
       } else if (millimeters > 1200 && millimeters > 0) {//otherwise, check if the hand is far. execlude the 0! it is NOISE!!!
         if(send != FORWARD){// chekc if we have already sent this command
           send= FORWARD;// if not, set the send variable to move forward to be sent
@@ -356,17 +399,11 @@ void draw()
           println("FORWARD "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           client.write(formatMessage("base","forward"));
           //======= display the FORWARD command============//
-          textSize(20);
-          fill(255, 0, 0);
-          textAlign(CENTER, CENTER);
-          text("Forward",command_x, command_y);
+          
         }else{//otherwise, we do not need to resend the FORWARD command again
         //============== just display the FORWARD command ======================//
-          textSize(20);
-          fill(255, 0, 0);
-          textAlign(CENTER, CENTER);
-          text("Forward", command_x, command_y);
-          text("Distance satisfied? "+DisBF,110,20);
+          
+          //text("Distance satisfied? "+DisBF,110,20);
           rectMode(CENTER);
           fill(255, 136, 0);
           stroke(255);
@@ -379,50 +416,48 @@ void draw()
           strokeWeight(1);
           //=========== end of FORWARD command =====================//
         }
+          writeCommand("Forward",0);
       } else if (millimeters < 1200 && millimeters > 900) {// check if the hand is in the middle
         DisBF = true;// if so, set the distance satisfaction flag to true, so it does not get executed again before the rotation satisfaction
         roto = false;// also, set the rotation satisfaction flag to false so it get executed next
         textSize(20);
         fill(0, 255, 0);
         textAlign(CENTER, CENTER);
-        text("Distance satisfied? "+DisBF,110,20);
+        //text("Distance satisfied? "+DisBF,110,20);
         if (send != STOP){// check if we have already sent this command 
           send = STOP;// if not, set the send variable to STOP to be sent
           port.write(send);// send it
           println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           client.write(formatMessage("base","stop"));
-              textSize(20);
-              fill(0,255,0);
-              textAlign(CENTER, CENTER);
-              text("Stay",command_x, command_y);
+              
         }else{//otherwise, we do not need to re-send the STOP command again
         //============= Display the STOP command ========================//
-              textSize(20);
-              fill(0,255,0);
-              textAlign(CENTER, CENTER);
-              text("Stay", command_x, command_y);
-              rectMode(CENTER);
-              fill(0, 255, 0);
-              stroke(255);
-              rect(BoxX, BoxY, BoxW, BoxH);
-              line(HlineX1, HlineY1, HlineX2, HlineY2);
-              line(VlineX1, VlineY1, VlineX2, VlineY2);
+        
+          rectMode(CENTER);
+          fill(0, 255, 0);
+          stroke(255);
+          rect(BoxX, BoxY, BoxW, BoxH);
+          line(HlineX1, HlineY1, HlineX2, HlineY2);
+          line(VlineX1, VlineY1, VlineX2, VlineY2);
               //============= end of STOP display =====================//
         }
+         writeCommand("Stay", 0);
       }// other wise, this is unharmful error, resume execution
     }// otherwise, distance satisfied, resume execution
   } else if (kinect_flag || speech_flag) {
    
-      textSize(20);
+      /*textSize(20);
       fill(255);
       textAlign(CENTER, CENTER);
-      text("Interaction mode",status_x,status_y);
+      text("Interaction mode",status_x,status_y);*/
+      writeInstructionStatus("Speech mode",1);
       if (speech_flag) {
         text("Speak, mortal.",status_x,status_y+30);
+        if (!cmdToDisplay.equals("")) writeCommand(cmdToDisplay,0);
       } else if (kinect_flag) {
         text("Gesture!", status_x,status_y+30);
       }
-      displayDirectionIndicator();
+      //displayDirectionIndicator();
    
   } else { // otherwise, the hand is not being tracked. could be the begining of session, or hand is lost. Display instruction to detect hand  
     
@@ -456,16 +491,11 @@ void draw()
     }
     
     passedTime = millis() - savedTime;
-    textSize(20);
-    fill(255);
-    textAlign(CENTER, CENTER);
-    text("Idle", status_x, status_y);
-    //text("Passed time: " + passedTime, 600, 50);
+    writeInstructionStatus("Idle", 1);
+    
     if ((passedTime < int(wait_thinking)) && !idle_wait_done) {
-      textSize(20);
-      fill(0,255,0);
-      textAlign(CENTER, CENTER);
-      text("Hmm .. what to do ...",idle_x,idle_y);
+      
+      writeCommand("Hmm...what to do...",1);
       text("Passed time: " + passedTime/1000 + "s", idle_x, idle_y+linespacing);
       
     } else {
@@ -489,17 +519,15 @@ void draw()
       }
     } 
     
+    writeInstructionStatus("Raise a hand\nto start\ninteraction", 0);
+    displayDirectionIndicator();
     
-    textSize(20);
-    fill(255);
-    textAlign(CENTER, CENTER);
-    text("Raise a hand\nto start\ninteraction",instruction_x, instruction_y);
-    rectMode(CENTER);
+    /*rectMode(CENTER);
     fill(0);
     stroke(255);
     rect(BoxX, BoxY, BoxW, BoxH);
     line(HlineX1, HlineY1, HlineX2, HlineY2);
-    line(VlineX1, VlineY1, VlineX2, VlineY2);
+    line(VlineX1, VlineY1, VlineX2, VlineY2);*/
     //========= end if instructions display================//
      if (player.isPlaying()){// check if the music is playing
              player.rewind();// if so, rewind it, nobody is here :/
@@ -507,17 +535,48 @@ void draw()
   }
 }// return to the begining (End of draw loop)
 
-void displayDirectionIndicator() {
+void writeInstructionStatus(String instruction, int type) {
   textSize(20);
-    fill(255);
-    textAlign(CENTER, CENTER);
-    text("Raise a hand\nto start\ninteraction",instruction_x, instruction_y);
-    rectMode(CENTER);
-    fill(0);
-    stroke(255);
-    rect(BoxX, BoxY, BoxW, BoxH);
-    line(HlineX1, HlineY1, HlineX2, HlineY2);
-    line(VlineX1, VlineY1, VlineX2, VlineY2);
+  fill(255);  // white
+  textAlign(CENTER, CENTER);
+  if (type==0) {
+    text(instruction, instruction_x, instruction_y);
+  } else if (type==1) {
+    text(instruction, status_x, status_y);
+  }    
+  //text(instruction, x, y);  
+}
+
+void writeCommand(String command, int type) {
+  textSize(20);
+  textAlign(CENTER, CENTER);
+  if (type==0) {
+    fill(255,0,0);  // green
+    text(command, command_x, command_y);
+  } else if (type==1) {
+    fill(0,255,0);  // green
+    text(command, idle_x, idle_y);
+  }
+}
+
+void makeCommandBox(String command, int x, int y, int boxwidth, int boxheight) {
+  stroke(200,200,200);
+  fill(100,100,200,0.5);
+  strokeWeight(3);
+  rect(x, y, boxwidth, boxheight, 15);
+  rectMode(CENTER);            
+  textAlign(CENTER, CENTER);
+  fill(255);
+  text(command, x, y);
+}
+
+void displayDirectionIndicator() {
+  rectMode(CENTER);
+  fill(0);
+  stroke(255);
+  rect(BoxX, BoxY, BoxW, BoxH);
+  line(HlineX1, HlineY1, HlineX2, HlineY2);
+  line(VlineX1, VlineY1, VlineX2, VlineY2);
 }
 
 void roam(int passedTime) {
@@ -663,7 +722,7 @@ void parseMessage(String msg) {
     String client_msg = "msg:OK. I received a command " +command.toUpperCase() + " from " + message[0].toUpperCase();
     //client.write(client_msg);
     println(client_msg);
-    
+    if (speech_flag) cmdToDisplay = command;
     // DEBUGGING STUFF
     /*
     //println(message.length);
@@ -710,6 +769,7 @@ void parseMessage(String msg) {
           speech_flag = true;          
         } else {
           speech_flag = false;
+          cmdToDisplay=""; // clear variable
         }
         
       } else if (flag.equals("tablet_flag")) {
