@@ -104,7 +104,7 @@ int buttonHeightOffset = buttonHeight/2;
 
 String song = "Play Music"; // String variable hosting the music button display, set to play music at start
 String followhand = "Follow Hand";
-String rgbmode = "Show RGB";
+String rgbmode = "Show Depth";
 
 boolean inFollowHandBox = false;
 boolean followHandFlag = false; // Move base to follow hand if true
@@ -125,7 +125,7 @@ void setup()
 {
   String portName = "/dev/ttyACM3";
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
-  kinect = new SimpleOpenNI(this); // initialize the kinect object
+  kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
   kinect.setMirror(true); // Mirror the depth image
   kinect.enableDepth(); // enable the depth camera of the kinect
   kinect.enableGesture(); // enable the Gesture class of the Kinect
@@ -155,9 +155,9 @@ void draw()
   close = 6000; // set the closest point to 6000 mm as a starting point 
   kinect.update(); // update the kinect
   if (rgbFlag) {
-    screen = kinect.rgbImage();
-  } else {
     screen = kinect.depthImage();
+  } else {
+    screen = kinect.rgbImage();
   }
   
   //sendScreen(screen);
@@ -341,13 +341,13 @@ void draw()
     if (mapHandVector.x-30 > rgbButton_x-buttonWidthOffset && mapHandVector.x-30 < rgbButton_x+buttonWidthOffset && mapHandVector.y > rgbButton_y-buttonHeightOffset && mapHandVector.y < rgbButton_y+buttonHeightOffset && !inRgbBox){
       // check if the hand is on the music button we created in the display?
       buttonTimeout = millis();
-      if (rgbmode.equals("Show RGB") && !rgbFlag) {
-        rgbmode = "Show Depth";
+      if (rgbmode.equals("Show Depth") && !rgbFlag) {
+        rgbmode = "Show RGB";
         rgbFlag = true;
         
        
-      } else if (rgbmode.equals("Show Depth")) {
-        rgbmode = "Show RGB";
+      } else if (rgbmode.equals("Show RGB")) {
+        rgbmode = "Show Depth";
         rgbFlag = false;
         //send = STOP;// if not, set the send variables to STOP to be sent
         port.write(STOP);// send it        
