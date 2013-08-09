@@ -30,7 +30,7 @@ PVector handVector = new PVector(); // vector for hand real world fresh XYZ coor
 PVector mapHandVector = new PVector(); // vector for hand projective XYZ coordinates
 boolean DisBF = true; // Distance Satisfaction Flag, set to True at start to give priority for Rotation satisfaction first
 boolean roto  = false; // rotation satisfaction Flag, set to False at start to give priority for Rotation satisfaction first
-int close; // integer variable to host the closest point
+int close = 6000; // integer variable to host the closest point
 int closeX; // the x position of the closest point
 int closeY; // the y position of the closest point
 int base_x = 540;
@@ -45,7 +45,7 @@ boolean handsTrackFlag = false; // Hand tracking flag, set to false at start sin
 
 
 
-int savedTime;
+int savedTime, frameTime;
 int totalTime = 5000;
 int wait_thinking = 0;
 int idle_action_duration = 0;
@@ -63,6 +63,7 @@ String cmdToDisplay = "";
 boolean kinect_flag = false;
 boolean speech_flag = false;
 boolean tablet_flag = false;
+boolean ipad_connected = false;
 
 //============== Text positions ===========
 /*int status_x = 740;
@@ -146,10 +147,12 @@ void setup()
   
   sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight());
   sender.start(); 
+  frameTime = millis();
 }
 //======================== Main Function=============//
 void draw()
 {
+  
   int passedTime;
   background(0); // clean the background with black color
   close = 6000; // set the closest point to 6000 mm as a starting point 
@@ -254,7 +257,7 @@ void draw()
      writeInstructionStatus("A hand has been\n detected.\nHover hand over\nbuttons Into interact.",0);
      writeInstructionStatus("Tracking Hand", 1);
    }
-   updateScreen();
+   //updateScreen();
    // if so, get its information
    savedTime = millis();                // reset millis time
    kinect.convertRealWorldToProjective(handVector, mapHandVector); // convert hand position coordinates to projective
@@ -363,10 +366,10 @@ void draw()
       writeInstructionStatus("Following Hand...",1);
       writeInstructionStatus("Move hand around\nto lead the robot.",0);
     } else if (rgbFlag) {
-      writeInstructionStatus("RGB Mode",1);
-      writeInstructionStatus("Now showing\nfull color image.",0);
+      writeInstructionStatus("Depth Mode",1);
+      writeInstructionStatus("Now showing\nDepth image.",0);
     }
-    updateScreen();
+    //updateScreen();
     //println(inFollowHandBox);
             
     if(roto == false) {// check if the rotation satisfaction is not satisfied
@@ -663,9 +666,17 @@ void draw()
      }//otherwise, music not playing, just resume execution
      //updateScreen();
   }
-   int currenttime = millis();
-   while (millis() - currenttime < 10) {}
-  updateScreen();
+   /*int currenttime = millis();
+   print("Killing time...");
+   while (millis() - currenttime < 30) {
+     print(".");
+   }
+   println("");*/
+   if (millis() - frameTime > 60) {
+     println("Updating screen...");
+     updateScreen();
+     frameTime = millis();
+   }
   
 }// return to the begining (End of draw loop)
 
@@ -852,6 +863,7 @@ void parseMessage(String msg) {
   String [] message = split(trim(msg),':');
   String sender, target, command;
   int msg_length = message.length;
+  println("Message from server: "+ msg);
   if (msg_length >= 3 && message[1].equals("base") && !message[0].equals("kinect")) {
     
     sender = trim(message[0]);
