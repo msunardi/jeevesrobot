@@ -65,6 +65,7 @@ boolean speech_flag = false;
 boolean tablet_flag = false;
 boolean ipad_connected = false;
 
+
 Boolean obstacle = false;
 //============== Text positions ===========
 /*int status_x = 740;
@@ -205,12 +206,16 @@ void draw()
    send = STOP;// if not, set the send variable to STOP
    port.write(send); // send it   
    println("STOP, obstacle  "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
+   base_cmd = "stop";
    client.write(formatMessage("base", "stop"));
     if (previousCmd != "tooclose") {
         client.write(formatMessage("status","tooclose"));
         previousCmd = "tooclose";
-        obstacle = true;
-      }   
+        
+      }
+    obstacle = true;
+    handsTrackFlag = false;
+    followHandFlag = false;  
    }
    
    // otherwise, we do not need to re-send the command. just display warning
@@ -250,11 +255,11 @@ void draw()
    //========== end of warning display ====================//
  } else if(handsTrackFlag == true) {  // Check if we are tracking the hand?
    
-   if (previousCmd != "trackhand") {
+   if (previousCmd != "tracking hand") {
      client.write(formatMessage("all","kinect_flag:true"));
      client.write(formatMessage("status","trackhand"));
      client.write(formatMessage("arm","wave"));
-     previousCmd = "trackhand";
+     previousCmd = "tracking hand";
    }
    if (!followHandFlag && !rgbFlag) {
      writeInstructionStatus("A hand has been\n detected.\nHover hand over\nbuttons Into interact.",0);
@@ -308,7 +313,7 @@ void draw()
          song = "Pause Music";// replace music button text with "Pause" instaed of "Play"
          playMusicFlag = true;
 
-       }else if (player.isPlaying() && playMusicFlag){// otherwise, check if the music is playing
+       }else if (player.isPlaying() || playMusicFlag){// otherwise, check if the music is playing
          player.pause();// if so, pause the music
          song = "Play Music";// replace music button text with "Play" instaed of "pause"
          playMusicFlag = false;
@@ -335,7 +340,8 @@ void draw()
         followhand = "Follow Hand";
         followHandFlag = false;
         //send = STOP;// if not, set the send variables to STOP to be sent
-        port.write(STOP);// send it        
+        port.write(STOP);// send it 
+        base_cmd = "stop";       
       }
       inFollowHandBox = true;      
     }
@@ -356,7 +362,8 @@ void draw()
         rgbmode = "Show Depth";
         rgbFlag = false;
         //send = STOP;// if not, set the send variables to STOP to be sent
-        port.write(STOP);// send it        
+        port.write(STOP);// send it  
+        base_cmd = "stop";      
       }
       inRgbBox = true;      
     }
@@ -491,8 +498,9 @@ void draw()
         if (send != BACKWARD){// if so, check if we have already 
           send = BACKWARD;// if not, set the send variable to move BACKWARD to be sent
           port.write(send);// send it
+          base_cmd = "reverse";
           println("BACKWARD "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base","reverse"));
+          client.write(formatMessage("base",base_cmd));
           //====== display the backaward command============//
           
         } else{// otherwise, we do not need to re-send the back ward command again
@@ -519,8 +527,9 @@ void draw()
         if(send != FORWARD){// chekc if we have already sent this command
           send= FORWARD;// if not, set the send variable to move forward to be sent
           port.write(send);// send it
+          base_cmd = "forward";
           println("FORWARD "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base","forward"));
+          client.write(formatMessage("base",base_cmd));
           //======= display the FORWARD command============//
           
         }else{//otherwise, we do not need to resend the FORWARD command again
@@ -614,8 +623,9 @@ void draw()
       if (send != STOP){// check if we have already sent this command 
           send = STOP;// if not, set the send variable to STOP to be sent
           port.write(send);// send it
+          base_cmd = "stop";
           println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base","stop"));
+          client.write(formatMessage("base",base_cmd));
       }
     }
     
@@ -747,6 +757,7 @@ void roam(int passedTime) {
         send=FORWARD;
         port.write(send);//send command to go forward. Wall following and sensor based code to be added here
         println("Forward "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
+        base_cmd = "forward";
       }
     }
     if(passedTime > 10000  && passedTime <15000){  // go RIGHT for five seconds 
@@ -754,6 +765,7 @@ void roam(int passedTime) {
         send=RIGHT;
         port.write(send);//send command to go RIGHT. Wall following and sensor based code to be added here
         println("Right "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
+        base_cmd = "right";
       }
     }
     if (passedTime > 15000  && passedTime <20000){  // go backward for five seconds
@@ -761,6 +773,7 @@ void roam(int passedTime) {
         send=BACKWARD;
         port.write(send);//send command to go BACKWARD. Wall following and sensor based code to be added here
         println("Backward "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
+        base_cmd = "reverse";
       }
     }
     if(passedTime > 20000  && passedTime <25000){    // go right for five seconds
@@ -768,6 +781,7 @@ void roam(int passedTime) {
         send=LEFT;
         port.write(send);//send command to go forward. Wall following and sensor based code to be added here
         println("Left "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
+        base_cmd = "left";
       }
     } 
 }
@@ -785,7 +799,7 @@ void roaming(int savedTime, int duration) {
     }
   } else {
     idle_wait_done = false;
-    previousCmd = "forward";
+    previousCmd = "roaming";
     client.write(formatMessage("base","idle"));
     client.write(formatMessage("all","kinect_flag:false"));
   }
@@ -1018,13 +1032,19 @@ void broadcast(PImage img) {
 }
 
 void sendStatus() {
+  String end = "\"},";
   String json = "{\"client\" : \"kinect\",";
-    json += "\"status\" : ";
-    json += "[{\"obstacle\" : [{\"detected\" : \"" + obstacle + "\", \"source\" : \"kinect\"}]},";
-    json += "{\"trackhand\" : \"" + handsTrackFlag + "\"},";
-    json += "{\"kinect_flag\" : \"" + kinect_flag + "\"},";
-    json += "{\"speech_flag\" : \"" + speech_flag + "\"},";
-    json += "{\"current_action\" : \"" + previousCmd + "\"},";
+    json += "\"status\" : [";
+    json += "{\"obstacle\" : [{\"detected\" : \"" + obstacle + "\", \"source\" : \"kinect\"}]},";
+    json += "{\"track_hand\" : \"" + handsTrackFlag + end;
+    json += "{\"kinect_flag\" : \"" + kinect_flag + end;
+    json += "{\"speech_flag\" : \"" + speech_flag + end;
+    json += "{\"current_action\" : \"" + previousCmd + end;
+    json += "{\"followhand_flag\" : \"" + followHandFlag + end;
+    json += "{\"playmusic_flag\" : \"" + playMusicFlag + end;
+    json += "{\"rgb_flag\" : \"" + rgbFlag + end;
+    json += "{\"base_cmd\" : \"" + base_cmd + end;
+    
     /*json += "{\"idle\" : ";
     
     if (previousCmd.equals("idle"))
