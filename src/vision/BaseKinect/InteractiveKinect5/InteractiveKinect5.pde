@@ -65,6 +65,7 @@ boolean speech_flag = false;
 boolean tablet_flag = false;
 boolean ipad_connected = false;
 
+Boolean obstacle = false;
 //============== Text positions ===========
 /*int status_x = 740;
 int status_y = 20;
@@ -106,6 +107,7 @@ int buttonHeightOffset = buttonHeight/2;
 String song = "Play Music"; // String variable hosting the music button display, set to play music at start
 String followhand = "Follow Hand";
 String rgbmode = "Show Depth";
+String base_cmd = "";
 
 boolean inFollowHandBox = false;
 boolean followHandFlag = false; // Move base to follow hand if true
@@ -207,6 +209,7 @@ void draw()
     if (previousCmd != "tooclose") {
         client.write(formatMessage("status","tooclose"));
         previousCmd = "tooclose";
+        obstacle = true;
       }   
    }
    
@@ -376,18 +379,18 @@ void draw()
       if (mapHandVector.x < 0.25*kinect.depthWidth() && followHandFlag) { // if so, check if the hand is in the left
         if ((send != RIGHT) && (send != STRAFE_RIGHT)) {// if so, check if we have already sent this command
           float r = random(10);
-          String cmd = "";
+          base_cmd = "none";
           if (r > 5) {
             send = RIGHT;// if not, then set the send variable to left to be sent
-            cmd = "right";
+            base_cmd = "right";
           } else {
             send = STRAFE_RIGHT;
-            cmd = "straferight";
+            base_cmd = "straferight";
           }
          
           port.write(send);// send it
           println("Right  "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base",cmd)); 
+          client.write(formatMessage("base",base_cmd)); 
           //======== display the command =======//
           
           //println("rotofalse, right");
@@ -417,18 +420,18 @@ void draw()
       } else if (mapHandVector.x > 0.75*kinect.depthWidth() && followHandFlag) { // otherwise, check if hand is inthre right side
         if ((send != LEFT) && (send != STRAFE_LEFT)) {// if so, check if we have already sent this command
           float r = random(10);
-          String cmd = "";
+          base_cmd = "none";
           if (r > 5) {
             send = LEFT;// if not, set the sne dvariable to right to be sent
-            cmd = "left";
+            base_cmd = "left";
           } else {
             send = STRAFE_LEFT;
-            cmd = "strafeleft";
+            base_cmd = "strafeleft";
           }
          
           port.write(send);//send it
           println("Left "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base",cmd));
+          client.write(formatMessage("base",base_cmd));
           //===== display the command ======//
           writeCommand("Left", 0);
 
@@ -586,7 +589,7 @@ void draw()
       //updateScreen();
    
   } else { // otherwise, the hand is not being tracked. could be the begining of session, or hand is lost. Display instruction to detect hand  
-    
+    obstacle = false;
     if (previousCmd != "idle") {
       println("Idle mode...");
       client.write(formatMessage("base","idle"));
@@ -677,6 +680,8 @@ void draw()
      updateScreen();
      frameTime = millis();
    }
+   
+   sendStatus();
   
 }// return to the begining (End of draw loop)
 
@@ -773,6 +778,7 @@ void roaming(int savedTime, int duration) {
   text("Remaining time: " + remaining, idle_x,idle_y+linespacing); 
   if (passed < duration) {
     if (send != FORWARD) {
+      base_cmd = "forward";
       send=FORWARD;
       port.write(send);//send command to go forward. Wall following and sensor based code to be added here
       println("Forward "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
@@ -795,6 +801,7 @@ void searching(int savedTime, int duration, float dir) {
     if (dir < 0.5) {
       text("right", idle_x+offset, idle_y);
       if (send != RIGHT) {
+        base_cmd = "right";
         send=RIGHT;        
         port.write(send);//send command to go forward. Wall following and sensor based code to be added here
         println("Right "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
@@ -802,6 +809,7 @@ void searching(int savedTime, int duration, float dir) {
     } else {
       text("left", idle_x+offset, idle_y);
       if (send != LEFT) {
+        base_cmd = "left";
         send=LEFT;        
         port.write(send);//send command to go forward. Wall following and sensor based code to be added here
         println("Left "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
@@ -1007,4 +1015,30 @@ void broadcast(PImage img) {
   catch (Exception e) {
     e.printStackTrace();
   }
+}
+
+void sendStatus() {
+  String json = "{\"client\" : \"kinect\",";
+    json += "\"status\" : ";
+    json += "[{\"obstacle\" : [{\"detected\" : \"" + obstacle + "\", \"source\" : \"kinect\"}]},";
+    json += "{\"trackhand\" : \"" + handsTrackFlag + "\"},";
+    json += "{\"kinect_flag\" : \"" + kinect_flag + "\"},";
+    json += "{\"speech_flag\" : \"" + speech_flag + "\"},";
+    json += "{\"current_action\" : \"" + previousCmd + "\"},";
+    /*json += "{\"idle\" : ";
+    
+    if (previousCmd.equals("idle"))
+      json += true;
+    else
+      json += false;
+    
+    json += "},";
+    
+    json += "{\"trackhand\" : " + handsTrackFlag + "},";
+    json += "{\"base_cmd\" : \"" + base_cmd + "\"},";*/
+    json += "]}\n";
+    
+  client.write("json!"+json);
+  //client.write("json!{\"client\":\"kinect\"}\n");  
+     
 }
