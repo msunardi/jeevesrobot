@@ -303,7 +303,6 @@ void draw()
     makeCommandBox(song, playButton_x, playButton_y, buttonWidth, buttonHeight);
     makeCommandBox(followhand, followButton_x, followButton_y, buttonWidth, buttonHeight);
     makeCommandBox(rgbmode, rgbButton_x, rgbButton_y, buttonWidth, buttonHeight);
-    //makeCommandBox("Base Data", rgbButton_x, rgbButton_y+60, buttonWidth, buttonHeight);
         
 //============== end of display ========================//
     //if (mapHandVector.x-30 > 100 && mapHandVector.x-30 < 230 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inPlayMusicBox){
@@ -337,7 +336,6 @@ void draw()
       if (followhand.equals("Follow Hand") && !followHandFlag) {
         followhand = "Stop Following";
         followHandFlag = true;
-        
         
        
       } else if (followhand.equals("Stop Following")) {

@@ -33,18 +33,17 @@ boolean roto  = false; // rotation satisfaction Flag, set to False at start to g
 int close; // integer variable to host the closest point
 int closeX; // the x position of the closest point
 int closeY; // the y position of the closest point
+int base_x = 540;
 //int LEFT = 108, RIGHT = 106, STOP= 107, FORWARD = 105, BACKWARD = 44; // integer varialbles to host commands protocol with Arduino
 int LEFT = 97, RIGHT = 100, STOP= 120, FORWARD = 119, BACKWARD = 115, STRAFE_LEFT = 122, STRAFE_RIGHT = 99; // integer varialbles to host commands protocol with Arduino
-int BoxX = 740, BoxW = 50,  HlineX1 = 665, HlineX2= 815, VlineX1 = 740, VlineX2 = 740;  // Horizontal variables for robot base animation
+//int BoxX = 740, BoxW = 50,  HlineX1 = 665, HlineX2= 815, VlineX1 = 740, VlineX2 = 740;  // Horizontal variables for robot base animation
+int BoxX = base_x, BoxW = 50,  HlineX1 = 465, HlineX2= 615, VlineX1 = base_x, VlineX2 = base_x;  // Horizontal variables for robot base animation
 int BoxY = 400, BoxH = 50, HlineY1 = 400, HlineY2 = 400, VlineY1 = 325, VlineY2 = 475;  // vertical variables for robot base animation
-String song = "Play Music"; // String variable hosting the music button display, set to play music at start
-String followhand = "Follow Hand";
+int bowStroke = 15;
 int send = 4; // integer variable to host the outgoing command to serial
 boolean handsTrackFlag = false; // Hand tracking flag, set to false at start since we are not tracking the hand at first
-boolean followHandFlag = false; // Move base to follow hand if true
-boolean inFollowHandBox = false;
-boolean inPlayMusicBox = false;
-boolean playMusicFlag = false;
+
+
 
 int savedTime;
 int totalTime = 5000;
@@ -66,7 +65,7 @@ boolean speech_flag = false;
 boolean tablet_flag = false;
 
 //============== Text positions ===========
-int status_x = 740;
+/*int status_x = 740;
 int status_y = 20;
 int instruction_x = 740;
 int instruction_y = 180;
@@ -76,7 +75,43 @@ int command_x = 740;
 int command_y = 400;
 int linespacing = 30;
 int textsize1 = 15;
+int textsize2 = 20;*/
+
+
+int status_x = base_x;
+int status_y = 20;
+int instruction_x = base_x;
+int instruction_y = 180;
+int idle_x = base_x;
+int idle_y = 50;
+int command_x = base_x;
+int command_y = 350;
+int linespacing = 30;
+int textsize1 = 15;
 int textsize2 = 20;
+
+int button_y = 50;
+int playButton_x = 100;
+int playButton_y = button_y;
+int followButton_x = 280;
+int followButton_y = button_y;
+int rgbButton_x = 360;
+int rgbButton_y = 120;
+int buttonWidth = 150;
+int buttonHeight = 40;
+int buttonWidthOffset = buttonWidth/2;
+int buttonHeightOffset = buttonHeight/2;
+
+String song = "Play Music"; // String variable hosting the music button display, set to play music at start
+String followhand = "Follow Hand";
+String rgbmode = "Show Depth";
+
+boolean inFollowHandBox = false;
+boolean followHandFlag = false; // Move base to follow hand if true
+boolean inPlayMusicBox = false;
+boolean playMusicFlag = false;
+boolean inRgbBox = false;
+boolean rgbFlag = false;
 
 //============== Screen streaming variables =====
 // This is the port we are sending to
@@ -90,14 +125,16 @@ void setup()
 {
   String portName = "/dev/ttyACM3";
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
-  kinect = new SimpleOpenNI(this); // initialize the kinect object
+  kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
   kinect.setMirror(true); // Mirror the depth image
   kinect.enableDepth(); // enable the depth camera of the kinect
   kinect.enableGesture(); // enable the Gesture class of the Kinect
   kinect.enableHands(); // enable the hands class of the kienct
+  kinect.enableRGB();
   kinect.addGesture("RaiseHand"); // add the RaiseHand Gesture
   minim = new Minim(this); // initialize the Minim object
-  size (kinect.depthWidth()+200, kinect.depthHeight()); // display the depth image and extra space for User Interface
+  //size (kinect.depthWidth()+200, kinect.depthHeight()+100); // display the depth image and extra space for User Interface // ORIGINAL VALUES
+  size (kinect.depthWidth(), kinect.depthHeight()); // display the depth image and extra space for User Interface
     //String portName = Serial.list()[6]; // Select the Serial port number CUSTIMIZE!!!!!!!!!!!!! this is hardware specific 
   //String portName = "/dev/ttyACM0";
   //port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
@@ -107,7 +144,7 @@ void setup()
   client = new Client(this, "127.0.0.1", 8008);
   client.write("iam:kinect");
   
-  sender = new SenderThread(width, height);
+  sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight());
   sender.start(); 
 }
 //======================== Main Function=============//
@@ -116,10 +153,29 @@ void draw()
   int passedTime;
   background(0); // clean the background with black color
   close = 6000; // set the closest point to 6000 mm as a starting point 
-  kinect.update(); // update the kinect 
-  image(kinect.depthImage(), 0, 0); // display the depth image starting from X=0, Y=100
-  int [] depthValues = kinect.depthMap();// Get pixels depth values
-  updateScreen();
+  kinect.update(); // update the kinect
+  if (rgbFlag) {
+    screen = kinect.depthImage();
+  } else {
+    screen = kinect.rgbImage();
+  }
+  
+  //sendScreen(screen);
+  //image(kinect.depthImage(), 0, 0); // display the depth image starting from X=0, Y=100
+  image(screen,0,0);
+  int [] depthValues = kinect.depthMap();
+  
+  //int [] depthValues = kinect.depthMap();// Get pixels depth values
+  //updateScreen();
+  //screen = get(0,0,width,height);
+  //sender.setImage(screen);
+  //println(width+"-"+height);
+  
+  rectMode(CORNER);
+  noStroke();
+  fill(0,0,0,127);
+  rect(440, 0, 200, 480);
+  
   //=========== Check message from server ===========
   if (client.available() > 0) {
     messageFromServer = client.readString();
@@ -184,6 +240,7 @@ void draw()
    line(HlineX1, HlineY1, HlineX2, HlineY2);
    line(VlineX1, VlineY1, VlineX2, VlineY2);
    strokeWeight(1);
+   
    //========== end of warning display ====================//
  } else if(handsTrackFlag == true) {  // Check if we are tracking the hand?
    
@@ -193,10 +250,11 @@ void draw()
      client.write(formatMessage("arm","wave"));
      previousCmd = "trackhand";
    }
-   if (!followHandFlag) {
-     writeInstructionStatus("A hand has been\n detected.\nHover hand over\n\"Play Music\" or\n\"Follow Hand\"\nbuttons Into interact.",0);
+   if (!followHandFlag && !rgbFlag) {
+     writeInstructionStatus("A hand has been\n detected.\nHover hand over\nbuttons Into interact.",0);
      writeInstructionStatus("Tracking Hand", 1);
    }
+   updateScreen();
    // if so, get its information
    savedTime = millis();                // reset millis time
    kinect.convertRealWorldToProjective(handVector, mapHandVector); // convert hand position coordinates to projective
@@ -214,13 +272,14 @@ void draw()
    // ============= hand has been detected, inform the user (UI) ==========//
             
     //writeInstructionStatus("Session is ON \n The Robot \n should be \n following \n your hand\nNOW",0);
-    
-    rectMode(CENTER);
-    fill(255);
-    stroke(255);
-    rect(BoxX, BoxY, BoxW, BoxH);
-    line(HlineX1, HlineY1, HlineX2, HlineY2);
-    line(VlineX1, VlineY1, VlineX2, VlineY2);
+    if (followHandFlag) {
+      rectMode(CENTER);
+      fill(255);
+      stroke(255);
+      rect(BoxX, BoxY, BoxW, BoxH);
+      line(HlineX1, HlineY1, HlineX2, HlineY2);
+      line(VlineX1, VlineY1, VlineX2, VlineY2);
+    }
     /*stroke(200,200,200);
     fill(100,100,200,0.5);
     strokeWeight(3);
@@ -229,11 +288,14 @@ void draw()
     textAlign(CENTER, CENTER);
     fill(255);
     text(song, 300, 125);*/
-    makeCommandBox(song, 200, 125, 130, 40);
-    makeCommandBox(followhand, 380, 125, 150, 40); 
-    updateScreen();
+    makeCommandBox(song, playButton_x, playButton_y, buttonWidth, buttonHeight);
+    makeCommandBox(followhand, followButton_x, followButton_y, buttonWidth, buttonHeight);
+    makeCommandBox(rgbmode, rgbButton_x, rgbButton_y, buttonWidth, buttonHeight);
+        
 //============== end of display ========================//
-    if (mapHandVector.x-30 > 100 && mapHandVector.x-30 < 230 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inPlayMusicBox){
+    //if (mapHandVector.x-30 > 100 && mapHandVector.x-30 < 230 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inPlayMusicBox){
+    //must substract by buttonWidth/HeightOffset because the button_x/y are in center
+    if (mapHandVector.x > playButton_x-buttonWidthOffset && mapHandVector.x < playButton_x+buttonWidthOffset && mapHandVector.y > playButton_y-buttonHeightOffset && mapHandVector.y < playButton_y+buttonHeightOffset && !inPlayMusicBox){
       // check if the hand is on the music button we created in the display?
       if(!player.isPlaying() && song.equals("Play Music") && !playMusicFlag){// if so, check if the music is not playing
          player.play();// if so, play music
@@ -249,12 +311,13 @@ void draw()
        inPlayMusicBox = true;
        
     }// otherwise, resume executon
-     updateScreen();
-    if (mapHandVector.x-30 < 100 || mapHandVector.x-30 > 230 || mapHandVector.y < 100 || mapHandVector.y > 150) {
+    
+    if (mapHandVector.x < playButton_x-buttonWidthOffset || mapHandVector.x > playButton_x+buttonWidthOffset || mapHandVector.y < playButton_y-buttonHeightOffset || mapHandVector.y > playButton_y+buttonHeightOffset) {
       inPlayMusicBox = false; 
     }
-    updateScreen();  
-    if (mapHandVector.x-30 > 300 && mapHandVector.x-30 < 430 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inFollowHandBox){
+      
+    //if (mapHandVector.x-30 > 300 && mapHandVector.x-30 < 430 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inFollowHandBox){
+    if (mapHandVector.x-30 > followButton_x-buttonWidthOffset && mapHandVector.x-30 < followButton_x+buttonWidthOffset && mapHandVector.y > followButton_y-buttonHeightOffset && mapHandVector.y < followButton_y+buttonHeightOffset && !inFollowHandBox){
       // check if the hand is on the music button we created in the display?
       buttonTimeout = millis();
       if (followhand.equals("Follow Hand") && !followHandFlag) {
@@ -270,18 +333,41 @@ void draw()
       }
       inFollowHandBox = true;      
     }
-     updateScreen();
-    if (mapHandVector.x-30 < 300 || mapHandVector.x-30 > 430 || mapHandVector.y < 100 || mapHandVector.y > 150) {      
+    
+    if (mapHandVector.x-30 < followButton_x-buttonWidthOffset || mapHandVector.x-30 > followButton_x+buttonWidthOffset || mapHandVector.y < followButton_y-buttonHeightOffset || mapHandVector.y > followButton_y+buttonHeightOffset) {      
       inFollowHandBox = false;      
     }
-     updateScreen();
+    
+    if (mapHandVector.x-30 > rgbButton_x-buttonWidthOffset && mapHandVector.x-30 < rgbButton_x+buttonWidthOffset && mapHandVector.y > rgbButton_y-buttonHeightOffset && mapHandVector.y < rgbButton_y+buttonHeightOffset && !inRgbBox){
+      // check if the hand is on the music button we created in the display?
+      buttonTimeout = millis();
+      if (rgbmode.equals("Show Depth") && !rgbFlag) {
+        rgbmode = "Show RGB";
+        rgbFlag = true;
+        
+       
+      } else if (rgbmode.equals("Show RGB")) {
+        rgbmode = "Show Depth";
+        rgbFlag = false;
+        //send = STOP;// if not, set the send variables to STOP to be sent
+        port.write(STOP);// send it        
+      }
+      inRgbBox = true;      
+    }
+    
+    if (mapHandVector.x-30 < rgbButton_x-buttonWidthOffset || mapHandVector.x-30 > rgbButton_x+buttonWidthOffset || mapHandVector.y < rgbButton_y-buttonHeightOffset || mapHandVector.y > rgbButton_y+buttonHeightOffset) {      
+      inRgbBox = false;      
+    }
+    
     if (followHandFlag) {
       writeInstructionStatus("Following Hand...",1);
       writeInstructionStatus("Move hand around\nto lead the robot.",0);
+    } else if (rgbFlag) {
+      writeInstructionStatus("RGB Mode",1);
+      writeInstructionStatus("Now showing\nfull color image.",0);
     }
-     updateScreen();
+    updateScreen();
     //println(inFollowHandBox);
-   
             
     if(roto == false) {// check if the rotation satisfaction is not satisfied
       if (mapHandVector.x < 0.25*kinect.depthWidth() && followHandFlag) { // if so, check if the hand is in the left
@@ -302,9 +388,7 @@ void draw()
           //======== display the command =======//
           
           //println("rotofalse, right");
-          writeCommand("Right",0);
-          updateScreen();
-          
+          writeCommand("Right",0); 
     
         } else {// otherwise, we do not need to re-send the command, just display to the user to inform 
         //=========== LEFT display======================//
@@ -320,12 +404,13 @@ void draw()
           line(HlineX1, HlineY1, HlineX2, HlineY2);
           line(VlineX1, VlineY1, VlineX2, VlineY2);
           stroke(255, 0, 0);
-          strokeWeight(20);
+          strokeWeight(10);
           line(BoxX, BoxY, HlineX1, HlineY1);
           strokeWeight(1);
           //======= end of LEFT display =========//
-          updateScreen();
+          
         }
+        //updateScreen();
       } else if (mapHandVector.x > 0.75*kinect.depthWidth() && followHandFlag) { // otherwise, check if hand is inthre right side
         if ((send != LEFT) && (send != STRAFE_LEFT)) {// if so, check if we have already sent this command
           float r = random(10);
@@ -343,15 +428,14 @@ void draw()
           client.write(formatMessage("base",cmd));
           //===== display the command ======//
           writeCommand("Left", 0);
-          updateScreen();
-          
-          
+
         } else {//otherwise, we do not need to re-send the command
         //============ RIGHT display==============//
-            textSize(20);
+            /*textSize(20);
             fill(255, 0, 0);
             textAlign(CENTER, CENTER);
-            text("Right", command_x, command_y);
+            text("Right", command_x, command_y);*/
+            writeCommand("Right",0);
             //text("Rotation satisfied? "+roto,340, 20);
             rectMode(CENTER);
             fill(255, 136, 0);
@@ -360,11 +444,13 @@ void draw()
             line(HlineX1, HlineY1, HlineX2, HlineY2);
             line(VlineX1, VlineY1, VlineX2, VlineY2);
             stroke(255, 0, 0);
-            strokeWeight(20);
+            strokeWeight(bowStroke);
             line(BoxX, BoxY, HlineX2, HlineY2);
-            strokeWeight(1);
+            strokeWeight(1);            
             //======= end of RIGHT display==========//
+
         }
+        //updateScreen();
       } else if (mapHandVector.x <= 0.75*kinect.depthWidth() && mapHandVector.x >= 0.25*kinect.depthWidth() && followHandFlag) { 
         // otherwise, check if the hand is in the middle
                 roto = true;// if so, set the rotation flag to true, so it is not executed again before executing the Distance satisfation
@@ -390,7 +476,8 @@ void draw()
                 line(VlineX1, VlineY1, VlineX2, VlineY2);
               }// end of STOP display
               writeCommand("Stay",0);
-              updateScreen();
+              //updateScreen();
+
       }// otherwise, this is unharmful error, resume execution
     } else if(DisBF == false && followHandFlag) {// otherwise, check if the distance satisfaction flag is false
       
@@ -402,7 +489,7 @@ void draw()
           client.write(formatMessage("base","reverse"));
           //====== display the backaward command============//
           
-        }else{// otherwise, we do not need to re-send the back ward command again
+        } else{// otherwise, we do not need to re-send the back ward command again
         //====================== BACKWARD display=====================//
           
           //text("Distance satisfied? "+DisBF,110,20);
@@ -413,13 +500,15 @@ void draw()
           line(HlineX1, HlineY1, HlineX2, HlineY2);
           line(VlineX1, VlineY1, VlineX2, VlineY2);
           stroke(255, 0, 0);
-          strokeWeight(20);
+          strokeWeight(bowStroke);
           line(BoxX, BoxY, VlineX2, VlineY2);
           strokeWeight(1);
           //=============== end of BACKWARD display ====================//
+          
         }
         writeCommand("Backward",0);
-        updateScreen();
+        //updateScreen();
+
       } else if (millimeters > 1200 && millimeters > 0) {//otherwise, check if the hand is far. execlude the 0! it is NOISE!!!
         if(send != FORWARD){// chekc if we have already sent this command
           send= FORWARD;// if not, set the send variable to move forward to be sent
@@ -439,19 +528,20 @@ void draw()
           line(HlineX1, HlineY1, HlineX2, HlineY2);
           line(VlineX1, VlineY1, VlineX2, VlineY2);
           stroke(255, 0, 0);
-          strokeWeight(20);
+          strokeWeight(bowStroke);
           line(BoxX, BoxY, VlineX1, VlineY1);
           strokeWeight(1);
           //=========== end of FORWARD command =====================//
         }
           writeCommand("Forward",0);
-          updateScreen();
+          //updateScreen();
+
       } else if (millimeters < 1200 && millimeters > 900) {// check if the hand is in the middle
         DisBF = true;// if so, set the distance satisfaction flag to true, so it does not get executed again before the rotation satisfaction
         roto = false;// also, set the rotation satisfaction flag to false so it get executed next
-        textSize(20);
-        fill(0, 255, 0);
-        textAlign(CENTER, CENTER);
+        //textSize(20);
+        //fill(0, 255, 0);
+        //textAlign(CENTER, CENTER);
         //text("Distance satisfied? "+DisBF,110,20);
         if (send != STOP){// check if we have already sent this command 
           send = STOP;// if not, set the send variable to STOP to be sent
@@ -471,7 +561,8 @@ void draw()
               //============= end of STOP display =====================//
         }
          writeCommand("Stay", 0);
-         updateScreen();
+         //updateScreen();
+
       }// other wise, this is unharmful error, resume execution
     }// otherwise, distance satisfied, resume execution
     
@@ -489,9 +580,10 @@ void draw()
         text("Gesture!", status_x,status_y+30);
       }
       //displayDirectionIndicator();
+      //updateScreen();
    
   } else { // otherwise, the hand is not being tracked. could be the begining of session, or hand is lost. Display instruction to detect hand  
-    updateScreen();
+    
     if (previousCmd != "idle") {
       println("Idle mode...");
       client.write(formatMessage("base","idle"));
@@ -528,7 +620,7 @@ void draw()
       
       writeCommand("Hmm...what to do...",1);
       text("Passed time: " + passedTime/1000 + "s", idle_x, idle_y+linespacing);
-      updateScreen();
+      //updateScreen();
       
     } else {
       if (!idle_wait_done) {
@@ -545,18 +637,19 @@ void draw()
       if (idle_action==0) {
         text("Roaming ...",idle_x,idle_y);
         roaming(savedTime, idle_action_duration);
-        updateScreen();
+        //updateScreen();
       } else {
         text("Searching ...",idle_x-10,idle_y);
         searching(savedTime, idle_action_duration, dir);
-        updateScreen();
+        //updateScreen();
       }
     } 
     
-    writeInstructionStatus("Raise a hand\nto start\ninteraction", 0);
-    updateScreen();
-    displayDirectionIndicator();
-    updateScreen();
+    writeInstructionStatus("Raise a hand\nto start\ninteraction", 0);    
+    //displayDirectionIndicator();
+    
+    //screen = get(0,0,width,height);
+    //sender.setImage(screen);
     
     /*rectMode(CENTER);
     fill(0);
@@ -568,15 +661,22 @@ void draw()
      if (player.isPlaying()){// check if the music is playing
              player.rewind();// if so, rewind it, nobody is here :/
      }//otherwise, music not playing, just resume execution
+     //updateScreen();
   }
-  
+   int currenttime = millis();
+   while (millis() - currenttime < 10) {}
   updateScreen();
   
 }// return to the begining (End of draw loop)
 
 void updateScreen() {
-  screen = get(0,0,width,height);
-  sender.setImage(screen);
+  //screen = get(0,0,width,height);
+  //sender.setImage(screen);
+  sender.updateImage();
+}
+
+void sendScreen(PImage image){
+  sender.setImage(image); 
 }
 
 void writeInstructionStatus(String instruction, int type) {
@@ -605,12 +705,14 @@ void writeCommand(String command, int type) {
 
 void makeCommandBox(String command, int x, int y, int boxwidth, int boxheight) {
   stroke(200,200,200);
-  fill(100,100,200,0.5);
+  
   strokeWeight(3);
+  rectMode(CENTER);
+  fill(100,100,200,100);
   rect(x, y, boxwidth, boxheight, 15);
-  rectMode(CENTER);            
+              
   textAlign(CENTER, CENTER);
-  fill(255);
+  fill(220,220,255);
   text(command, x, y);
 }
 
