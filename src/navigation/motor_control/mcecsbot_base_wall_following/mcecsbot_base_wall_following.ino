@@ -21,12 +21,17 @@
 // #include <SoftwareSerial.h>  don't include because we are using BMserial and there's a conflict
 #include <BMSerial.h>
 #include <RoboClaw.h>
-
+int ledpin = 3;  //led on pin 13
+int bumper_left = 22;  //button on pin 
+int bumper_right = 23;
+int bumper_front = 24;
+int bumper_back = 25;
 // opcode which determines case to execute
 char pos;
 
 // outgoing final LRF range measurements
-byte lrf_data[5];                    
+byte lrf_data[5];
+byte lrf_data_buf[5];
 
 // positions for this particular servo with this particular mounting 
 // based on center
@@ -125,13 +130,13 @@ int AVOID_DELAY = 1200;   // arbitrary time delay to turn
 uint8_t AVOID_SPEED = 20;
 uint8_t AVOID_SPEED_0 = 20;
 uint8_t AVOID_SPEED_1 = 13;
-boolean RightWall = false; // define right ans left variables for the wall fallowing function.
-boolean LeftWall = false;
-boolean LWall = false;
-boolean RWall = false;
+
+// The variables in the following three lines are used in wall_following()
 boolean DontMoveLeft = false;
 boolean DontMoveRight = false;
 uint8_t obstacle1 = 0, obstacle2 = 0, sonar_number1, sonar_number2;
+
+uint8_t sonar_number, obstacle; // used in detected_obstacle() 
 
 void setup()
 {
@@ -146,7 +151,10 @@ void setup()
   roboclaw.begin(2400);   
  
   Wire.begin(); 
-
+  
+  pinMode(ledpin, OUTPUT);  //led output
+  pinMode(bumper_left, INPUT);  //button input
+  digitalWrite(bumper_left,HIGH);//pull this input on.
   // attaches the servo on pin 9 to the servo object
   myservo.attach(8);       
 
@@ -328,6 +336,11 @@ int keyboardDebug(int pos) {
      case 'f':
        debug_pos = wall_following();
        break;
+       
+     case 'y':
+       debug_pos = -1;
+       returnAllData();
+       break;
 
       // right now the only other case is an error so we return 0
     default:
@@ -347,19 +360,31 @@ int keyboardDebug(int pos) {
 
 int wall_following() {
   //Serial.println();
-  RWall = false;
-  LWall = false;
   boolean Fr_Obs = false;
   boolean Left_Obs = false;
-  boolean Right_Obs = true;
+  boolean Right_Obs = false;
   DontMoveLeft = false;
   DontMoveRight = false;
-  boolean rwall_avoid = false;
-  boolean lwall_avoid = false;
-  boolean initialize = false;
   int right_dis = 500, left_dis = 500;
+  int in = 0;
   do {
-start:     if (left_dis == 500 && right_dis == 500){
+    in = digitalRead(bumper_left);
+    if (in==HIGH) {
+    digitalWrite(ledpin,LOW);
+    
+      if (right_dis < left_dis) {
+           myservo.write(right90);
+           delay(1000);
+           right_dis = complicatedread();
+         }       
+          
+       if (left_dis < right_dis) {
+           myservo.write(left90);
+           delay(1000);
+           left_dis = complicatedread();
+         } 
+       if (left_dis == 500 && right_dis == 500){
+          Serial.println("left_dis == right_dis == 500");
            /*if (!RWall && !LWall) 
            RightWall = false;
            LeftWall = false;*/
@@ -368,25 +393,25 @@ start:     if (left_dis == 500 && right_dis == 500){
            //DontMoveRight = true;
            //simpleread();
            right_dis = complicatedread();
-           delay(1000);  
+          // delay(1000);  
            myservo.write(left90);
            delay(2000);
            left_dis = complicatedread();
-           delay(1000);
+           //delay(1000);
            DontMoveLeft = true;
-           if (right_dis == 0); right_dis = 500;
-           if (left_dis == 0); left_dis = 500;
-    }
-    Serial.print("RWall: ");
-    Serial.println(RWall);
-    Serial.print("LWall: ");
-    Serial.println(LWall);
-    Serial.print("RightWall: ");
-    Serial.println(RightWall);
-    Serial.print("LeftWall: ");
-    Serial.println(LeftWall);
+           //if (right_dis == 0); right_dis = 500;
+           //if (left_dis == 0); left_dis = 500;
+        }
     
-    if (right_dis < left_dis) {
+    
+   if (right_dis < 33) { right_dis = 500; }
+   if (left_dis < 33) { left_dis = 500; }
+    
+    Serial.print("right distance: ");
+    Serial.println(right_dis);
+    Serial.print("left distance: ");
+    Serial.println(left_dis);
+  /*  if (right_dis < left_dis) {
        if (!DontMoveRight){
            myservo.write(right90);
            delay(1000);
@@ -409,7 +434,7 @@ start:     if (left_dis == 500 && right_dis == 500){
          Serial.println("not RWall");
        left_dis = complicatedread();
        delay(1000);
-     }       
+     }      */
     
     Wire.beginTransmission(sonar_controller);
     Wire.write(5);
@@ -419,8 +444,8 @@ start:     if (left_dis == 500 && right_dis == 500){
    //int i = 0;
     delay(100);
     
-    Serial.print("Bytes available: ");
-    Serial.println(Wire.available());
+    //Serial.print("Bytes available: ");
+    //Serial.println(Wire.available());
    
     delay(100);
     obstacle1 = Wire.read();
@@ -434,251 +459,158 @@ start:     if (left_dis == 500 && right_dis == 500){
     Wire.requestFrom(sonar_controller, 2);
    //int i = 0;
     delay(100);
-    Serial.print("Bytes available: ");
-    Serial.println(Wire.available());
+    //Serial.print("Bytes available: ");
+    //Serial.println(Wire.available());
     
     delay(100);
     obstacle2 = Wire.read();
     delay(100);
     sonar_number2 = Wire.read();
+    Serial.print("Front distance from sonar 2 = ");
+    Serial.println(obstacle1);
+    Serial.print("Front distance from sonar 11 = ");
+    Serial.println(obstacle2);
     
     if (obstacle1 < 10 || obstacle2 < 10) Fr_Obs = true; else Fr_Obs = false;
-        
+    Serial.println("checking front obstacle");   
     if ((left_dis < right_dis) || (left_dis == right_dis)){
       if (Fr_Obs){ 
         new_movement = ST_RIGHT;
         Left_Obs = true;
-        goto start;}
+        avoid(new_movement);
+        Serial.println("(Fallowing Left) obstacle and moving right");
+      //  goto start;
+      }
       else { 
          if (Left_Obs){
            new_movement = FORWARD;
            Left_Obs = false;
-           goto start;}
+           avoid(new_movement);
+           Serial.println("(Fallowing Left) avoiding obstacle and moving forward");
+          // goto start;
+         }
          else { 
-No_ObsL:     if (left_dis < 40){
-                new_movement = ST_RIGHT;
-                goto No_ObsL;}
-             else { if (left_dis > 90){
-                       new_movement = ST_LEFT;
-                       goto No_ObsL;}
-                else {
-                       new_movement = FORWARD;
-                       goto start;}}}}
-      avoid(new_movement);}
+No_ObsL:     if (left_dis < 40 && left_dis > 33){
+  
+                // check bumper
+                in = digitalRead(bumper_left);
+                // Keep stopping while bumper is on
+                while (in == LOW) {
+                  goStop();
+                  in = digitalRead(bumper_left);
+                }
+                //if (left_dis < 33) goto start;
+                new_movement = ST_RIGHT;              
+                myservo.write(left90);
+                delay(1000);
+                left_dis = complicatedread();
+                avoid(new_movement);
+                Serial.println("(fallowing Left) less than 40 and moving right");
+                
+                goto No_ObsL;
+              }
+             else if (left_dis >= 40){ 
+                       if (left_dis > 90){
+                                        // Read from bumper
+                          in = digitalRead(bumper_left);
+                          // Keep stopping while bumper is on
+                          while (in == LOW) {
+                            goStop();
+                            in = digitalRead(bumper_left);
+                          }
+                         new_movement = ST_LEFT;
+                         myservo.write(left90);
+                         delay(1000);
+                         left_dis = complicatedread();
+                         avoid(new_movement);
+                         Serial.println("(fallowing Left) larger than 90 and moving left");
+                          
+                         goto No_ObsL;}
+                       else {
+                         new_movement = FORWARD;
+                         Serial.println("(fallowing Left) Forward"); 
+                         avoid(new_movement);
+                     //  goto start;
+                     }}}}
+      }
 
     else { 
       if (Fr_Obs){
         new_movement = ST_LEFT;
         Right_Obs = true;
-        goto start;}
+        Serial.println("(Fallowing right) obstacle and moving left");
+        avoid(new_movement);
+      //  goto start;
+      }
       else { 
          if (Right_Obs){ 
            new_movement = FORWARD;
            Right_Obs = false;
-           goto start;} 
+           Serial.println("(Fallowing right) avoiding obstacle and moving forward");
+           avoid(new_movement);
+         //  goto start;
+         } 
          else {
-No_ObsR:     if (right_dis < 40){
+No_ObsR:     if (right_dis < 40 && right_dis > 33){
+                //if (right_dis < 33) goto start;
                 new_movement = ST_LEFT;
+                myservo.write(right90);
+                delay(1000);
+                right_dis = complicatedread();
+                Serial.println("(fallowing Right) less than 40 and moving left");
+                avoid(new_movement);
+                
+                // Check bumper
+                in = digitalRead(bumper_left);
+                // Keep stopping while bumper is on
+                while (in == LOW) {
+                  goStop();
+                  in = digitalRead(bumper_left);
+                }
                 goto No_ObsR;}
-             else { if (right_dis > 90){
+             else if (right_dis >= 40) { 
+                    if (right_dis > 90){
                        new_movement = ST_RIGHT;
+                       myservo.write(right90);
+                       delay(1000);
+                       right_dis = complicatedread();
+                       Serial.println("(fallowing Right) larger than 90 and moving right");
+                       avoid(new_movement);
+                       
+                      // Read from bumper
+                      in = digitalRead(bumper_left);
+                      // Keep stopping while bumper is on
+                      while (in == LOW) {
+                        goStop();
+                        in = digitalRead(bumper_left);
+                      }
+                       
                        goto No_ObsR;}
                     else {
                        new_movement = FORWARD;
-                       goto start;}}}}
+                       Serial.println("(fallowing right) Forward"); 
+                       avoid(new_movement);
+                     //  goto start;
+                     }}}}
       avoid(new_movement);} 
           
-          /*if (RWall) {
-      right_dis = complicatedread();
-    } else {
-      left_dis = complicatedread();
-    }*/
-    /*if (!RWall) DontMoveRight = false;
-    if (!LWall) DontMoveLeft = false;
+    Serial.print("Fr_Obs: ");
+    Serial.println(Fr_Obs);
+    Serial.print("Right_Obs: ");
+    Serial.println(Right_Obs);
+    Serial.print("Left_Obs: ");
+    Serial.println(Left_Obs);
+          
     
-     if (((right_dis < left_dis) && RWall) || !LWall) {
-       if (!DontMoveRight){
-           myservo.write(right90);
-           delay(1000);
-           DontMoveRight = true;
-           DontMoveLeft = false;
-         }
-         Serial.println("not LWall");
-       right_dis = complicatedread();
-       delay(1000);
-       //DontMoveRight = true;
-       //DontMoveLeft = false;
-     }       
-     /*else {
-       delay(1000);
-       myservo.write(left90);
-       left_dis = complicatedread();
-     }*/
-     
-     /*if (((left_dis < right_dis) && LWall) || !RWall){
-       if (!DontMoveLeft){
-           myservo.write(left90);
-           delay(1000);
-           DontMoveLeft = true;
-           DontMoveRight = false;
-         }
-         Serial.println("not RWall");
-       left_dis = complicatedread();
-       delay(1000);
-     }       
-     /*else {
-       delay(1000);
-       myservo.write(right90);
-       right_dis = complicatedread();
-     }*/
-       
+    }
     
-     Serial.print("Right distance using LRF = ");
-     Serial.println(right_dis);
-     Serial.print("Left distance using LRF = ");
-     Serial.println(left_dis);
-     Serial.print("Front distance from sonar 2 = ");
-     Serial.println(obstacle1);
-     Serial.print("Front distance from sonar 11 = ");
-     Serial.println(obstacle2);
+  else { 
+        goStop();
+        digitalWrite(ledpin,HIGH);}
+        
+    
      
    
-     /*if (right_dis > 33 && right_dis <=240) RWall = true;
-     else RWall = false;
-     if (left_dis > 33 && left_dis <=240) LWall = true;
-     else LWall = false;
-     
-     if (((RWall && LWall) && (right_dis < left_dis))|| (RWall && !LWall)) {
-       RightWall = true;
-       LeftWall = false;
-     }
-     else if (((RWall && LWall) && (right_dis > left_dis)) || (!RWall && LWall)){
-       LeftWall = true;
-       RightWall = false;
-     }
-     else {
-       RightWall=false;
-       LeftWall=false;
-     }
-     
-   /*  if (obstacle1 <= 10 || obstacle2 <= 10) {
-       // avoid
-       Serial.println("Avoiding...");
-       /*if (initialize){
-         myservo.write(right90);
-         delay(1000);
-         //DontMoveRight = true;
-         //simpleread();
-         right_dis = complicatedread();  
-         delay(1000);    
-         myservo.write(left90);
-         delay(1000);
-         left_dis = complicatedread();
-         delay(1000);
-         DontMoveLeft = true;
-         initialize = false;}
-       
-         
-       if (RightWall && LWall) {
-         // move left
-         myservo.write(left90);
-         left_dis = complicatedread();
-         if (((left_dis > 60) && (left_dis <= 240)) || (left_dis == 0)) {
-           new_movement = ST_LEFT;
-           LeftWall = true;
-           RightWall = false;
-           doMove();
-         } else {
-           goStop();
-         }
-       } else if (RightWall && !LWall) {
-         // goes around the obstacle
-         new_movement = ST_LEFT;
-         rwall_avoid = true;
-         lwall_avoid = false;
-         doMove();
-       }
-       
-       else if (LeftWall && RWall) {
-         // move left
-         myservo.write(right90);
-         right_dis = complicatedread();
-         if (((right_dis > 60) && (right_dis <= 240)) || (right_dis == 0)) {
-           new_movement = ST_RIGHT;
-           LeftWall = false;
-           RightWall = true;
-           doMove();
-         } else {
-           goStop();
-         }
-       } else if (LeftWall && !RWall) {
-         // goes around the obstacle
-         new_movement = ST_RIGHT;
-         rwall_avoid = false;
-         lwall_avoid = true;
-         doMove();
-       }
-     } 
-     // No more obstacle in front
-     else if (rwall_avoid || lwall_avoid) {
-       Serial.println("After avoidance...");
-       avoid(FORWARD);
-       rwall_avoid = false;
-       lwall_avoid = false;
-       initialize = true;
-     } 
-     */
-     //else {
-       Serial.println("Following...");
-      /* if (LeftWall) {
-         if (left_dis > 90) {         
-           // move left
-           new_movement = ST_LEFT;         
-         } else if (left_dis < 40) {
-           // move right
-           new_movement = ST_RIGHT;         
-         } else {
-           // forward
-           new_movement = FORWARD;
-         }
-         //doMove();
-         avoid(new_movement);
-         Serial.println("Left Wall Following");
-       } 
-         
-       if (RightWall) {
-         if (right_dis > 90) {
-           // move right
-           new_movement = ST_RIGHT;
-         } else if (right_dis < 40) {
-           // move left
-           new_movement = ST_LEFT;
-         } else {
-           // forward
-           new_movement = FORWARD;
-         }
-         //doMove();
-         avoid(new_movement);
-         Serial.println("Right Wall Following");
-       }
-     
-     if (!LWall && !RWall) {
-       goStop();
-     }
-       
-  
-     /*if ((obstacle1 <= 10 || obstacle2 <= 10) && RightWall == true) new_movement = ST_LEFT;
-     else {
-           if (RightWall == true && right_dis >= 90) new_movement = ST_RIGHT;
-           else if (RightWall == true && right_dis <= 60) new_movement = ST_LEFT;
-           else new_movement = FORWARD;}
-  
-     if ((obstacle1 <= 10 || obstacle2 <= 10) && LeftWall == true) new_movement = ST_RIGHT;   
-     else {
-           if (LeftWall == true && left_dis >= 90) new_movement = ST_LEFT;
-           else if (LeftWall == true && right_dis < 60) new_movement = ST_RIGHT;
-           else new_movement = FORWARD;}*/
-           
      
    } while(Serial.available() < 1);
    Serial.read();
@@ -742,77 +674,84 @@ void lrfScan1()
 {
    myservo.write(pos1);
    delay(1000);
-   //simpleread();
-   complicatedread();      
+   simpleread();
+   //complicatedread();      
    
    myservo.write(pos2);
    delay(20);
-   //simpleread();
-   complicatedread();
+   simpleread();
+   //complicatedread();
    //delay(1000);
    myservo.write(center);
    delay(20);
-   //simpleread();
-   complicatedread();
+   simpleread();
+   //complicatedread();
    //delay(1000);         
    myservo.write(pos3);
    delay(20);
-   //simpleread();
-   complicatedread();
+   simpleread();
+   //complicatedread();
    //delay(1000);
    myservo.write(pos4);
    delay(20);
-   //simpleread();
-   complicatedread();
+   simpleread();
+   //complicatedread();
    //delay(1000);
    centerPos(); 
 }
 
 void lrfScan2()
 {
+  Serial.println("\nLRF Scan2");
   // The ! is the arduino acknowledge for the LRF reading
   Serial.write('!');
 
   // Move servo, start LRF reading, store in outgoing array, repeat 5 times
   myservo.write(pos1);
-  delay(20);
+  delay(120);
   Serial1.write('R');
   //lrf_data[0] = dataread();
   lrf_data[0] = complicatedread();
+  lrf_data_buf[0] = lrf_data[0];
   //delay(1500);
 
   myservo.write(pos2);
-  delay(20);
+  delay(120);
   Serial1.write('R');
   //lrf_data[1] = dataread();
   lrf_data[1] = complicatedread();
+  lrf_data_buf[1] = lrf_data[1];
   //delay(1500);
 
   myservo.write(center);
-  delay(20);
+  delay(120);
   Serial1.write('R');
   //lrf_data[2] = dataread();
   lrf_data[2] = complicatedread();
+  lrf_data_buf[2] = lrf_data[2];
   //delay(1500);
 
   myservo.write(pos3);
-  delay(20);
+  delay(120);
   Serial1.write('R');
   //lrf_data[3] = dataread(); 
   lrf_data[3] = complicatedread();
+  lrf_data_buf[3] = lrf_data[3];
   //delay(1500);
 
   myservo.write(pos4);
-  delay(20);
+  delay(120);
   Serial1.write('R');
   //lrf_data[4] = dataread();  
   lrf_data[4] = complicatedread();
+  lrf_data_buf[4] = lrf_data[4];
   //delay(1500);
-
+  
+  
   // send out the data array
   centerPos();
   Serial.write(lrf_data,5);
-  delay(1000);
+  //delay(1000);
 }
 
 void readEncoder()
@@ -1003,14 +942,18 @@ void simpleread() {
         delay(10);
         Serial1.write('R');
         int count = 0;
+        boolean lt15 = false;
         while(Serial1.available() < 15) {
-          Serial.println("Serial1.available < 15");          
+          if (!lt15) {
+            Serial.println("Serial1.available < 15 ...");          
+            lt15 = true;
+          }
           //delay(100);
           count = count + 1;
           if (count > 20) {
             //delay(150);
             Serial1.write('R');
-            delay(20);
+            delay(50);
             count = 0;
           }
         }
@@ -1023,11 +966,11 @@ void simpleread() {
           readlrf = Serial1.read();
           delay(10);
           if (readlrf == ':') {
-            Serial.println(':');
+            //Serial.println(':');
             readlrf = Serial1.read();
           }          
           
-          Serial.print(readlrf);
+          Serial.print((char)readlrf);
         }
         
         //Serial1.flush();
@@ -1036,7 +979,7 @@ void simpleread() {
 
 // A more complicated method to read from LRF, the output is formatted in long type
 long complicatedread() {
-  Serial.println('Reading LRF ...');
+  //Serial.println("Reading LRF ...");
   char readlrf;
   char readbuffer[4];
   long result;
@@ -1058,8 +1001,11 @@ long complicatedread() {
     //Serial.println("Serial1.available < 15");          
     //Serial.print(".");
     delay(10);
+    
+    // keep reading until Serial1.available() >= 15
     count = count + 1;
-    if (count > 20) {
+    // if already checked 20 times (arbitrary number) and still failing, send the command again
+    if (count > 50) {
       //delay(150);
       Serial1.write('R');
       delay(20);
@@ -1067,7 +1013,7 @@ long complicatedread() {
     }
   }
   if (Serial1.available() == 16) {
-    Serial.write("LRF scan failed.\n");
+    //Serial.write("LRF scan failed.\n");
     return 0;
   }
   //Serial.write("\n");
@@ -1079,24 +1025,28 @@ long complicatedread() {
     //delay(150);
     readlrf = Serial1.read();
     delay(10);
-    /*if (readlrf == ':') {
+    if (readlrf == ':') {
       //Serial.println(':');
       readlrf = Serial1.read();
-    }*/
+    }
+    //Serial.print("readlrf: ");
+    //Serial.println((char)readlrf);
+    
+    // Format of response from lrf: "D = 0000 mm"
     if ((readlrf == 'D') && !gotresult) {
-      Serial1.read();
-      Serial1.read();
-      Serial1.read();
+      Serial1.read();  // space
+      Serial1.read();  // '='
+      Serial1.read();  // space
       readbuffer[0] = Serial1.read();
       readbuffer[1] = Serial1.read();
       readbuffer[2] = Serial1.read();
       readbuffer[3] = Serial1.read();
       // in mm: result = (readbuffer[0]-'0')*1000 + (readbuffer[1]-'0')*100 + (readbuffer[2]-'0')*10 + (readbuffer[3]-'0');
       result = (readbuffer[0]-'0')*100 + (readbuffer[1]-'0')*10 + (readbuffer[2]-'0');
-        Serial.write("Distance: ");
-      Serial.print(result);
+      Serial.write("Distance: ");
+      Serial.println(result);
       //Serial.write(" cm\n");
-      //gotresult = true;
+      gotresult = true;
       break;
     //delay(200);
     }
@@ -1116,13 +1066,15 @@ long complicatedread() {
 long dataread() {
   long result;
   char range[15];
-  Serial.println("datareading...");  
+  //Serial.println("datareading...");
+  Serial.println("reading from LRF...");  
   while (Serial1.available() < 15) {
+    Serial.print(".");
   }
   for (int i = 0; i < 15; i++) {
     range[i] = Serial1.read();
-    delay(10);
-    Serial.println("reading from LRF...");
+    delay(50);
+    
   }
   
 
@@ -1506,7 +1458,7 @@ preventing the robot from moving until the obstacle
 has been removed. 
 */
 void detected_obstacle(){
-  uint8_t sonar_number, obstacle;
+  //uint8_t sonar_number, obstacle;
   int interrupted_movement;
   interrupted_movement = new_movement;
 
@@ -1581,11 +1533,45 @@ void decide(int obstacle, int sonar_number) {
 
 void avoid(int direction) {
   long now = millis();
-  int maxtime = 1501;
-  int mintime = 800;
+  int maxtime = 801;
+  int mintime = 400;
   new_movement = direction;
   while (millis() - now < random(mintime,maxtime)) {
     doMove();
   }
+}
+
+// Mathias' code to read arduino data from Processing/Kinect program
+void returnAllData() {
+  byte interrupted = 0;
+  if (was_interrupt) {
+    interrupted = 1;
+  } else {
+    interrupted = 0;
+  }
+  byte stoppedmoving = 0;
+  if (stopmoving) {
+    stoppedmoving = 1;
+  } else {
+    stoppedmoving = 0;
+  }
+  // byte 33 = '!'
+  byte dataArray[12] = { 33, interrupted, stoppedmoving, (byte)new_movement, 
+                        lrf_data_buf[0], lrf_data_buf[1], lrf_data_buf[2], lrf_data_buf[3], lrf_data_buf[4], 
+                        obstacle, sonar_number, 37}; // need to add orientation and all sonar data
+                        
+  //Serial.write(dataArray, 12);
+  Serial.println((char)33);
+  Serial.println(interrupted);
+  Serial.println(stoppedmoving);
+  Serial.println(new_movement);
+  Serial.println(lrf_data_buf[0]);
+  Serial.println(lrf_data_buf[1]);
+  Serial.println(lrf_data_buf[2]);
+  Serial.println(lrf_data_buf[3]);
+  Serial.println(lrf_data_buf[4]);
+  Serial.println(obstacle);
+  Serial.println(sonar_number);
+  Serial.println((char)37);
 }
 
