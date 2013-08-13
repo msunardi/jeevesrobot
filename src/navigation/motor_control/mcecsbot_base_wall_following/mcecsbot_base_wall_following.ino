@@ -138,6 +138,8 @@ uint8_t obstacle1 = 0, obstacle2 = 0, sonar_number1, sonar_number2;
 
 uint8_t sonar_number, obstacle; // used in detected_obstacle() 
 
+boolean DEBUG = false;
+
 void setup()
 {
 
@@ -341,6 +343,17 @@ int keyboardDebug(int pos) {
        debug_pos = -1;
        returnAllData();
        break;
+     
+     case 'p':
+       debug_pos = -1;
+       if (DEBUG) {
+         debugPrintln("Debug off");
+         DEBUG = false;         
+       } else {
+         DEBUG = true;
+         debugPrintln("Debug on");
+       }
+       break;
 
       // right now the only other case is an error so we return 0
     default:
@@ -384,7 +397,7 @@ int wall_following() {
            left_dis = complicatedread();
          } 
        if (left_dis == 500 && right_dis == 500){
-          Serial.println("left_dis == right_dis == 500");
+          debugPrintln("left_dis == right_dis == 500");
            /*if (!RWall && !LWall) 
            RightWall = false;
            LeftWall = false;*/
@@ -407,10 +420,15 @@ int wall_following() {
    if (right_dis < 33) { right_dis = 500; }
    if (left_dis < 33) { left_dis = 500; }
     
-    Serial.print("right distance: ");
+    /*Serial.print("right distance: ");
     Serial.println(right_dis);
     Serial.print("left distance: ");
     Serial.println(left_dis);
+    */
+    debugPrint("\nRight distance: ");
+    debugPrintlnInt(right_dis);
+    debugPrint("Left distance: ");
+    debugPrintlnInt(left_dis);
   /*  if (right_dis < left_dis) {
        if (!DontMoveRight){
            myservo.write(right90);
@@ -466,19 +484,19 @@ int wall_following() {
     obstacle2 = Wire.read();
     delay(100);
     sonar_number2 = Wire.read();
-    Serial.print("Front distance from sonar 2 = ");
-    Serial.println(obstacle1);
-    Serial.print("Front distance from sonar 11 = ");
-    Serial.println(obstacle2);
+    debugPrint("Front distance from sonar 2 = ");
+    debugPrintlnInt(obstacle1);
+    debugPrint("Front distance from sonar 11 = ");
+    debugPrintlnInt(obstacle2);
     
     if (obstacle1 < 10 || obstacle2 < 10) Fr_Obs = true; else Fr_Obs = false;
-    Serial.println("checking front obstacle");   
+    debugPrintln("checking front obstacle");   
     if ((left_dis < right_dis) || (left_dis == right_dis)){
       if (Fr_Obs){ 
         new_movement = ST_RIGHT;
         Left_Obs = true;
         avoid(new_movement);
-        Serial.println("(Fallowing Left) obstacle and moving right");
+        debugPrintln("(Following Left) obstacle and moving right");
       //  goto start;
       }
       else { 
@@ -486,7 +504,7 @@ int wall_following() {
            new_movement = FORWARD;
            Left_Obs = false;
            avoid(new_movement);
-           Serial.println("(Fallowing Left) avoiding obstacle and moving forward");
+           debugPrintln("(Following Left) avoiding obstacle and moving forward");
           // goto start;
          }
          else { 
@@ -505,7 +523,7 @@ No_ObsL:     if (left_dis < 40 && left_dis > 33){
                 delay(1000);
                 left_dis = complicatedread();
                 avoid(new_movement);
-                Serial.println("(fallowing Left) less than 40 and moving right");
+                debugPrintln("(Following Left) less than 40 and moving right");
                 
                 goto No_ObsL;
               }
@@ -523,12 +541,12 @@ No_ObsL:     if (left_dis < 40 && left_dis > 33){
                          delay(1000);
                          left_dis = complicatedread();
                          avoid(new_movement);
-                         Serial.println("(fallowing Left) larger than 90 and moving left");
+                         debugPrintln("(Following Left) larger than 90 and moving left");
                           
                          goto No_ObsL;}
                        else {
                          new_movement = FORWARD;
-                         Serial.println("(fallowing Left) Forward"); 
+                         debugPrintln("(Following Left) Forward"); 
                          avoid(new_movement);
                      //  goto start;
                      }}}}
@@ -538,7 +556,7 @@ No_ObsL:     if (left_dis < 40 && left_dis > 33){
       if (Fr_Obs){
         new_movement = ST_LEFT;
         Right_Obs = true;
-        Serial.println("(Fallowing right) obstacle and moving left");
+        debugPrintln("(Following right) obstacle and moving left");
         avoid(new_movement);
       //  goto start;
       }
@@ -546,7 +564,7 @@ No_ObsL:     if (left_dis < 40 && left_dis > 33){
          if (Right_Obs){ 
            new_movement = FORWARD;
            Right_Obs = false;
-           Serial.println("(Fallowing right) avoiding obstacle and moving forward");
+           debugPrintln("(Following right) avoiding obstacle and moving forward");
            avoid(new_movement);
          //  goto start;
          } 
@@ -557,7 +575,7 @@ No_ObsR:     if (right_dis < 40 && right_dis > 33){
                 myservo.write(right90);
                 delay(1000);
                 right_dis = complicatedread();
-                Serial.println("(fallowing Right) less than 40 and moving left");
+                debugPrintln("(Following Right) less than 40 and moving left");
                 avoid(new_movement);
                 
                 // Check bumper
@@ -574,7 +592,7 @@ No_ObsR:     if (right_dis < 40 && right_dis > 33){
                        myservo.write(right90);
                        delay(1000);
                        right_dis = complicatedread();
-                       Serial.println("(fallowing Right) larger than 90 and moving right");
+                       debugPrintln("(Following Right) larger than 90 and moving right");
                        avoid(new_movement);
                        
                       // Read from bumper
@@ -588,18 +606,18 @@ No_ObsR:     if (right_dis < 40 && right_dis > 33){
                        goto No_ObsR;}
                     else {
                        new_movement = FORWARD;
-                       Serial.println("(fallowing right) Forward"); 
+                       debugPrintln("(Following right) Forward"); 
                        avoid(new_movement);
                      //  goto start;
                      }}}}
       avoid(new_movement);} 
           
-    Serial.print("Fr_Obs: ");
-    Serial.println(Fr_Obs);
-    Serial.print("Right_Obs: ");
-    Serial.println(Right_Obs);
-    Serial.print("Left_Obs: ");
-    Serial.println(Left_Obs);
+    debugPrint("Fr_Obs: ");
+    debugPrintlnInt(Fr_Obs);
+    debugPrint("Right_Obs: ");
+    debugPrintlnInt(Right_Obs);
+    debugPrint("Left_Obs: ");
+    debugPrintlnInt(Left_Obs);
           
     
     }
@@ -614,7 +632,7 @@ No_ObsR:     if (right_dis < 40 && right_dis > 33){
      
    } while(Serial.available() < 1);
    Serial.read();
-   Serial.println("Done wall following!");
+   debugPrintln("Done wall following!");
    return -1;
   // tell uno wall following mode 
   
@@ -702,7 +720,7 @@ void lrfScan1()
 
 void lrfScan2()
 {
-  Serial.println("\nLRF Scan2");
+  debugPrintln("\nLRF Scan2");
   // The ! is the arduino acknowledge for the LRF reading
   Serial.write('!');
 
@@ -801,11 +819,15 @@ void readEncoder()
     Dright = enc1*44524; 
 
     // debug prints
-    Serial.print("Encoder1:");
+    /*Serial.print("Encoder1: ");
     Serial.print(enc1,DEC);
     Serial.print(", ");
     Serial.print(Dright,DEC);
-    Serial.println(" ");
+    Serial.println(" ");*/
+    debugPrint("Encoder1: ");
+    debugPrintInt(enc1);
+    debugPrint(", ");
+    debugPrintlnInt(Dright);    
     
   }
 
@@ -825,11 +847,15 @@ void readEncoder()
     Dleft = enc2*44524;
 
     // debug prints
-     Serial.print("Encoder2:");
-     Serial.print(enc2,DEC);
-     Serial.print(", ");
-     Serial.print(Dleft,DEC);
-     Serial.println(" ");
+     /*debugPrint("Encoder2:");
+     debugPrint((char *)enc2,DEC);
+     debugPrint(", ");
+     debugPrint((char *)Dleft,DEC);
+     Serial.println(" ");*/
+     debugPrint("Encoder2:");
+     debugPrintInt(enc2);
+     debugPrint(", ");
+     debugPrintln((char *)Dleft);
      
   }
 
@@ -875,16 +901,22 @@ void readEncoder()
   y1 /= 1000000;
 
   // debug prints
-   Serial.print("Distance: ");
-   Serial.println(D1);
-   Serial.print("X coordinate: ");
-   Serial.println(x1,DEC);
-   Serial.print("Y coordinate: ");
-   Serial.println(y1,DEC);
-   Serial.print("Angle in radians: ");
-   Serial.print(phi1fl);
-   Serial.print("Angle in degrees: ");
-   Serial.println(phi1,DEC);
+   debugPrint("Distance: ");
+   //Serial.println(D1);
+   debugPrintlnInt(D1);
+   debugPrint("X coordinate: ");
+   //Serial.println(x1,DEC);
+   debugPrintlnInt(x1);
+   debugPrint("Y coordinate: ");
+   //Serial.println(y1,DEC);
+   debugPrintlnInt(y1);
+   debugPrint("Angle in radians: ");
+   if (DEBUG) {
+     Serial.print(phi1fl);
+   }
+   debugPrint("Angle in degrees: ");
+   //Serial.println(phi1,DEC);
+   debugPrintlnInt(phi1);
    
 
   byte package[6];
@@ -926,18 +958,18 @@ void centerPos()
 
 // A simple method to read from the LRF
 void simpleread() {
-  Serial.println('Reading LRF ...');
+  debugPrintln("Reading LRF ...");
         char readlrf;
         char readbuffer[4];
         long result;
         boolean gotresult = false;
         // Sometimes serial buffer is not empty - clear it out first or you'll get erroneous data
-        Serial.write("Flushing ... ");
+        debugPrintln("Flushing ... ");
         while(Serial1.available() > 0) {
           Serial1.read();
-          Serial.print(".");
+          debugPrint(".");
         }
-        Serial.print("done.\n");
+        debugPrint("done.\n");
           
         delay(10);
         Serial1.write('R');
@@ -945,7 +977,7 @@ void simpleread() {
         boolean lt15 = false;
         while(Serial1.available() < 15) {
           if (!lt15) {
-            Serial.println("Serial1.available < 15 ...");          
+            debugPrintln("Serial1.available < 15 ...");          
             lt15 = true;
           }
           //delay(100);
@@ -958,45 +990,45 @@ void simpleread() {
           }
         }
         //delay(1000);
-        Serial.print("Serial1.available() = ");
-        Serial.println(Serial1.available());
+        debugPrint("Serial1.available() = ");
+        debugPrintlnInt(Serial1.available());
         while (Serial1.available() > 0) {
           
           //delay(150);
           readlrf = Serial1.read();
           delay(10);
           if (readlrf == ':') {
-            //Serial.println(':');
+            //debugPrintln(":");
             readlrf = Serial1.read();
           }          
           
-          Serial.print((char)readlrf);
+          debugPrint((char*)readlrf);
         }
         
         //Serial1.flush();
-        Serial.println("Done!");
+        debugPrintln("Done!");
 }
 
 // A more complicated method to read from LRF, the output is formatted in long type
 long complicatedread() {
-  //Serial.println("Reading LRF ...");
+  //debugPrintln("Reading LRF ...");
   char readlrf;
   char readbuffer[4];
   long result;
   boolean gotresult = false;
   //Serial.println();
   // Sometimes serial buffer is not empty - clear it out first or you'll get erroneous data
-  //Serial.write("Flushing ... ");
+  //debugPrintln("Flushing ... ");
   while(Serial1.available() > 0) {
     Serial1.read();
-    //Serial.write(".");
+    //debugPrint(".");
   }
-  //Serial.write("done.");
+  //debugPrintln("done.");
     
   delay(10);
   Serial1.write('R');
   int count = 0;
-  //Serial.write("Scanning ... \n");
+  //debugPrintln("Scanning ... \n");
   while(Serial1.available() < 15) {
     //Serial.println("Serial1.available < 15");          
     //Serial.print(".");
@@ -1013,7 +1045,7 @@ long complicatedread() {
     }
   }
   if (Serial1.available() == 16) {
-    //Serial.write("LRF scan failed.\n");
+    //debugPrintln("LRF scan failed.\n");
     return 0;
   }
   //Serial.write("\n");
@@ -1043,9 +1075,9 @@ long complicatedread() {
       readbuffer[3] = Serial1.read();
       // in mm: result = (readbuffer[0]-'0')*1000 + (readbuffer[1]-'0')*100 + (readbuffer[2]-'0')*10 + (readbuffer[3]-'0');
       result = (readbuffer[0]-'0')*100 + (readbuffer[1]-'0')*10 + (readbuffer[2]-'0');
-      Serial.write("Distance: ");
-      Serial.println(result);
-      //Serial.write(" cm\n");
+      debugPrint("Distance: ");
+      debugPrintInt(result);
+      debugPrint(" cm\n");
       gotresult = true;
       break;
     //delay(200);
@@ -1067,9 +1099,9 @@ long dataread() {
   long result;
   char range[15];
   //Serial.println("datareading...");
-  Serial.println("reading from LRF...");  
+  debugPrintln("reading from LRF...");  
   while (Serial1.available() < 15) {
-    Serial.print(".");
+    debugPrint(".");
   }
   for (int i = 0; i < 15; i++) {
     range[i] = Serial1.read();
@@ -1104,14 +1136,14 @@ long dataread() {
 // This code turns the robot right then left to show the robot is in working order and able to move
 
 void POST() {
-	Serial.print("POST Test Start");
+	debugPrint("POST Test Start");
 	rotateRight(10);
 	delay(500);
 	rotateLeft(10);
 	delay(500);
 	goStop();
 	delay(500);
-	Serial.print("POST Test End");	
+	debugPrint("POST Test End");	
 }
 
 /////////////////		POST end		///////////////////////////////
@@ -1120,7 +1152,7 @@ void POST() {
 
 void doMove() {
 	if(new_movement == STOP && old_movement != STOP) {
-        //Serial.println("new_movement==STOP && old_movement!=STOP");
+        //debugPrintln("new_movement==STOP && old_movement!=STOP");
 		while(MotorSpeed > 10) {
                   MotorSpeed = MotorSpeed - increment;
                   function[old_movement](MotorSpeed);
@@ -1130,7 +1162,7 @@ void doMove() {
 		goStop();
 	}
 	else if(new_movement != old_movement) {
-        //Serial.println("new_movement!=old_movement");
+        //debugPrintln("new_movement!=old_movement");
                 while(MotorSpeed > 10) {
                   MotorSpeed = MotorSpeed - increment;
                   function[old_movement](MotorSpeed);
@@ -1139,17 +1171,24 @@ void doMove() {
 		function[new_movement](MotorSpeed);
 	}
 	else if(MotorSpeed < TopMotorSpeed && old_movement != STOP) {
-        //Serial.println("MotorSpeed<TopMotorSpeed && old_movement!=STOP");
+        //debugPrintln("MotorSpeed<TopMotorSpeed && old_movement!=STOP");
 	  MotorSpeed = MotorSpeed + increment;
           if(MotorSpeed > TopMotorSpeed){
             MotorSpeed = TopMotorSpeed;
           }            
 	  function[new_movement](MotorSpeed);
 	}
+        
+        // DEBUG OUTPUT
         /*Serial.print("Old_movement= ");
         Serial.print(old_movement);
         Serial.print(", new_movement= ");
         Serial.println(new_movement);*/
+        /*debugPrint("Old_movement= ");
+        debugPrint((char*)old_movement);
+        debugPrint(", new_movement= ");
+        debugPrintlnInt(new_movement);*/
+        
         old_movement = new_movement;
 }
 
@@ -1175,26 +1214,28 @@ We always send back new_movement to the main loop in case it has changed.
 int Stop_old_movement(){ 
   update = new_movement;                                   
           while( new_movement != old_movement && MotorSpeed > NoMotorSpeed){
-              Serial.println("stopping old movement ...");
+              debugPrintln("stopping old movement ...");
               MotorSpeed = MotorSpeed - increment;
               first_iteration = false;
               function[old_movement](MotorSpeed);
 
               if (MotorSpeed == NoMotorSpeed && stopmoving == true){
                 new_movement = old_movement;
-                Serial.println("updated kinect value from STOP");
+                debugPrintln("updated kinect value from STOP");
               }
                else if (MotorSpeed == NoMotorSpeed){
               old_movement = new_movement;
-              Serial.println("updated kinect value from STOP");
+              debugPrintln("updated kinect value from STOP");
               }
 
               if(Serial.available()){
                  update = Serial.read();
                  if (update != new_movement && update != 10){
                  new_movement = update;
-                 Serial.println(update);
-                 Serial.println("Interrupted Stop Movement"); 
+                 //Serial.println(update);
+                 //Serial.println("Interrupted Stop Movement"); 
+                 debugPrintlnInt(update);
+                 debugPrintln("Interrupted Stop Movement");
                  break;
                  }
               }
@@ -1218,7 +1259,7 @@ int Start_new_movement(){
                 first_iteration = false;
                 if(MotorSpeed == TopMotorSpeed){
 					old_movement = new_movement; 
-					Serial.println("updated kinect from START");
+					debugPrintln("updated kinect from START");
 				}
 
                if(Serial.available()){
@@ -1226,8 +1267,10 @@ int Start_new_movement(){
                  if (update != new_movement && update != 10){
                  old_movement = new_movement;
                  new_movement = update;
-                 Serial.println(update);
-                 Serial.println("Interrupted Start Movement"); 
+                 //Serial.println(update);
+                 //Serial.println("Interrupted Start Movement"); 
+                 debugPrintlnInt(update);
+                 debugPrintln("Interrupted Start Movement");
                  break;
                  } 
                 }
@@ -1294,8 +1337,8 @@ int Start_new_movement(){
 }*/
 
 void rotateRight(uint8_t MotorSpeed){
-  Serial.print("Rotate Right:   ");
-  Serial.println(MotorSpeed);
+  debugPrint("Rotate Right: ");
+  debugPrintlnInt(MotorSpeed);
   roboclaw.BackwardM1(0x80, MotorSpeed);
   roboclaw.ForwardM2(0x80,MotorSpeed);
   roboclaw.BackwardM1(0x81,MotorSpeed);
@@ -1303,8 +1346,8 @@ void rotateRight(uint8_t MotorSpeed){
 }
 
 void rotateLeft(uint8_t MotorSpeed){
-  Serial.print("Rotate Left:   ");
-  Serial.println(MotorSpeed);
+  debugPrint("Rotate Left:   ");
+  debugPrintlnInt(MotorSpeed);
   roboclaw.ForwardM1(0x80, MotorSpeed);
   roboclaw.BackwardM2(0x80,MotorSpeed);
   roboclaw.ForwardM1(0x81,MotorSpeed);
@@ -1313,8 +1356,8 @@ void rotateLeft(uint8_t MotorSpeed){
 
 
 void strafeLeft(uint8_t MotorSpeed){
-  Serial.print("Strafe Left:   ");
-  Serial.println(MotorSpeed);
+  debugPrint("Strafe Left:   ");
+  debugPrintlnInt(MotorSpeed);
   roboclaw.ForwardM1(0x80, MotorSpeed);
   roboclaw.BackwardM2(0x80,MotorSpeed);
   roboclaw.BackwardM1(0x81,MotorSpeed);
@@ -1323,8 +1366,8 @@ void strafeLeft(uint8_t MotorSpeed){
 
 
 void strafeRight(uint8_t MotorSpeed){
-  Serial.print("Strafe Right:   ");
-  Serial.println(MotorSpeed);
+  debugPrint("Strafe Right:   ");
+  debugPrintlnInt(MotorSpeed);
   roboclaw.BackwardM1(0x80,MotorSpeed);
   roboclaw.ForwardM2(0x80,MotorSpeed);
   roboclaw.ForwardM1(0x81,MotorSpeed);
@@ -1333,8 +1376,8 @@ void strafeRight(uint8_t MotorSpeed){
 
 
 void goForward(uint8_t MotorSpeed){
-  Serial.print("Forward:   ");
-  Serial.println(MotorSpeed);
+  debugPrint("Forward:   ");
+  debugPrintlnInt(MotorSpeed);
   roboclaw.ForwardM1(0x80,MotorSpeed);
   roboclaw.ForwardM2(0x80,MotorSpeed);
   roboclaw.ForwardM1(0x81,MotorSpeed);
@@ -1345,8 +1388,8 @@ void goForward(uint8_t MotorSpeed){
 }
 
 void goBackward(uint8_t MotorSpeed){
-  Serial.print("Backward:   ");
-  Serial.println(MotorSpeed);
+  debugPrint("Backward:   ");
+  debugPrintlnInt(MotorSpeed);
   roboclaw.BackwardM1(0x80,MotorSpeed);
   roboclaw.BackwardM2(0x80,MotorSpeed);
   roboclaw.BackwardM1(0x81,MotorSpeed);
@@ -1357,8 +1400,8 @@ void goBackward(uint8_t MotorSpeed){
 }
 
 void goForwardDiag(uint8_t MotorSpeedRight, uint8_t MotorSpeedLeft){
-  Serial.print("Diagonal Forward:   ");
-  Serial.println(MotorSpeed);
+  debugPrint("Diagonal Forward:   ");
+  debugPrintlnInt(MotorSpeed);
   roboclaw.ForwardM1(0x80,MotorSpeedRight);
   roboclaw.ForwardM2(0x80,MotorSpeedLeft);
   roboclaw.ForwardM1(0x81,MotorSpeedRight);
@@ -1366,8 +1409,8 @@ void goForwardDiag(uint8_t MotorSpeedRight, uint8_t MotorSpeedLeft){
 }
 
 void goBackwardDiag(uint8_t MotorSpeedRight, uint8_t MotorSpeedLeft){
-  Serial.print("Diagonal Reverse:   ");
-  Serial.println(MotorSpeed);
+  debugPrint("Diagonal Reverse:   ");
+  debugPrintlnInt(MotorSpeed);
   roboclaw.BackwardM1(0x80,MotorSpeedRight);
   roboclaw.BackwardM2(0x80,MotorSpeedLeft);
   roboclaw.BackwardM1(0x81,MotorSpeedRight);
@@ -1375,7 +1418,7 @@ void goBackwardDiag(uint8_t MotorSpeedRight, uint8_t MotorSpeedLeft){
 }
 
 void goStop(){
-  Serial.print("Stopping");
+  debugPrint("Stopping");
   MotorSpeed = 0;
   roboclaw.ForwardM1(0x80,MotorSpeed);
   roboclaw.ForwardM2(0x80,MotorSpeed);
@@ -1462,7 +1505,7 @@ void detected_obstacle(){
   int interrupted_movement;
   interrupted_movement = new_movement;
 
-  Serial.print("Obstacle Detected:   ");
+  debugPrint("Obstacle Detected:   ");
   
   if(old_movement == BACKWARD) {
     //new_movement = FORWARD;
@@ -1479,17 +1522,17 @@ void detected_obstacle(){
   Wire.requestFrom(sonar_controller, 2);
   //int i = 0;
   delay(100);
-  Serial.print("Bytes available: ");
-  Serial.println(Wire.available());
+  debugPrint("Bytes available: ");
+  debugPrintlnInt(Wire.available());
   
    delay(100);
    obstacle = Wire.read();
    delay(100);
    sonar_number = Wire.read();
-   Serial.print(" obstacle:    ");
-   Serial.print(obstacle);
-   Serial.print(" sonar number:  "); 
-   Serial.println(sonar_number);
+   debugPrint("\nobstacle: ");
+   debugPrintInt(obstacle);
+   debugPrint(" sonar number:  "); 
+   debugPrintlnInt(sonar_number);
    
    ////////  evasive manuever method /////
    decide(obstacle, sonar_number);
@@ -1497,7 +1540,7 @@ void detected_obstacle(){
    ////////  End of evasive manuever method /////
 
 	 new_movement = interrupted_movement;
-   Serial.println("end detected_obstacle()");
+   debugPrintln("end detected_obstacle()");
 }
 
 // End Detected Obstacle Function // 
@@ -1509,22 +1552,22 @@ void decide(int obstacle, int sonar_number) {
   // back left:  4,5,6
   // back right: 7,8,9
   // front right: 10,11,12
-  Serial.print("Obstacle: ");
-  Serial.println(obstacle);
-  Serial.print("Sonar number: ");
-  Serial.println(sonar_number);
-  Serial.print("Trying to decide what to do...");
+  debugPrint("Obstacle: ");
+  debugPrintlnInt(obstacle);
+  debugPrint("Sonar number: ");
+  debugPrintlnInt(sonar_number);
+  debugPrint("Trying to decide what to do...");
   if ((sonar_number == 12) || (sonar_number == 11)) {
-    Serial.println("Go Left");
+    debugPrintln("Go Left");
     avoid(LEFT);
   } else if ((sonar_number == 7) || (sonar_number == 6) || (sonar_number == 5)) {
-    Serial.println("Go Right");
+    debugPrintln("Go Right");
     avoid(RIGHT);
   } else if ((sonar_number == 2) || (sonar_number == 3) || (sonar_number == 4)) {
-    Serial.println("Go Left");
+    debugPrintln("Go Left");
     avoid(LEFT);
   } else if ((sonar_number == 8) || (sonar_number == 9) || (sonar_number == 10)) {
-    Serial.println("Go Right");
+    debugPrintln("Go Right");
     avoid(RIGHT);
   } else {
     avoid(STOP);
@@ -1556,12 +1599,12 @@ void returnAllData() {
     stoppedmoving = 0;
   }
   // byte 33 = '!'
-  byte dataArray[12] = { 33, interrupted, stoppedmoving, (byte)new_movement, 
+  byte dataArray[12] = { 35, interrupted, stoppedmoving, (byte)new_movement, 
                         lrf_data_buf[0], lrf_data_buf[1], lrf_data_buf[2], lrf_data_buf[3], lrf_data_buf[4], 
-                        obstacle, sonar_number, 37}; // need to add orientation and all sonar data
+                        obstacle, sonar_number, 36}; // need to add orientation and all sonar data
                         
-  //Serial.write(dataArray, 12);
-  Serial.println((char)33);
+  Serial.write(dataArray, 12);
+  /*Serial.println((char)33);
   Serial.println(interrupted);
   Serial.println(stoppedmoving);
   Serial.println(new_movement);
@@ -1572,6 +1615,29 @@ void returnAllData() {
   Serial.println(lrf_data_buf[4]);
   Serial.println(obstacle);
   Serial.println(sonar_number);
-  Serial.println((char)37);
+  Serial.println((char)37);*/
 }
 
+void debugPrint(char* toPrint) {
+  if(DEBUG) {
+    Serial.print(toPrint);
+  }
+}
+
+void debugPrintln(char* toPrint) {
+  if(DEBUG) {
+    Serial.println(toPrint);
+  }
+}
+
+void debugPrintInt(int toPrint) {
+  if(DEBUG) {
+    Serial.print(toPrint);
+  }
+}
+
+void debugPrintlnInt(int toPrint) {
+  if(DEBUG) {
+    Serial.println(toPrint);
+  }
+}
