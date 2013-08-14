@@ -1,0 +1,8 @@
+sentence noun verbphrase
+command marion verbphrase
+nounphrase noun|adjective nounphrase|article nounphrase
+prepositionphrase preposition nounphrase
+verbphrase verbphrase adverb|verbphraseminusp prepositionphrase
+verbphraseminusp verb1p|verb2p nounphrase
+name name name
+questionphrase1 questionword verb0 noun|nounphrase

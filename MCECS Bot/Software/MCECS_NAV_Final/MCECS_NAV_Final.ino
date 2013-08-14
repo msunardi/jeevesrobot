@@ -26,7 +26,7 @@
 char pos;
 
 // outgoing final LRF range measurements
-byte data[5];                    
+byte data[6];                    
 
 // positions for this particular servo with this particular mounting 
 // based on center
@@ -208,41 +208,44 @@ float phi1fl;
       myservo.write(pos1);
       delay(150);
       Serial1.write('R');
-      //data[0] = dataread();
-      data[0] = complicatedread();
-      //delay(1500);
+      data[0] = dataread();
+      //data[0] = complicatedread();
+      delay(1500);
 
       myservo.write(pos2);
       delay(150);
       Serial1.write('R');
-      //data[1] = dataread();
-      data[1] = complicatedread();
-      //delay(1500);
+      data[1] = dataread();
+      //data[1] = complicatedread();
+      delay(1500);
 
       myservo.write(center);
       delay(150);
       Serial1.write('R');
-      //data[2] = dataread();
-      data[2] = complicatedread();
-      //delay(1500);
+      data[2] = dataread();
+      //data[2] = complicatedread();
+      delay(1500);
 
       myservo.write(pos3);
       delay(150);
       Serial1.write('R');
-      //data[3] = dataread(); 
-      data[3] = complicatedread();
-      //delay(1500);
+      data[3] = dataread(); 
+      //data[3] = complicatedread();
+      delay(1500);
 
       myservo.write(pos4);
       delay(150);
       Serial1.write('R');
-      //data[4] = dataread();  
-      data[4] = complicatedread();
-      //delay(1500);
+      data[4] = dataread();  
+      //data[4] = complicatedread();
+      delay(1500);
+
+      data[5] = 0;
 
       // send out the data array
       centerPos();
-      Serial.write(data,5);
+      Serial.write(data,6);
+      
 
       break;
 
@@ -615,13 +618,13 @@ long complicatedread() {
 long dataread() {
   long result;
   char range[15];
-  Serial.println("datareading...");  
+  //Serial.println("datareading...");  
   while (Serial1.available() < 15) {
   }
   for (int i = 0; i < 15; i++) {
     range[i] = Serial1.read();
     delay(50);
-    Serial.println("reading from LRF...");
+    //Serial.println("reading from LRF...");
   }
   
   //Serial1.flush();

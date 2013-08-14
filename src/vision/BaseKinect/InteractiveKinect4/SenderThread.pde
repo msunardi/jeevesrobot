@@ -1,7 +1,8 @@
 class SenderThread extends Thread {
   int clientPort = 9100;
+  String clientIp = "131.252.139.25";
   DatagramSocket ds;
-  byte[] buffer = new byte[65536];
+  //byte[] buffer = new byte[65536];
 
   boolean running;
   boolean available;
@@ -21,6 +22,11 @@ class SenderThread extends Thread {
 
   void setImage(PImage image) {
     img = image;
+    //available = true;
+  }
+  
+  void updateImage() {
+    img = get();
   }
 
   void start() {
@@ -32,12 +38,15 @@ class SenderThread extends Thread {
     while(running) {
       // We need a buffered image to do the JPG encoding
       //img = get(0,0,width,height);
+      //int currenttime = millis();
+      //while (millis() - currenttime < 30) {}
       
       BufferedImage bimg = new BufferedImage( img.width,img.height, BufferedImage.TYPE_INT_RGB );
     
       // Transfer pixels from localFrame to the BufferedImage
       img.loadPixels();
       bimg.setRGB( 0, 0, img.width, img.height, img.pixels, 0, img.width);
+      //bimg.setRGB( 0, 0, 640, 480, img.pixels, 0, 640);
     
       // Need these output streams to get image as bytes for UDP communication
       ByteArrayOutputStream baStream  = new ByteArrayOutputStream();
@@ -54,23 +63,23 @@ class SenderThread extends Thread {
     
       // Get the byte array, which we will send out via UDP!
       byte[] packet = baStream.toByteArray();
+      //packet = baStream.toByteArray();
     
       // Send JPEG data as a datagram
       println("Sending datagram with " + packet.length + " bytes");
-      try {
-        print("Trying to send...");
-        //ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName("localhost"),clientPort));
-        ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName("131.252.240.131"),clientPort));
-        println("Success");
-      } 
-      catch (IOException e) {
-        e.printStackTrace();
+      if (packet.length > 10000) {
+        try {
+          print("Trying to send...");
+          //ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName("localhost"),clientPort));
+          ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName(clientIp),clientPort));
+          println("Success");
+        } 
+        catch (IOException e) {
+          e.printStackTrace();
+        }
+        int currenttime = millis();
+        while (millis() - currenttime < 60) {}
       }
-      /*try {
-        sleep((long)(10));
-      } catch (Exception e) {
-        e.printStackTrace();
-      }*/
     }
   }
 }

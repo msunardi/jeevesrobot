@@ -1,0 +1,154 @@
+#JSGF V1.0;
+
+/**
+ * JSGF Grammar for PSU CECS BOT v1.0
+ * Originally written by Richard Bernard and Prince Paul
+ */
+
+grammar hello;
+
+public <labs> = 
+(
+where is |
+what is  
+)
+(
+the analog circuit design |
+the bathroom |
+the biomedical signal processing |
+the emulation |
+the evolve able systems |
+the eye see design |
+the intelligent robotics | 
+the robotics |
+the near |
+the pee gee ee |
+the terra hertz |
+the verification |
+the vee eye pee |
+the vee ell ess eye |
+the tech tron ex |
+the proto typing
+)
+(
+lab |
+laboratory 
+);
+
+public <questions> = 
+(
+how do you |
+what are you |
+what is |
+do you 
+)
+(
+move |
+made of |
+like me |
+see |
+listen |
+speak |
+your favorite color
+);
+
+public <buildings> = 
+( 
+where is |
+where are
+) 
+( 
+ smith hall |
+ neuberger hall |
+ cramer hall |
+ lincoln hall |
+ shattuck hall |
+ the public safety office |
+ the research greenhouses |
+ the native american student and community center |
+ the peter stott center |
+ the millar library |
+ the blackstone apartments |
+ the peter stott field |
+ the science research and teaching center |
+ are the vue apartments |
+ the science building |
+ parking structure two |
+ the school of education |
+ the school of business |
+ parking structure one |
+ east hall |
+ the broadway building|
+ the market square building |
+ the urban center |
+ the academic and student rec center |
+ the university center building |
+ the university pointe |
+ the market center building |
+ the fifth avenue parking lot |
+ the art building |
+ the science and education center |
+ the you knight us building |
+ the fourth avenue building |
+ the city development center |
+ the engineering building
+);
+
+public <professors_fullnames> =
+(
+who is
+)
+(
+doctor perkowski |
+james mick names |
+mark faust |
+robert bass |
+richard campbell |
+mall gore zeta shah now ski jeske |
+shah now ski|
+robert dash |
+donald duncan |
+garrison greenwood |
+douglas hall |
+dan hammerstrom |
+melinda holtzman |
+why see jank |
+roy kravitz |
+foo lee |
+james morris |
+bra no mirror pee jee no vick |
+marek perkowski |
+martin si dare ee us |
+ow song |
+christoff teuscher |
+richard tie murr ski |
+lisa zirk |
+jun ow |
+erik sanchez |
+raj so lan key |
+andrew greenberg |
+daniel rue seff |
+glenn shirley |
+ivan sutherland |
+eric wan |
+all ah all mel dean
+
+);
+
+public <greetings> =
+(
+hello robot |
+hi robot |
+goodbye robot|
+i am leaving |
+i like you |
+i love you |
+see you later |
+more bathroom |
+how are you |
+how's it hanging |
+lean right |
+lean left |
+stand up straight
+);
+
