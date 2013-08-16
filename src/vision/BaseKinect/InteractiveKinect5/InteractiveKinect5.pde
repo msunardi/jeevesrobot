@@ -89,9 +89,9 @@ int status_y = 20; // was 20
 int instruction_x = new_base_x; // was base_x : 540
 int instruction_y = 440; // was 180
 int idle_x = new_base_x; // was base_x : 540
-int idle_y = 50;
+int idle_y = 60;
 int command_x = new_base_x; // was base_x : 540
-int command_y = 350;
+int command_y = 380;
 int linespacing = 30;
 int textsize1 = 15;
 int textsize2 = 20;
@@ -116,6 +116,7 @@ int buttonHeightOffset = buttonHeight/2;
 String song = "Play Music"; // String variable hosting the music button display, set to play music at start
 String followhand = "Follow Hand";
 String rgbmode = "Show Depth";
+String followWallmode = "Follow Wall";
 String base_cmd = "";
 
 boolean inFollowHandBox = false;
@@ -125,7 +126,7 @@ boolean playMusicFlag = false;
 boolean inRgbBox = false;
 boolean rgbFlag = true;
 boolean idleFlag = true;
-boolean followWallModeFlag = false;
+boolean followWallFlag = false;
 boolean inFollowWallBox = false;
 
 //============== Screen streaming variables =====
@@ -212,7 +213,7 @@ void draw()
     for(int x=0; x<640;x++){ // go over the rows
       int i = x + y*640; // pixel ID
       int currentDis = depthValues[i]; // distance for this pixel
-      if(currentDis > 0 && currentDis < close){ // Check if this distance is the closest so far?
+      if(currentDis > 0 && currentDis < close && abs(currentDis-close) > 5){ // Check if this distance is the closest so far?
         close = currentDis;// If so, record it
         closeX = x; // get its X coordinate
         closeY = y; // get its Y coordinate
@@ -220,7 +221,7 @@ void draw()
     }
   } 
 // ======== End of Finding the closest point ===========//
- if(close < 600 && close > 0){// check if the closest point so far is too close
+ if(close < 600 && close > 0) {// check if the closest point so far is too close
    if (send != STOP){ // If so, then check if we have already sent this command
    send = STOP;// if not, set the send variable to STOP
    port.write(send); // send it   
@@ -291,7 +292,28 @@ void draw()
    strokeWeight(1);*/
    
    //========== end of warning display ====================//
- } else if(handsTrackFlag == true) {  // Check if we are tracking the hand?
+ } else if(followWallFlag) {
+   
+      makeWarningBoxCenter("WALL FOLLOWING");
+      makeStopButton("STOP", 320, 140, 45);
+      writeInstructionStatus("Automatic mode", 1);
+      writeInstructionStatus("WARNING: Automatic navigation engaged.\nPlease stay clear off my path or feel my wrath. Thank you.",0);
+      writeCommand("Hit Stop button to quit",1);
+      
+      kinect.convertRealWorldToProjective(handVector, mapHandVector); // convert hand position coordinates to projective
+      
+      if (handsTrackFlag) {
+        fill(255,0,0);
+        ellipse(mapHandVector.x, mapHandVector.y, 50, 50); // draw a circle on the hand position
+      }
+      
+      if (mapHandVector.x-30 > 320-buttonWidthOffset && mapHandVector.x-30 < 320+buttonWidthOffset && mapHandVector.y > 140-buttonHeightOffset && mapHandVector.y < 140+buttonHeightOffset) {
+        followWallFlag = false;
+        handsTrackFlag = false;
+      }
+      
+ }
+ else if(handsTrackFlag == true && !followWallFlag) {  // Check if we are tracking the hand?
    idleFlag = false; // it's not idle anymore
    
    if (previousCmd != "tracking hand") {
@@ -338,11 +360,13 @@ void draw()
     textAlign(CENTER, CENTER);
     fill(255);
     text(song, 300, 125);*/
+    
     makeCommandBox(song, playButton_x, playButton_y, buttonWidth, buttonHeight);
     makeCommandBox(followhand, followButton_x, followButton_y, buttonWidth, buttonHeight);
     makeCommandBox(rgbmode, rgbButton_x, rgbButton_y, buttonWidth, buttonHeight);
     //makeCommandBox("Base Data", rgbButton_x, rgbButton_y+60, buttonWidth, buttonHeight);
     makeCommandBox("Follow Wall", followWallButton_x, followWallButton_y, buttonWidth, buttonHeight);
+    
         
 //============== end of display ========================//
     
@@ -412,7 +436,8 @@ void draw()
         rgbFlag = true;
         //send = STOP;// if not, set the send variables to STOP to be sent
         port.write(STOP);// send it  
-        base_cmd = "stop";      
+        base_cmd = "stop";
+        getDataFlag = false;     
       }
       inRgbBox = true;      
     }
@@ -423,13 +448,35 @@ void draw()
     
     /// ------- END DEPTH VS RGB BUTTON -------- ///
     
+    /// ------- FOLLOW WALL BUTTON -------- ///
+    if (mapHandVector.x-30 > followWallButton_x-buttonWidthOffset && mapHandVector.x-30 < followWallButton_x+buttonWidthOffset && mapHandVector.y > followWallButton_y-buttonHeightOffset && mapHandVector.y < followWallButton_y+buttonHeightOffset && !inFollowWallBox){
+      // check if the hand is on the music button we created in the display?
+      buttonTimeout = millis();
+      if (!followWallFlag) {
+        
+        followWallFlag = true;       
+       
+      }
+      else println("blah");
+      
+      inFollowWallBox = true;
+      println("IN FOLLOW WALL BOX");      
+    }
+    
+    if (mapHandVector.x-30 < followWallButton_x-buttonWidthOffset || mapHandVector.x-30 > followWallButton_x+buttonWidthOffset || mapHandVector.y < followWallButton_y-buttonHeightOffset || mapHandVector.y > followWallButton_y+buttonHeightOffset) {      
+      inFollowWallBox = false;      
+    }
+    
+    /// ------- FOLLOW WALL BUTTON -------- ///
+    
+    /// ------- MESSAGING ON THE BOTTOM OF THE SCREEN BASED ON SELECTED ACTION(S) --- ///
     if (followHandFlag) {
       writeInstructionStatus("Following Hand...",1);
       writeInstructionStatus("Move hand around to lead the robot.",0);
     } else if (!rgbFlag) {
       writeInstructionStatus("Depth Mode",1);
       writeInstructionStatus("Now showing Depth image.",0);
-    }
+    } 
     //updateScreen();
     //println(inFollowHandBox);
             
@@ -835,6 +882,30 @@ void makeCommandBox(String command, int x, int y, int boxwidth, int boxheight) {
               
   textAlign(CENTER, CENTER);
   fill(220,220,255);
+  text(command, x, y);
+}
+
+void makeStopButton(String command, int x, int y, int side) {
+  float side_half = side/2;
+  float side_off = side_half+(sqrt(2)*side/2);
+  
+  stroke(255);
+  strokeWeight(3);
+  fill(255,0,0);
+  beginShape();
+  vertex(x-side_half, y-side_off);
+  vertex(x+side_half, y-side_off);
+  vertex(x+side_off, y-side_half);
+  vertex(x+side_off, y+side_half);
+  vertex(x+side_half, y+side_off);
+  vertex(x-side_half, y+side_off);
+  vertex(x-side_off, y+side_half);
+  vertex(x-side_off, y-side_half);
+  endShape(CLOSE);
+  
+  textSize((int)side*0.9);
+  textAlign(CENTER, CENTER);
+  fill(255);
   text(command, x, y);
 }
 
