@@ -81,26 +81,32 @@ int linespacing = 30;
 int textsize1 = 15;
 int textsize2 = 20;*/
 
+int new_base_x = 320;
 
-int status_x = base_x;
-int status_y = 20;
-int instruction_x = base_x;
-int instruction_y = 180;
-int idle_x = base_x;
+int status_x = new_base_x; // was base_x : 540
+int status_y = 20; // was 20
+int instruction_x = new_base_x; // was base_x : 540
+int instruction_y = 440; // was 180
+int idle_x = new_base_x; // was base_x : 540
 int idle_y = 50;
-int command_x = base_x;
+int command_x = new_base_x; // was base_x : 540
 int command_y = 350;
 int linespacing = 30;
 int textsize1 = 15;
 int textsize2 = 20;
 
-int button_y = 50;
+
+int buttonRight_x = 100;
+int buttonLeft_x = 540;
+int button_y = 80;
 int playButton_x = 100;
 int playButton_y = button_y;
-int followButton_x = 280;
-int followButton_y = button_y;
-int rgbButton_x = 360;
-int rgbButton_y = 120;
+int followButton_x = playButton_x;
+int followButton_y = 180;
+int rgbButton_x = buttonLeft_x;
+int rgbButton_y = button_y;
+int followWallButton_x = buttonLeft_x;
+int followWallButton_y = 2*button_y + 20;
 int buttonWidth = 150;
 int buttonHeight = 40;
 int buttonWidthOffset = buttonWidth/2;
@@ -116,7 +122,8 @@ boolean followHandFlag = false; // Move base to follow hand if true
 boolean inPlayMusicBox = false;
 boolean playMusicFlag = false;
 boolean inRgbBox = false;
-boolean rgbFlag = false;
+boolean rgbFlag = true;
+boolean idleFlag = true;
 
 //============== Screen streaming variables =====
 // This is the port we are sending to
@@ -125,10 +132,13 @@ int clientPort = 9100;
 DatagramSocket ds;
 PImage screen;
 SenderThread sender;
+
+PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/ttyACM4";
+  String portName = "/dev/tty.usbmodemfd121";//"/dev/ttyACM4";
+  droidmono_bold = loadFont("Calibri-Bold-48.vlw");
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
   kinect.setMirror(true); // Mirror the depth image
@@ -143,7 +153,8 @@ void setup()
     //String portName = Serial.list()[6]; // Select the Serial port number CUSTIMIZE!!!!!!!!!!!!! this is hardware specific 
   //String portName = "/dev/ttyACM0";
   //port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
-  player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
+  //player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
+  player = minim.loadFile("/Users/msunardi/Music/amazonmp3/Keb_Mo/Suitcase/06_-_Rita.mp3");
   savedTime = millis();  //start internal timer, counts in milliseconds
   
   client = new Client(this, "127.0.0.1", 8008);
@@ -162,9 +173,9 @@ void draw()
   close = 6000; // set the closest point to 6000 mm as a starting point 
   kinect.update(); // update the kinect
   if (rgbFlag) {
-    screen = kinect.depthImage();
-  } else {
     screen = kinect.rgbImage();
+  } else {
+    screen = kinect.depthImage();
   }
   
   //sendScreen(screen);
@@ -181,8 +192,12 @@ void draw()
   rectMode(CORNER);
   noStroke();
   fill(0,0,0,127);
-  rect(440, 0, 200, 480);
+  //rect(440, 0, 200, 480); // right side
+  rect(0, 400, 640, 80); // bottom
   
+  makeStatusBoxTop();
+  //quad(status_x-150, 0, status_x+150, 0, status_x+120, 40, status_x-120, 40); // TOP status/mode
+    
   //=========== Check message from server ===========
   if (client.available() > 0) {
     messageFromServer = client.readString();
@@ -216,7 +231,8 @@ void draw()
       }
     obstacle = true;
     handsTrackFlag = false;
-    followHandFlag = false;  
+    followHandFlag = false;
+    idleFlag = false; 
    }
    
    // otherwise, we do not need to re-send the command. just display warning
@@ -235,26 +251,44 @@ void draw()
    textAlign(CENTER, CENTER);
    fill(255, 0, 0);*/
    rectMode(CENTER);
-   fill(255,255,0);
-   rect(status_x, status_y, 200, 158);
+   fill(255,255,0, 235);
+   noStroke();
+   //rect(status_x, status_y, 200, 80);
+   
+   quad(status_x-220, 200, status_x+220, 200, status_x+250, 240, status_x-250, 240);
+   quad(status_x-250, 240, status_x+250, 240, status_x+220, 280, status_x-220, 280);
+   fill(255,255,0, 215);
+   quad(status_x-260, 200, status_x-227, 200, status_x-257, 240, status_x-290, 240);
+   quad(status_x-290, 240, status_x-257, 240, status_x-227, 280, status_x-260, 280);
+   quad(status_x+260, 200, status_x+227, 200, status_x+257, 240, status_x+290, 240);
+   quad(status_x+290, 240, status_x+257, 240, status_x+227, 280, status_x+260, 280);
+   fill(255,255,0, 185);
+   quad(status_x-285, 200, status_x-267, 200, status_x-297, 240, status_x-315, 240);
+   quad(status_x-315, 240, status_x-297, 240, status_x-267, 280, status_x-285, 280);
+   quad(status_x+285, 200, status_x+267, 200, status_x+297, 240, status_x+315, 240);
+   quad(status_x+315, 240, status_x+297, 240, status_x+267, 280, status_x+285, 280);
+   
    textAlign(CENTER,CENTER);
    fill(255,0,0);
-   textSize(24);
-   text("OBSTACLE\nDETECTED", status_x, status_y+30);
+   textSize(22);
+   
+   textFont(droidmono_bold);
+   text("OBSTACLE DETECTED", status_x, status_y+220);
    //text("Obstacle on the way, CANNOT follow you anymore!!!", 300, 50);
    //writeInstructionStatus("Obstacle",1);
-   writeInstructionStatus("Something is\ntoo close.\nI won't move\nuntil the path\nis cleared.",0);
-   rectMode(CENTER);
+   writeInstructionStatus("Something is too close.\nI can't move until the path is cleared.",0);
+   /*rectMode(CENTER);
    fill(255, 0, 0);
    stroke(255,255, 0);
    strokeWeight(10);
    rect(BoxX, BoxY, BoxW, BoxH,15);
    line(HlineX1, HlineY1, HlineX2, HlineY2);
    line(VlineX1, VlineY1, VlineX2, VlineY2);
-   strokeWeight(1);
+   strokeWeight(1);*/
    
    //========== end of warning display ====================//
  } else if(handsTrackFlag == true) {  // Check if we are tracking the hand?
+   idleFlag = false; // it's not idle anymore
    
    if (previousCmd != "tracking hand") {
      client.write(formatMessage("all","kinect_flag:true"));
@@ -263,7 +297,7 @@ void draw()
      previousCmd = "tracking hand";
    }
    if (!followHandFlag && !rgbFlag) {
-     writeInstructionStatus("A hand has been\n detected.\nHover hand over\nbuttons Into interact.",0);
+     writeInstructionStatus("A hand has been detected.\nHover hand over buttons Into interact.",0);
      writeInstructionStatus("Tracking Hand", 1);
    }
    //updateScreen();
@@ -304,6 +338,7 @@ void draw()
     makeCommandBox(followhand, followButton_x, followButton_y, buttonWidth, buttonHeight);
     makeCommandBox(rgbmode, rgbButton_x, rgbButton_y, buttonWidth, buttonHeight);
     //makeCommandBox("Base Data", rgbButton_x, rgbButton_y+60, buttonWidth, buttonHeight);
+    makeCommandBox("Follow Wall", followWallButton_x, followWallButton_y, buttonWidth, buttonHeight);
         
 //============== end of display ========================//
     //if (mapHandVector.x-30 > 100 && mapHandVector.x-30 < 230 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inPlayMusicBox){
@@ -604,6 +639,7 @@ void draw()
    
   } else { // otherwise, the hand is not being tracked. could be the begining of session, or hand is lost. Display instruction to detect hand  
     obstacle = false;
+    idleFlag = true;
     if (previousCmd != "idle") {
       println("Idle mode...");
       client.write(formatMessage("base","idle"));
@@ -666,7 +702,7 @@ void draw()
       }
     } 
     
-    writeInstructionStatus("Raise a hand\nto start\ninteraction", 0);    
+    writeInstructionStatus("Raise a hand\nto start interaction", 0);    
     //displayDirectionIndicator();
     
     //screen = get(0,0,width,height);
@@ -740,7 +776,7 @@ void draw()
     //else { // if getDataFlag = false
       // do nothing
     //}
-   
+   adjustStatus();
   
 }// return to the begining (End of draw loop)
 
@@ -784,11 +820,19 @@ void makeCommandBox(String command, int x, int y, int boxwidth, int boxheight) {
   strokeWeight(3);
   rectMode(CENTER);
   fill(100,100,200,100);
-  rect(x, y, boxwidth, boxheight, 15);
+  rect(x, y, boxwidth, boxheight, 10);
               
   textAlign(CENTER, CENTER);
   fill(220,220,255);
   text(command, x, y);
+}
+
+void makeStatusBoxTop() {
+  stroke(200,200,200);
+  strokeWeight(3);
+  fill(100,100,200,100);
+  quad(status_x-150, 0, status_x+150, 0, status_x+120, 40, status_x-120, 40);
+  
 }
 
 void displayDirectionIndicator() {
@@ -1111,3 +1155,22 @@ void sendStatus() {
   //client.write("json!{\"client\":\"kinect\"}\n");  
      
 }
+
+void adjustStatus() {
+  if(obstacle) {
+    idleFlag = false;
+    if (player.isPlaying() || playMusicFlag) {// otherwise, check if the music is playing
+         player.pause();// if so, pause the music
+         song = "Play Music";// replace music button text with "Play" instaed of "pause"
+         playMusicFlag = false;         
+    }
+    if (followHandFlag) {
+        
+        followHandFlag = false;
+        //send = STOP;// if not, set the send variables to STOP to be sent
+        port.write(STOP);// send it 
+        base_cmd = "stop";      
+    }
+  }
+}
+    
