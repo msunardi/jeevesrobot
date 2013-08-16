@@ -300,12 +300,12 @@ void draw()
     int x = stopCenter_x;
     int y = stopCenter_y;
     makeWarningBoxCenter("WALL FOLLOWING");
-    /*makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
-    writeInstructionStatus("Automatic mode", 1);
+    makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
+    /*writeInstructionStatus("Automatic mode", 1);
     writeInstructionStatus("WARNING: Automatic navigation engaged.\nPlease stay clear off my path or feel my wrath. Thank you.",0);
     writeCommand("Hit Stop button to quit",1);*/
     
-    float side_half = stopSide/2;
+    /*float side_half = stopSide/2;
     float side_off = side_half+(sqrt(2)*stopSide/2);
     
     stroke(255);
@@ -325,7 +325,7 @@ void draw()
     textSize((int)stopSide*0.9);
     textAlign(CENTER, CENTER);
     fill(255);
-    text("STOP", x, y);
+    text("STOP", x, y);*/
     
     textSize(20);
     fill(255);  // white
