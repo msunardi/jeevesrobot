@@ -293,24 +293,27 @@ void draw()
    
    //========== end of warning display ====================//
  } else if(followWallFlag) {
-   
-      makeWarningBoxCenter("WALL FOLLOWING");
-      makeStopButton("STOP", 320, 140, 45);
-      writeInstructionStatus("Automatic mode", 1);
-      writeInstructionStatus("WARNING: Automatic navigation engaged.\nPlease stay clear off my path or feel my wrath. Thank you.",0);
-      writeCommand("Hit Stop button to quit",1);
-      
-      kinect.convertRealWorldToProjective(handVector, mapHandVector); // convert hand position coordinates to projective
-      
-      if (handsTrackFlag) {
-        fill(255,0,0);
-        ellipse(mapHandVector.x, mapHandVector.y, 50, 50); // draw a circle on the hand position
-      }
-      
-      if (mapHandVector.x-30 > 320-buttonWidthOffset && mapHandVector.x-30 < 320+buttonWidthOffset && mapHandVector.y > 140-buttonHeightOffset && mapHandVector.y < 140+buttonHeightOffset) {
-        followWallFlag = false;
-        handsTrackFlag = false;
-      }
+    int stopCenter_x = 320;
+    int stopCenter_y = 140;
+    int stopSide = 45;
+ 
+    makeWarningBoxCenter("WALL FOLLOWING");
+    makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
+    writeInstructionStatus("Automatic mode", 1);
+    writeInstructionStatus("WARNING: Automatic navigation engaged.\nPlease stay clear off my path or feel my wrath. Thank you.",0);
+    writeCommand("Hit Stop button to quit",1);
+    
+    kinect.convertRealWorldToProjective(handVector, mapHandVector); // convert hand position coordinates to projective
+    
+    if (handsTrackFlag) {
+      fill(255,0,0);
+      ellipse(mapHandVector.x, mapHandVector.y, 50, 50); // draw a circle on the hand position
+    }
+    
+    if (mapHandVector.x-30 > stopCenter_x-buttonWidthOffset && mapHandVector.x-30 < stopCenter_x+buttonWidthOffset && mapHandVector.y > stopCenter_y-buttonWidthOffset && mapHandVector.y < stopCenter_y+buttonWidthOffset) {
+      followWallFlag = false;
+      handsTrackFlag = false;
+    }
       
  }
  else if(handsTrackFlag == true && !followWallFlag) {  // Check if we are tracking the hand?
@@ -329,6 +332,11 @@ void draw()
    //updateScreen();
    // if so, get its information
    savedTime = millis();                // reset millis time
+   if (followHandFlag) 
+     fill(0,255,0); // green
+   else 
+     fill(255); // white
+     
    kinect.convertRealWorldToProjective(handVector, mapHandVector); // convert hand position coordinates to projective
    ellipse(mapHandVector.x, mapHandVector.y, 50, 50); // draw a circle on the hand position
 
