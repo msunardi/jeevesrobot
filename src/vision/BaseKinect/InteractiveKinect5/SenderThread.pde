@@ -31,6 +31,7 @@ class SenderThread extends Thread {
   
   void updateImage() {
     img = get();
+    available = true;
   }
 
   void start() {
@@ -44,7 +45,7 @@ class SenderThread extends Thread {
       //img = get(0,0,width,height);
       //int currenttime = millis();
       //while (millis() - currenttime < 30) {}
-      updateImage();
+      //updateImage();
       BufferedImage bimg = new BufferedImage( img.width,img.height, BufferedImage.TYPE_INT_RGB );
     
       // Transfer pixels from localFrame to the BufferedImage
@@ -71,7 +72,7 @@ class SenderThread extends Thread {
     
       // Send JPEG data as a datagram
       if (debug) println("Sending datagram with " + packet.length + " bytes");
-      if ((packet.length > 10000) && (millis() - frameTime > 33)) {
+      if ((packet.length > 10000) && (millis() - frameTime > 33) && available) {
         try {
           print("Trying to send...");
           //ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName("localhost"),clientPort));
@@ -82,6 +83,7 @@ class SenderThread extends Thread {
         catch (IOException e) {
           e.printStackTrace();
         }
+        available = false;
         //int currenttime = millis();
         //while (millis() - currenttime < 60) {}
       }

@@ -78,7 +78,7 @@ int idle_x = 740;
 int idle_y = 50;
 int command_x = 740;
 int command_y = 400;
-int linespacing = 30;
+int linespacing = 20;
 int textsize1 = 15;
 int textsize2 = 20;*/
 
@@ -87,7 +87,7 @@ int new_base_x = 320;
 int status_x = new_base_x; // was base_x : 540
 int status_y = 20; // was 20
 int instruction_x = new_base_x; // was base_x : 540
-int instruction_y = 440; // was 180
+int instruction_y = 420;//440; // was 180
 int idle_x = new_base_x; // was base_x : 540
 int idle_y = 60;
 int command_x = new_base_x; // was base_x : 540
@@ -141,7 +141,7 @@ PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/tty.usbmodemfa131";//"/dev/ttyACM4";
+  String portName = "/dev/ttyACM0";//"/dev/tty.usbmodemfa131";
   droidmono_bold = loadFont("Calibri-Bold-48.vlw");
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
@@ -157,8 +157,8 @@ void setup()
     //String portName = Serial.list()[6]; // Select the Serial port number CUSTIMIZE!!!!!!!!!!!!! this is hardware specific 
   //String portName = "/dev/ttyACM0";
   //port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
-  //player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
-  player = minim.loadFile("/Users/msunardi/Music/amazonmp3/Keb_Mo/Suitcase/06_-_Rita.mp3");
+  player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
+  //player = minim.loadFile("/Users/msunardi/Music/amazonmp3/Keb_Mo/Suitcase/06_-_Rita.mp3");
   savedTime = millis();  //start internal timer, counts in milliseconds
   
   client = new Client(this, "127.0.0.1", 8008);
@@ -281,7 +281,7 @@ void draw()
    makeWarningBoxCenter("OBSTACLE DETECTED");
    //text("Obstacle on the way, CANNOT follow you anymore!!!", 300, 50);
    //writeInstructionStatus("Obstacle",1);
-   writeInstructionStatus("Something is too close.\nI can't move until the path is cleared.",0);
+   //writeInstructionStatus("Something is too close.\nI can't move until the path is cleared.",0);
    /*rectMode(CENTER);
    fill(255, 0, 0);
    stroke(255,255, 0);
@@ -297,11 +297,45 @@ void draw()
     int stopCenter_y = 140;
     int stopSide = 45;
  
+    int x = stopCenter_x;
+    int y = stopCenter_y;
     makeWarningBoxCenter("WALL FOLLOWING");
-    makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
+    /*makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
     writeInstructionStatus("Automatic mode", 1);
     writeInstructionStatus("WARNING: Automatic navigation engaged.\nPlease stay clear off my path or feel my wrath. Thank you.",0);
-    writeCommand("Hit Stop button to quit",1);
+    writeCommand("Hit Stop button to quit",1);*/
+    
+    float side_half = stopSide/2;
+    float side_off = side_half+(sqrt(2)*stopSide/2);
+    
+    stroke(255);
+    strokeWeight(3);
+    fill(255,0,0);
+    beginShape();
+    vertex(x-side_half, y-side_off);
+    vertex(x+side_half, y-side_off);
+    vertex(x+side_off, y-side_half);
+    vertex(x+side_off, y+side_half);
+    vertex(x+side_half, y+side_off);
+    vertex(x-side_half, y+side_off);
+    vertex(x-side_off, y+side_half);
+    vertex(x-side_off, y-side_half);
+    endShape(CLOSE);
+    
+    textSize((int)stopSide*0.9);
+    textAlign(CENTER, CENTER);
+    fill(255);
+    text("STOP", x, y);
+    
+    textSize(20);
+    fill(255);  // white
+    textAlign(CENTER, CENTER);
+    text("Automatic mode", status_x, status_y);
+    //text("WARNING - Automatic navigation engaged.", instruction_x, instruction_y);
+   
+    fill(0,255,0);  // green
+    text("Hit Stop button to quit", idle_x, idle_y);
+    
     
     kinect.convertRealWorldToProjective(handVector, mapHandVector); // convert hand position coordinates to projective
     
@@ -314,6 +348,12 @@ void draw()
       followWallFlag = false;
       handsTrackFlag = false;
     }
+    
+    if (millis() - frameTime > 60) {
+     ///println("Updating screen...");
+     updateScreen();
+     frameTime = millis();
+   }
       
  }
  else if(handsTrackFlag == true && !followWallFlag) {  // Check if we are tracking the hand?
@@ -326,7 +366,7 @@ void draw()
      previousCmd = "tracking hand";
    }
    if (!followHandFlag && rgbFlag) {
-     writeInstructionStatus("A hand has been detected.\nHover hand over buttons Into interact.",0);
+     //writeInstructionStatus("A hand has been detected.\nHover hand over buttons Into interact.",0);
      writeInstructionStatus("Tracking Hand", 1);
    }
    //updateScreen();
@@ -480,10 +520,10 @@ void draw()
     /// ------- MESSAGING ON THE BOTTOM OF THE SCREEN BASED ON SELECTED ACTION(S) --- ///
     if (followHandFlag) {
       writeInstructionStatus("Following Hand...",1);
-      writeInstructionStatus("Move hand around to lead the robot.",0);
+      //writeInstructionStatus("Move hand around to lead the robot.",0);
     } else if (!rgbFlag) {
       writeInstructionStatus("Depth Mode",1);
-      writeInstructionStatus("Now showing Depth image.",0);
+      //writeInstructionStatus("Now showing Depth image.",0);
     } 
     //updateScreen();
     //println(inFollowHandBox);
@@ -741,8 +781,10 @@ void draw()
     
     if ((passedTime < int(wait_thinking)) && !idle_wait_done) {
       
-      writeCommand("Hmm...what to do...",1);
-      text("Passed time: " + passedTime/1000 + "s", idle_x, idle_y+linespacing);
+      //writeCommand("Hmm...what to do...",1);
+      writeInstructionStatus("Hmm...what to do...",0);
+      //text("Passed time: " + passedTime/1000 + "s", idle_x, idle_y+linespacing);
+      text("Passed time: " + passedTime/1000 + "s", instruction_x, instruction_y+linespacing);
       //updateScreen();
       
     } else {
@@ -758,17 +800,19 @@ void draw()
     if (idle_wait_done && !kinect_flag && !speech_flag) {
       fill(0,255,0);
       if (idle_action==0) {
-        text("Roaming ...",idle_x,idle_y);
+        //text("Roaming ...",idle_x,idle_y);
+        text("Roaming ...",instruction_x,instruction_y);
         roaming(savedTime, idle_action_duration);
         //updateScreen();
       } else {
-        text("Searching ...",idle_x-10,idle_y);
+        //text("Searching ...",idle_x-10,idle_y);
+        text("Searching ...",instruction_x,instruction_y);
         searching(savedTime, idle_action_duration, dir);
         //updateScreen();
       }
     } 
     
-    writeInstructionStatus("Raise a hand\nto start interaction", 0);    
+    //writeInstructionStatus("Raise a hand\nto start interaction", 0);    
     //displayDirectionIndicator();
     
     //screen = get(0,0,width,height);
@@ -794,10 +838,10 @@ void draw()
    println("");*/
    if (millis() - frameTime > 60) {
      ///println("Updating screen...");
-     //updateScreen();
+     updateScreen();
      frameTime = millis();
    }
-   updateScreen();
+   //updateScreen();
    sendStatus();
    
    // try to get data from Arduino Mega/base
@@ -869,14 +913,16 @@ void writeInstructionStatus(String instruction, int type) {
 }
 
 void writeCommand(String command, int type) {
-  textSize(20);
+  textSize(22);
   textAlign(CENTER, CENTER);
   if (type==0) {
     fill(255,0,0);  // green
-    text(command, command_x, command_y);
+    //text(command, command_x, command_y);
+    text(command, instruction_x, instruction_y);
   } else if (type==1) {
     fill(0,255,0);  // green
-    text(command, idle_x, idle_y);
+    //text(command, idle_x, idle_y);
+    text(command, instruction_x, instruction_y);
   }
 }
 
@@ -996,7 +1042,8 @@ void roam(int passedTime) {
 void roaming(int savedTime, int duration) {
   int passed = millis() - savedTime;
   int remaining = (duration - passed)/1000;
-  text("Remaining time: " + remaining, idle_x,idle_y+linespacing); 
+  //text("Remaining time: " + remaining, idle_x,idle_y+linespacing); 
+  text("Remaining time: " + remaining, instruction_x,instruction_y+linespacing);
   if (passed < duration) {
     if (send != FORWARD) {
       base_cmd = "forward";
@@ -1017,10 +1064,12 @@ void searching(int savedTime, int duration, float dir) {
   int remaining = (duration - passed)/1000;
   int offset = 72;
   
-  text("Remaining time: " + remaining, idle_x,idle_y+linespacing);
+  //text("Remaining time: " + remaining, idle_x,idle_y+linespacing);
+  text("Remaining time: " + remaining, instruction_x,instruction_y+linespacing);
   if (passed < duration) {
     if (dir < 0.5) {
-      text("right", idle_x+offset, idle_y);
+      //text("right", idle_x+offset, idle_y);
+      text("right", instruction_x+offset, instruction_y);
       if (send != RIGHT) {
         base_cmd = "right";
         send=RIGHT;        
@@ -1028,7 +1077,8 @@ void searching(int savedTime, int duration, float dir) {
         println("Right "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
       }
     } else {
-      text("left", idle_x+offset, idle_y);
+      //text("left", idle_x+offset, idle_y);
+      text("left", instruction_x+offset, instruction_y);
       if (send != LEFT) {
         base_cmd = "left";
         send=LEFT;        
