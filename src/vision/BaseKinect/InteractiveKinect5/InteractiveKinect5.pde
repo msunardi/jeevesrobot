@@ -66,7 +66,7 @@ boolean speech_flag = false;
 boolean tablet_flag = false;
 boolean ipad_connected = false;
 
-boolean clientDebugFlag = false;
+boolean clientDebugFlag = true;
 
 boolean obstacle = false;
 //============== Text positions ===========
@@ -162,10 +162,10 @@ void setup()
   savedTime = millis();  //start internal timer, counts in milliseconds
   
   client = new Client(this, "127.0.0.1", 8008);
-  clientDebug("iam:kinect");
+  client.write("iam:kinect");
   
-  sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight(), false);
-  //sender.start(); 
+  sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight(), true);
+  sender.start(); 
   frameTime = millis();
 }
 //======================== Main Function=============//
@@ -794,10 +794,10 @@ void draw()
    println("");*/
    if (millis() - frameTime > 60) {
      ///println("Updating screen...");
-     updateScreen();
+     //updateScreen();
      frameTime = millis();
    }
-   
+   updateScreen();
    sendStatus();
    
    // try to get data from Arduino Mega/base

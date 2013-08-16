@@ -1,6 +1,6 @@
 class SenderThread extends Thread {
   int clientPort = 9100;
-  String clientIp = "131.252.240.26";
+  String clientIp = "131.252.241.96";
   DatagramSocket ds;
   //byte[] buffer = new byte[65536];
 
@@ -44,7 +44,7 @@ class SenderThread extends Thread {
       //img = get(0,0,width,height);
       //int currenttime = millis();
       //while (millis() - currenttime < 30) {}
-      
+      updateImage();
       BufferedImage bimg = new BufferedImage( img.width,img.height, BufferedImage.TYPE_INT_RGB );
     
       // Transfer pixels from localFrame to the BufferedImage
@@ -70,8 +70,8 @@ class SenderThread extends Thread {
       //packet = baStream.toByteArray();
     
       // Send JPEG data as a datagram
-      println("Sending datagram with " + packet.length + " bytes");
-      if ((packet.length > 10000) && (millis() - frameTime > 33) && debug) {
+      if (debug) println("Sending datagram with " + packet.length + " bytes");
+      if ((packet.length > 10000) && (millis() - frameTime > 33)) {
         try {
           print("Trying to send...");
           //ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName("localhost"),clientPort));
