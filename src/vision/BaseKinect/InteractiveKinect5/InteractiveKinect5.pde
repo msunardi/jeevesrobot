@@ -1250,6 +1250,7 @@ void sendStatus() {
     json += "{\"followhand_flag\" : \"" + followHandFlag + end;
     json += "{\"playmusic_flag\" : \"" + playMusicFlag + end;
     json += "{\"rgb_flag\" : \"" + rgbFlag + end;
+    json += "{\"followwall_flag\" : \"" + followWallFlag + end;
     json += "{\"base_cmd\" : \"" + base_cmd + end;
     
     /*json += "{\"idle\" : ";
@@ -1289,6 +1290,8 @@ void adjustStatus() {
 }
 
 void clientDebug(String message) {
-  if (clientDebugFlag)
+  if (clientDebugFlag) {
+    println("Trying to send message: " + message);
     client.write(message);
+  }
 }  
