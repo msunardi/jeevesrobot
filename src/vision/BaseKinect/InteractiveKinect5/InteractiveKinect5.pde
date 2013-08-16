@@ -66,8 +66,9 @@ boolean speech_flag = false;
 boolean tablet_flag = false;
 boolean ipad_connected = false;
 
+boolean clientDebugFlag = false;
 
-Boolean obstacle = false;
+boolean obstacle = false;
 //============== Text positions ===========
 /*int status_x = 740;
 int status_y = 20;
@@ -124,6 +125,8 @@ boolean playMusicFlag = false;
 boolean inRgbBox = false;
 boolean rgbFlag = true;
 boolean idleFlag = true;
+boolean followWallModeFlag = false;
+boolean inFollowWallBox = false;
 
 //============== Screen streaming variables =====
 // This is the port we are sending to
@@ -137,7 +140,7 @@ PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/tty.usbmodemfd121";//"/dev/ttyACM4";
+  String portName = "/dev/tty.usbmodemfa131";//"/dev/ttyACM4";
   droidmono_bold = loadFont("Calibri-Bold-48.vlw");
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
@@ -158,10 +161,10 @@ void setup()
   savedTime = millis();  //start internal timer, counts in milliseconds
   
   client = new Client(this, "127.0.0.1", 8008);
-  client.write("iam:kinect");
+  clientDebug("iam:kinect");
   
-  sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight());
-  sender.start(); 
+  sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight(), false);
+  //sender.start(); 
   frameTime = millis();
 }
 //======================== Main Function=============//
@@ -221,17 +224,17 @@ void draw()
    if (send != STOP){ // If so, then check if we have already sent this command
    send = STOP;// if not, set the send variable to STOP
    port.write(send); // send it   
-   println("STOP, obstacle  "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
+   println("STOP, obstacle "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
    base_cmd = "stop";
-   client.write(formatMessage("base", "stop"));
+   clientDebug(formatMessage("base", "stop"));
     if (previousCmd != "tooclose") {
-        client.write(formatMessage("status","tooclose"));
+        clientDebug(formatMessage("status","tooclose"));
         previousCmd = "tooclose";
         
       }
     obstacle = true;
     handsTrackFlag = false;
-    followHandFlag = false;
+    //followHandFlag = false;
     idleFlag = false; 
    }
    
@@ -251,10 +254,10 @@ void draw()
    textAlign(CENTER, CENTER);
    fill(255, 0, 0);*/
    rectMode(CENTER);
-   fill(255,255,0, 235);
-   noStroke();
-   //rect(status_x, status_y, 200, 80);
    
+   //rect(status_x, status_y, 200, 80);
+   /*fill(255,255,0, 235);
+   noStroke();
    quad(status_x-220, 200, status_x+220, 200, status_x+250, 240, status_x-250, 240);
    quad(status_x-250, 240, status_x+250, 240, status_x+220, 280, status_x-220, 280);
    fill(255,255,0, 215);
@@ -273,7 +276,8 @@ void draw()
    textSize(22);
    
    textFont(droidmono_bold);
-   text("OBSTACLE DETECTED", status_x, status_y+220);
+   text("OBSTACLE DETECTED", status_x, status_y+220);*/
+   makeWarningBoxCenter("OBSTACLE DETECTED");
    //text("Obstacle on the way, CANNOT follow you anymore!!!", 300, 50);
    //writeInstructionStatus("Obstacle",1);
    writeInstructionStatus("Something is too close.\nI can't move until the path is cleared.",0);
@@ -291,12 +295,12 @@ void draw()
    idleFlag = false; // it's not idle anymore
    
    if (previousCmd != "tracking hand") {
-     client.write(formatMessage("all","kinect_flag:true"));
-     client.write(formatMessage("status","trackhand"));
-     client.write(formatMessage("arm","wave"));
+     clientDebug(formatMessage("all","kinect_flag:true"));
+     clientDebug(formatMessage("status","trackhand"));
+     clientDebug(formatMessage("arm","wave"));
      previousCmd = "tracking hand";
    }
-   if (!followHandFlag && !rgbFlag) {
+   if (!followHandFlag && rgbFlag) {
      writeInstructionStatus("A hand has been detected.\nHover hand over buttons Into interact.",0);
      writeInstructionStatus("Tracking Hand", 1);
    }
@@ -341,8 +345,9 @@ void draw()
     makeCommandBox("Follow Wall", followWallButton_x, followWallButton_y, buttonWidth, buttonHeight);
         
 //============== end of display ========================//
-    //if (mapHandVector.x-30 > 100 && mapHandVector.x-30 < 230 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inPlayMusicBox){
+    
     //must substract by buttonWidth/HeightOffset because the button_x/y are in center
+    /// ------- PLAY MUSIC BUTTON -------- ///
     if (mapHandVector.x > playButton_x-buttonWidthOffset && mapHandVector.x < playButton_x+buttonWidthOffset && mapHandVector.y > playButton_y-buttonHeightOffset && mapHandVector.y < playButton_y+buttonHeightOffset && !inPlayMusicBox){
       // check if the hand is on the music button we created in the display?
       if(!player.isPlaying() && song.equals("Play Music") && !playMusicFlag){// if so, check if the music is not playing
@@ -364,8 +369,9 @@ void draw()
     if (mapHandVector.x < playButton_x-buttonWidthOffset || mapHandVector.x > playButton_x+buttonWidthOffset || mapHandVector.y < playButton_y-buttonHeightOffset || mapHandVector.y > playButton_y+buttonHeightOffset) {
       inPlayMusicBox = false; 
     }
-      
-    //if (mapHandVector.x-30 > 300 && mapHandVector.x-30 < 430 && mapHandVector.y > 100 && mapHandVector.y < 150 && !inFollowHandBox){
+    /// ------- END PLAY MUSIC BUTTON -------- ///
+    
+    /// ------- FOLLOW HAND BUTTON -------- ///    
     if (mapHandVector.x-30 > followButton_x-buttonWidthOffset && mapHandVector.x-30 < followButton_x+buttonWidthOffset && mapHandVector.y > followButton_y-buttonHeightOffset && mapHandVector.y < followButton_y+buttonHeightOffset && !inFollowHandBox){
       // check if the hand is on the music button we created in the display?
       buttonTimeout = millis();
@@ -389,18 +395,21 @@ void draw()
       inFollowHandBox = false;      
     }
     
+    /// ------- END FOLLOW HAND BUTTON -------- ///
+    
+    /// ------- DEPTH VS RGB BUTTON -------- ///
     if (mapHandVector.x-30 > rgbButton_x-buttonWidthOffset && mapHandVector.x-30 < rgbButton_x+buttonWidthOffset && mapHandVector.y > rgbButton_y-buttonHeightOffset && mapHandVector.y < rgbButton_y+buttonHeightOffset && !inRgbBox){
       // check if the hand is on the music button we created in the display?
       buttonTimeout = millis();
-      if (rgbmode.equals("Show Depth") && !rgbFlag) {
+      if (rgbmode.equals("Show Depth") && rgbFlag) {
         rgbmode = "Show RGB";
-        rgbFlag = true;
+        rgbFlag = false;
         // Bootstrapping retrieving data from Arduino here (to be removed)
         getDataFlag = true;
        
       } else if (rgbmode.equals("Show RGB")) {
         rgbmode = "Show Depth";
-        rgbFlag = false;
+        rgbFlag = true;
         //send = STOP;// if not, set the send variables to STOP to be sent
         port.write(STOP);// send it  
         base_cmd = "stop";      
@@ -412,12 +421,14 @@ void draw()
       inRgbBox = false;      
     }
     
+    /// ------- END DEPTH VS RGB BUTTON -------- ///
+    
     if (followHandFlag) {
       writeInstructionStatus("Following Hand...",1);
-      writeInstructionStatus("Move hand around\nto lead the robot.",0);
-    } else if (rgbFlag) {
+      writeInstructionStatus("Move hand around to lead the robot.",0);
+    } else if (!rgbFlag) {
       writeInstructionStatus("Depth Mode",1);
-      writeInstructionStatus("Now showing\nDepth image.",0);
+      writeInstructionStatus("Now showing Depth image.",0);
     }
     //updateScreen();
     //println(inFollowHandBox);
@@ -437,7 +448,7 @@ void draw()
          
           port.write(send);// send it
           println("Right  "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base",base_cmd)); 
+          clientDebug(formatMessage("base",base_cmd)); 
           //======== display the command =======//
           
           //println("rotofalse, right");
@@ -478,7 +489,7 @@ void draw()
          
           port.write(send);//send it
           println("Left "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base",base_cmd));
+          clientDebug(formatMessage("base",base_cmd));
           //===== display the command ======//
           writeCommand("Left", 0);
 
@@ -515,7 +526,7 @@ void draw()
                 send = STOP;// if not, set the send variables to STOP to be sent
                 port.write(send);// send it
                 println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-                client.write(formatMessage("base","stop"));
+                clientDebug(formatMessage("base","stop"));
                 //==== display the command====//
                
               } else {// otherwise, we do not need to re-send the command, just inform the user
@@ -540,7 +551,7 @@ void draw()
           port.write(send);// send it
           base_cmd = "reverse";
           println("BACKWARD "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base",base_cmd));
+          clientDebug(formatMessage("base",base_cmd));
           //====== display the backaward command============//
           
         } else{// otherwise, we do not need to re-send the back ward command again
@@ -569,7 +580,7 @@ void draw()
           port.write(send);// send it
           base_cmd = "forward";
           println("FORWARD "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base",base_cmd));
+          clientDebug(formatMessage("base",base_cmd));
           //======= display the FORWARD command============//
           
         }else{//otherwise, we do not need to resend the FORWARD command again
@@ -602,7 +613,7 @@ void draw()
           send = STOP;// if not, set the send variable to STOP to be sent
           port.write(send);// send it
           println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base","stop"));
+          clientDebug(formatMessage("base","stop"));
               
         }else{//otherwise, we do not need to re-send the STOP command again
         //============= Display the STOP command ========================//
@@ -642,10 +653,10 @@ void draw()
     idleFlag = true;
     if (previousCmd != "idle") {
       println("Idle mode...");
-      client.write(formatMessage("base","idle"));
+      clientDebug(formatMessage("base","idle"));
       
       kinect_flag = false;  // set kinect_flag to false
-      client.write(formatMessage("all","kinect_flag:false")); // when kinect_flag set to false, tell all the clients
+      clientDebug(formatMessage("all","kinect_flag:false")); // when kinect_flag set to false, tell all the clients
       
       previousCmd = "idle";
       wait_thinking = int(random(3000, 5000));
@@ -666,7 +677,7 @@ void draw()
           port.write(send);// send it
           base_cmd = "stop";
           println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
-          client.write(formatMessage("base",base_cmd));
+          clientDebug(formatMessage("base",base_cmd));
       }
     }
     
@@ -685,8 +696,8 @@ void draw()
         idle_wait_done = true;  
       }          
     }
-    println("kinect_flag: "+kinect_flag);
-    println("speech_flag: "+speech_flag);
+    //println("kinect_flag: "+kinect_flag);
+    //println("speech_flag: "+speech_flag);
     
     //if (idle_wait_done) { // NOTE*** ADD CHECKS; only execute if all interaction flags are false: kinect_flag, speech_flag, and tablet_flag
     if (idle_wait_done && !kinect_flag && !speech_flag) {
@@ -727,7 +738,7 @@ void draw()
    }
    println("");*/
    if (millis() - frameTime > 60) {
-     println("Updating screen...");
+     ///println("Updating screen...");
      updateScreen();
      frameTime = millis();
    }
@@ -835,6 +846,30 @@ void makeStatusBoxTop() {
   
 }
 
+void makeWarningBoxCenter(String message) {
+   fill(255,255,0, 235);
+   noStroke();
+   quad(status_x-220, 200, status_x+220, 200, status_x+250, 240, status_x-250, 240);
+   quad(status_x-250, 240, status_x+250, 240, status_x+220, 280, status_x-220, 280);
+   fill(255,255,0, 215);
+   quad(status_x-260, 200, status_x-227, 200, status_x-257, 240, status_x-290, 240);
+   quad(status_x-290, 240, status_x-257, 240, status_x-227, 280, status_x-260, 280);
+   quad(status_x+260, 200, status_x+227, 200, status_x+257, 240, status_x+290, 240);
+   quad(status_x+290, 240, status_x+257, 240, status_x+227, 280, status_x+260, 280);
+   fill(255,255,0, 185);
+   quad(status_x-285, 200, status_x-267, 200, status_x-297, 240, status_x-315, 240);
+   quad(status_x-315, 240, status_x-297, 240, status_x-267, 280, status_x-285, 280);
+   quad(status_x+285, 200, status_x+267, 200, status_x+297, 240, status_x+315, 240);
+   quad(status_x+315, 240, status_x+297, 240, status_x+267, 280, status_x+285, 280);
+   
+   textAlign(CENTER,CENTER);
+   fill(255,0,0);
+   textSize(22);
+   
+   textFont(droidmono_bold);
+   text(message, status_x, status_y+220);
+}
+
 void displayDirectionIndicator() {
   rectMode(CENTER);
   fill(0);
@@ -893,8 +928,8 @@ void roaming(int savedTime, int duration) {
   } else {
     idle_wait_done = false;
     previousCmd = "roaming";
-    client.write(formatMessage("base","idle"));
-    client.write(formatMessage("all","kinect_flag:false"));
+    clientDebug(formatMessage("base","idle"));
+    clientDebug(formatMessage("all","kinect_flag:false"));
   }
       
 }
@@ -925,8 +960,8 @@ void searching(int savedTime, int duration, float dir) {
   } else {
     idle_wait_done = false;
     previousCmd = "searching";
-    client.write(formatMessage("base","idle"));
-    client.write(formatMessage("all","kinect_flag:false"));
+    clientDebug(formatMessage("base","idle"));
+    clientDebug(formatMessage("all","kinect_flag:false"));
   }
 }
 
@@ -993,7 +1028,7 @@ void parseMessage(String msg) {
     }*/
     
     String client_msg = "msg:OK. I received a command " +command.toUpperCase() + " from " + message[0].toUpperCase();
-    //client.write(client_msg);
+    //clientDebug(client_msg);
     println(client_msg);
     if (speech_flag) cmdToDisplay = command;
     // DEBUGGING STUFF
@@ -1060,7 +1095,7 @@ void parseMessage(String msg) {
       } else {
         println(message[2] + message[3]);
       }
-      println(flag + ": " + value);
+      //println(flag + ": " + value);
   } else {
     println("Message length is: " + message.length);
     //println(msg);
@@ -1151,8 +1186,8 @@ void sendStatus() {
     json += "{\"base_cmd\" : \"" + base_cmd + "\"},";*/
     json += "]}\n";
     
-  client.write("json!"+json);
-  //client.write("json!{\"client\":\"kinect\"}\n");  
+  clientDebug("json!"+json);
+  //clientDebug("json!{\"client\":\"kinect\"}\n");  
      
 }
 
@@ -1165,7 +1200,7 @@ void adjustStatus() {
          playMusicFlag = false;         
     }
     if (followHandFlag) {
-        
+        followhand = "Follow Hand";
         followHandFlag = false;
         //send = STOP;// if not, set the send variables to STOP to be sent
         port.write(STOP);// send it 
@@ -1173,4 +1208,8 @@ void adjustStatus() {
     }
   }
 }
-    
+
+void clientDebug(String message) {
+  if (clientDebugFlag)
+    client.write(message);
+}  

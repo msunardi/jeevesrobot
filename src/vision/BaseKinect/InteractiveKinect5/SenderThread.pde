@@ -6,13 +6,15 @@ class SenderThread extends Thread {
 
   boolean running;
   boolean available;
+  boolean debug;
   PImage img;
   int frameTime;
 
-  SenderThread(int width, int height) {
+  SenderThread(int width, int height, boolean debug) {
     img = createImage(width, height, RGB);
     running = false;
     available = true;
+    debug = debug;
     frameTime = millis();
   
     try {
@@ -69,7 +71,7 @@ class SenderThread extends Thread {
     
       // Send JPEG data as a datagram
       println("Sending datagram with " + packet.length + " bytes");
-      if ((packet.length > 10000) && (millis() - frameTime > 33)) {
+      if ((packet.length > 10000) && (millis() - frameTime > 33) && debug) {
         try {
           print("Trying to send...");
           //ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName("localhost"),clientPort));
