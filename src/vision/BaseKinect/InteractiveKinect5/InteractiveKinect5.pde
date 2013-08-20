@@ -141,7 +141,7 @@ PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/ttyACM0";//"/dev/tty.usbmodemfa131";
+  String portName = "/dev/ttyACM1";//"/dev/tty.usbmodemfa131";
   droidmono_bold = loadFont("Calibri-Bold-48.vlw");
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
@@ -347,6 +347,13 @@ void draw()
     if (mapHandVector.x-30 > stopCenter_x-buttonWidthOffset && mapHandVector.x-30 < stopCenter_x+buttonWidthOffset && mapHandVector.y > stopCenter_y-buttonWidthOffset && mapHandVector.y < stopCenter_y+buttonWidthOffset) {
       followWallFlag = false;
       handsTrackFlag = false;
+      if (send != STOP) { // If so, then check if we have already sent this command
+        send = STOP;// if not, set the send variable to STOP
+        port.write(send); // send it   
+        println("STOP, obstacle "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
+        base_cmd = "stop";
+        clientDebug(formatMessage("base", "stop"));
+      }
     }
     
     if (millis() - frameTime > 60) {
@@ -502,10 +509,15 @@ void draw()
       buttonTimeout = millis();
       if (!followWallFlag) {
         
-        followWallFlag = true;       
+        followWallFlag = true;
+     
+        port.write('f'); // send it   
+        println("Wall following start"); // print the sent value to the console for checking, (unnecessary but useful for debuging)
+        base_cmd = "wallfollowing";
+        clientDebug(formatMessage("base", "wallfollowing"));       
        
       }
-      else println("blah");
+      //else println("blah");
       
       inFollowWallBox = true;
       println("IN FOLLOW WALL BOX");      
