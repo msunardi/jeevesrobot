@@ -61,29 +61,20 @@ String messageFromServer = "";
 String previousType = "";
 String previousCmd = "";
 String cmdToDisplay = "";
+
 boolean kinect_flag = false;
 boolean speech_flag = false;
 boolean tablet_flag = false;
 boolean ipad_connected = false;
+boolean obstacle = false;
 
 //=============== DEBUG Variables ========
 boolean onScreenInstructionDebugFlag = true;
 boolean onScreenCommandDebugFlag = true;
-boolean clientDebugFlag = true;
-
-boolean obstacle = false;
+boolean clientDebugFlag = false;
+boolean printDebugFlag = false;
 //============== Text positions ===========
-/*int status_x = 740;
-int status_y = 20;
-int instruction_x = 740;
-int instruction_y = 180;
-int idle_x = 740;
-int idle_y = 50;
-int command_x = 740;
-int command_y = 400;
-int linespacing = 20;
-int textsize1 = 15;
-int textsize2 = 20;*/
+
 
 int new_base_x = 320;
 
@@ -144,7 +135,7 @@ PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/tty.usbmodemfa131";//"/dev/ttyACM1";
+  String portName = "/dev/tty.usbmodemfd121";//"/dev/ttyACM1";
   droidmono_bold = loadFont("Calibri-Bold-48.vlw");
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
@@ -152,6 +143,7 @@ void setup()
   kinect.enableDepth(); // enable the depth camera of the kinect
   kinect.enableGesture(); // enable the Gesture class of the Kinect
   kinect.enableHands(); // enable the hands class of the kienct
+  kinect.enableUser(SimpleOpenNI.SKEL_PROFILE_ALL);
   kinect.enableRGB();
   kinect.addGesture("RaiseHand"); // add the RaiseHand Gesture
   minim = new Minim(this); // initialize the Minim object
@@ -167,7 +159,7 @@ void setup()
   client = new Client(this, "127.0.0.1", 8008);
   client.write("iam:kinect");
   
-  sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight(), true);
+  sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight(), false);
   sender.start(); 
   frameTime = millis();
 }
@@ -179,6 +171,11 @@ void draw()
   background(0); // clean the background with black color
   close = 6000; // set the closest point to 6000 mm as a starting point 
   kinect.update(); // update the kinect
+  int[] userList = kinect.getUsers();
+  
+  if (userList.length > 0) println("Users detected: "+userList.length);
+  else println("I see nobody");
+  
   if (rgbFlag) {
     screen = kinect.rgbImage();
   } else {
@@ -842,7 +839,7 @@ void draw()
      
      int sdata = 0;
      if (port.available() > 0) {
-       println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+       printlnDebug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
        while (port.available() > 0 && getDataFlag) {
          sdata = port.read();
          
@@ -870,7 +867,7 @@ void draw()
         int btime = millis();
         //while (millis() - btime < 5000) {}
       } else {
-        println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA NOT AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        printlnDebug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA NOT AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
       } // else if port.available = 0, do nothing
     } 
     //else { // if getDataFlag = false
@@ -1097,6 +1094,69 @@ void searching(int savedTime, int duration, float dir) {
   }
 }
 
+//==============
+void onNewUser(int userId)
+{
+  println("onNewUser - userId: " + userId);
+  println("  start pose detection");
+  
+  //if(autoCalib)
+  //  kinect.requestCalibrationSkeleton(userId,true);
+  //else    
+    kinect.startPoseDetection("Psi",userId);
+}
+
+void onLostUser(int userId)
+{
+  println("onLostUser - userId: " + userId);
+}
+
+void onExitUser(int userId)
+{
+  println("onExitUser - userId: " + userId);
+}
+
+void onReEnterUser(int userId)
+{
+  println("onReEnterUser - userId: " + userId);
+}
+
+void onStartCalibration(int userId)
+{
+  println("onStartCalibration - userId: " + userId);
+}
+
+void onEndCalibration(int userId, boolean successfull)
+{
+  println("onEndCalibration - userId: " + userId + ", successfull: " + successfull);
+  
+  if (successfull) 
+  { 
+    println("  User calibrated !!!");
+    kinect.startTrackingSkeleton(userId); 
+  } 
+  else 
+  { 
+    println("  Failed to calibrate user !!!");
+    println("  Start pose detection");
+    kinect.startPoseDetection("Psi",userId);
+  }
+}
+
+void onStartPose(String pose,int userId)
+{
+  println("onStartPose - userId: " + userId + ", pose: " + pose);
+  println(" stop pose detection");
+  
+  kinect.stopPoseDetection(userId); 
+  kinect.requestCalibrationSkeleton(userId, true);
+ 
+}
+
+void onEndPose(String pose,int userId)
+{
+  println("onEndPose - userId: " + userId + ", pose: " + pose);
+}
 
 void onRecognizeGesture(String strGesture, PVector idPosition, PVector endPosition)
 {// OpenNI callback function when hand gesture is recognized
@@ -1347,4 +1407,16 @@ void clientDebug(String message) {
     println("Trying to send message: " + message);
     client.write(message);
   }
-}  
+}
+
+void printDebug(String message) {
+  if (printDebugFlag) {
+    print(message);
+  }
+}
+
+void printlnDebug(String message) {
+  if (printDebugFlag) {
+    println(message);
+  }
+}
