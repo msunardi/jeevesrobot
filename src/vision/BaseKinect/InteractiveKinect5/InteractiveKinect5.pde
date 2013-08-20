@@ -55,7 +55,7 @@ boolean idle_wait_done = false;
 float dir=0;
 
 int buttonTimeout = 0;
-
+int searching_or_hello_timeout = 0;
 //============== Client variables ========
 String messageFromServer = "";
 String previousType = "";
@@ -67,6 +67,8 @@ boolean speech_flag = false;
 boolean tablet_flag = false;
 boolean ipad_connected = false;
 boolean obstacle = false;
+boolean user_detected = false;
+boolean searching_or_hello = false;
 
 //=============== DEBUG Variables ========
 boolean onScreenInstructionDebugFlag = true;
@@ -135,9 +137,10 @@ PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/tty.usbmodemfd121";//"/dev/ttyACM1";
+  String portName = "/dev/tty.usbmodemfa131";//"/dev/ttyACM1";
   droidmono_bold = loadFont("Calibri-Bold-48.vlw");
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
+  port.write(STOP);
   kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
   kinect.setMirror(true); // Mirror the depth image
   kinect.enableDepth(); // enable the depth camera of the kinect
@@ -173,8 +176,6 @@ void draw()
   kinect.update(); // update the kinect
   int[] userList = kinect.getUsers();
   
-  if (userList.length > 0) println("Users detected: "+userList.length);
-  else println("I see nobody");
   
   if (rgbFlag) {
     screen = kinect.rgbImage();
@@ -192,6 +193,22 @@ void draw()
   //screen = get(0,0,width,height);
   //sender.setImage(screen);
   //println(width+"-"+height);
+  
+  if (userList.length > 0) {
+    println("Users detected: "+userList.length);
+    user_detected = true;
+    makeWarningBoxCenter("HELLO, THERE!");
+    if (send != STOP){ // If so, then check if we have already sent this command
+      send = STOP;// if not, set the send variable to STOP
+      port.write(send); // send it   
+      println("STOP! User detected "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
+      base_cmd = "stop";
+    }
+  } else {
+    println("I see nobody");
+    user_detected = false;
+    handsTrackFlag = false;
+  }
   
   rectMode(CORNER);
   noStroke();
@@ -725,6 +742,12 @@ void draw()
       //displayDirectionIndicator();
       //updateScreen();
    
+  } else if (user_detected) {
+    
+    if (userList.length > 1) writeInstructionStatus("Humans Detected", 1, true);
+    else writeInstructionStatus("Human Detected", 1, true);
+    if (onScreenInstructionDebugFlag) text("Hello? ...",idle_x-20,idle_y);
+    else text("Hello? ...",instruction_x-20,instruction_y);
   } else { // otherwise, the hand is not being tracked. could be the begining of session, or hand is lost. Display instruction to detect hand  
     obstacle = false;
     idleFlag = true;
@@ -761,7 +784,7 @@ void draw()
     passedTime = millis() - savedTime;
     writeInstructionStatus("Idle", 1, true);
     textAlign(CENTER,CENTER);
-    if ((passedTime < int(wait_thinking)) && !idle_wait_done) {
+    if ((passedTime < int(wait_thinking)) && !idle_wait_done && !user_detected) {
       
       if (onScreenInstructionDebugFlag) {
         writeCommand("Hmm...what to do...",1, onScreenCommandDebugFlag);
@@ -778,24 +801,27 @@ void draw()
       if (!idle_wait_done) {
         savedTime = millis();  // Record time after "thinking" phase as reference for duration of idle action
         idle_wait_done = true;  
-      }          
+      }
+      
     }
     //println("kinect_flag: "+kinect_flag);
     //println("speech_flag: "+speech_flag);
     
-    //if (idle_wait_done) { // NOTE*** ADD CHECKS; only execute if all interaction flags are false: kinect_flag, speech_flag, and tablet_flag
-    if (idle_wait_done && !kinect_flag && !speech_flag) {
+    //if (idle_wait_done) { // NOTE*** ADD CHECKS; only execute if all interaction flags are false: kinect_flag, speech_flag, tablet_flag, and user_detected
+    if (idle_wait_done && !kinect_flag && !speech_flag && !user_detected) {
       fill(0,255,0);
-      if (idle_action==0) {
+      
+      if (idle_action==0  && !user_detected) {
         if (onScreenInstructionDebugFlag) text("Roaming ...",idle_x,idle_y);
         else text("Roaming ...",instruction_x,instruction_y);
         roaming(savedTime, idle_action_duration);
-        //updateScreen();
+        
       } else {
+          
         if (onScreenInstructionDebugFlag) text("Searching ...",idle_x-20,idle_y);
         else text("Searching ...",instruction_x-20,instruction_y);
         searching(savedTime, idle_action_duration, dir);
-        //updateScreen();
+          
       }
     } 
     
