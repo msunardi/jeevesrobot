@@ -131,16 +131,17 @@ int clientPort = 9100;
 // This is our object that sends UDP out
 DatagramSocket ds;
 PImage screen;
+PImage user_icon, user_icon_multiple;
 SenderThread sender;
 
 PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/tty.usbmodemfa131";//"/dev/ttyACM1";
-  droidmono_bold = loadFont("Calibri-Bold-48.vlw");
+  String portName = "/dev/tty.usbmodemfa131";//"/dev/ttyACM1"; 
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   port.write(STOP);
+  
   kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
   kinect.setMirror(true); // Mirror the depth image
   kinect.enableDepth(); // enable the depth camera of the kinect
@@ -149,6 +150,7 @@ void setup()
   kinect.enableUser(SimpleOpenNI.SKEL_PROFILE_ALL);
   kinect.enableRGB();
   kinect.addGesture("RaiseHand"); // add the RaiseHand Gesture
+  
   minim = new Minim(this); // initialize the Minim object
   //size (kinect.depthWidth()+200, kinect.depthHeight()+100); // display the depth image and extra space for User Interface // ORIGINAL VALUES
   size (kinect.depthWidth(), kinect.depthHeight()); // display the depth image and extra space for User Interface
@@ -161,6 +163,10 @@ void setup()
   
   client = new Client(this, "127.0.0.1", 8008);
   client.write("iam:kinect");
+  
+  droidmono_bold = loadFont("Calibri-Bold-48.vlw");
+  user_icon = loadImage("person_icon2_30x30.png");
+  user_icon_multiple = loadImage("person_icon2multiple_30x30.png");
   
   sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight(), false);
   sender.start(); 
@@ -197,7 +203,9 @@ void draw()
   if (userList.length > 0) {
     println("Users detected: "+userList.length);
     user_detected = true;
-    makeWarningBoxCenter("HELLO, THERE!");
+    //makeNotificationBoxCenter("HELLO, THERE!");
+    if (userList.length > 1) image(user_icon_multiple, 590,10);
+    else image(user_icon, 590,10);
     if (send != STOP){ // If so, then check if we have already sent this command
       send = STOP;// if not, set the send variable to STOP
       port.write(send); // send it   
@@ -212,9 +220,10 @@ void draw()
   
   rectMode(CORNER);
   noStroke();
-  fill(0,0,0,127);
-  //rect(440, 0, 200, 480); // right side
+  fill(0,0,0,127);  
   rect(0, 400, 640, 80); // bottom
+  //fill(255);
+  //rect(590, 10, 30, 30); // right side
   
   makeStatusBoxTop();
   //quad(status_x-150, 0, status_x+150, 0, status_x+120, 40, status_x-120, 40); // TOP status/mode
@@ -995,6 +1004,7 @@ void makeStatusBoxTop() {
   
 }
 
+// ========== MAKE YELLOW WARNING SIGN =================
 void makeWarningBoxCenter(String message) {
    fill(255,255,0, 235);
    noStroke();
@@ -1013,6 +1023,35 @@ void makeWarningBoxCenter(String message) {
    
    textAlign(CENTER,CENTER);
    fill(255,0,0);
+   textSize(22);
+   
+   textFont(droidmono_bold);
+   text(message, status_x, status_y+220);
+}
+
+// ========== MAKE GREEN NOTIFICATION SIGN =================
+void makeNotificationBoxCenter(String message) {
+  int y_top = 280;
+  int y_mid = 320;
+  int y_btm = 360;
+  
+   fill(57,220,57, 235);
+   noStroke();
+   quad(status_x-220, y_top, status_x+220, y_top, status_x+250, y_mid, status_x-250, y_mid);
+   quad(status_x-250, y_mid, status_x+250, y_mid, status_x+220, y_btm, status_x-220, y_btm);
+   fill(57,220,57, 215);
+   quad(status_x-260, y_top, status_x-227, y_top, status_x-257, y_mid, status_x-290, y_mid);
+   quad(status_x-290, y_mid, status_x-257, y_mid, status_x-227, y_btm, status_x-260, y_btm);
+   quad(status_x+260, y_top, status_x+227, y_top, status_x+257, y_mid, status_x+290, y_mid);
+   quad(status_x+290, y_mid, status_x+257, y_mid, status_x+227, y_btm, status_x+260, y_btm);
+   fill(57,220,57, 185);
+   quad(status_x-285, y_top, status_x-267, y_top, status_x-297, y_mid, status_x-315, y_mid);
+   quad(status_x-315, y_mid, status_x-297, y_mid, status_x-267, y_btm, status_x-285, y_btm);
+   quad(status_x+285, y_top, status_x+267, y_top, status_x+297, y_mid, status_x+315, y_mid);
+   quad(status_x+315, y_mid, status_x+297, y_mid, status_x+267, y_btm, status_x+285, y_btm);
+   
+   textAlign(CENTER,CENTER);
+   fill(255);
    textSize(22);
    
    textFont(droidmono_bold);
