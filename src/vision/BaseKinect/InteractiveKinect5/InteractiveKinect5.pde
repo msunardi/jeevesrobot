@@ -131,7 +131,7 @@ int clientPort = 9100;
 // This is our object that sends UDP out
 DatagramSocket ds;
 PImage screen;
-PImage user_icon, user_icon_multiple;
+PImage user_icon, user_icon_multiple, stop_sign;
 SenderThread sender;
 
 PFont droidmono_bold;
@@ -167,6 +167,7 @@ void setup()
   droidmono_bold = loadFont("Calibri-Bold-48.vlw");
   user_icon = loadImage("person_icon2_30x30.png");
   user_icon_multiple = loadImage("person_icon2multiple_30x30.png");
+  stop_sign = loadImage("stop_sign.png");
   
   sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight(), false);
   sender.start(); 
@@ -304,7 +305,8 @@ void draw()
     int x = stopCenter_x;
     int y = stopCenter_y;
     makeWarningBoxCenter("WALL FOLLOWING");
-    makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
+    //makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
+    image(stop_sign, stopCenter_x, stopCenter_y);
     /*writeInstructionStatus("Automatic mode", 1,onScreenInstructionDebugFlag);
     writeInstructionStatus("WARNING: Automatic navigation engaged.\nPlease stay clear off my path or feel my wrath. Thank you.",0, onScreenInstructionDebugFlag);
     writeCommand("Hit Stop button to quit",1, onScreenCommandDebugFlag);*/
