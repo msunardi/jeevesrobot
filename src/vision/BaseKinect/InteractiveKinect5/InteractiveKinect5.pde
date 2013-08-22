@@ -69,9 +69,10 @@ boolean ipad_connected = false;
 boolean obstacle = false;
 boolean user_detected = false;
 boolean searching_or_hello = false;
+boolean stopping_from_wallfollowing = false;
 
 //=============== DEBUG Variables ========
-boolean onScreenInstructionDebugFlag = true;
+boolean onScreenInstructionDebugFlag = false;
 boolean onScreenCommandDebugFlag = true;
 boolean clientDebugFlag = false;
 boolean printDebugFlag = false;
@@ -138,7 +139,7 @@ PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/tty.usbmodemfa131";//"/dev/ttyACM1"; 
+  String portName = "/dev/ttyACM0"; //"/dev/tty.usbmodemfa131";//
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   port.write(STOP);
   
@@ -157,8 +158,8 @@ void setup()
     //String portName = Serial.list()[6]; // Select the Serial port number CUSTIMIZE!!!!!!!!!!!!! this is hardware specific 
   //String portName = "/dev/ttyACM0";
   //port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
-  //player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
-  player = minim.loadFile("/Users/msunardi/Music/amazonmp3/Keb_Mo/Suitcase/06_-_Rita.mp3");
+ player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
+ //player = minim.loadFile("/Users/msunardi/Music/amazonmp3/Keb_Mo/Suitcase/06_-_Rita.mp3");
   savedTime = millis();  //start internal timer, counts in milliseconds
   
   client = new Client(this, "127.0.0.1", 8008);
@@ -305,8 +306,8 @@ void draw()
     int x = stopCenter_x;
     int y = stopCenter_y;
     makeWarningBoxCenter("WALL FOLLOWING");
-    //makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
-    image(stop_sign, stopCenter_x, stopCenter_y);
+    makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
+    //image(stop_sign, stopCenter_x, stopCenter_y);
     /*writeInstructionStatus("Automatic mode", 1,onScreenInstructionDebugFlag);
     writeInstructionStatus("WARNING: Automatic navigation engaged.\nPlease stay clear off my path or feel my wrath. Thank you.",0, onScreenInstructionDebugFlag);
     writeCommand("Hit Stop button to quit",1, onScreenCommandDebugFlag);*/
@@ -352,7 +353,9 @@ void draw()
     
     if (mapHandVector.x-30 > stopCenter_x-buttonWidthOffset && mapHandVector.x-30 < stopCenter_x+buttonWidthOffset && mapHandVector.y > stopCenter_y-buttonWidthOffset && mapHandVector.y < stopCenter_y+buttonWidthOffset) {
       followWallFlag = false;
-      handsTrackFlag = false;
+      //handsTrackFlag = false;
+      user_detected = false;
+    
       if (send != STOP) { // If so, then check if we have already sent this command
         send = STOP;// if not, set the send variable to STOP
         port.write(send); // send it   
@@ -360,14 +363,26 @@ void draw()
         base_cmd = "stop";
         clientDebug(formatMessage("base", "stop"));
       }
+      savedTime = millis();
+      stopping_from_wallfollowing = true;
     }
     
-    if (millis() - frameTime > 60) {
+    /*if (millis() - frameTime > 60) {
      ///println("Updating screen...");
      updateScreen();
      frameTime = millis();
-   }
+   }*/
       
+ } else if(stopping_from_wallfollowing) {
+     
+     makeWarningBoxCenter("STOPPING...");
+     makeStop();
+     if (millis() - savedTime > 3000) {
+       stopping_from_wallfollowing = false;
+       savedTime = millis();
+       followWallFlag = false;
+       userDete
+     }
  }
  else if(handsTrackFlag == true && !followWallFlag) {  // Check if we are tracking the hand?
    idleFlag = false; // it's not idle anymore
@@ -745,7 +760,7 @@ void draw()
       text("Interaction mode",status_x,status_y);*/
       writeInstructionStatus("Speech mode",1, true);
       if (speech_flag) {
-        text("Speak, mortal.",status_x,status_y+30);
+        text("You may speak...",status_x,status_y+30);
         if (!cmdToDisplay.equals("")) writeCommand(cmdToDisplay,0, onScreenCommandDebugFlag);
       } else if (kinect_flag) {
         text("Gesture!", status_x,status_y+30);
@@ -757,8 +772,10 @@ void draw()
     
     if (userList.length > 1) writeInstructionStatus("Humans Detected", 1, true);
     else writeInstructionStatus("Human Detected", 1, true);
+    
     if (onScreenInstructionDebugFlag) text("Hello? ...",idle_x-20,idle_y);
     else text("Hello? ...",instruction_x-20,instruction_y);
+    
   } else { // otherwise, the hand is not being tracked. could be the begining of session, or hand is lost. Display instruction to detect hand  
     obstacle = false;
     idleFlag = true;
@@ -1485,5 +1502,15 @@ void printDebug(String message) {
 void printlnDebug(String message) {
   if (printDebugFlag) {
     println(message);
+  }
+}
+
+void makeStop() {
+  if (send != STOP) { // If so, then check if we have already sent this command
+    send = STOP;// if not, set the send variable to STOP
+    port.write(send); // send it   
+    println("STOP, obstacle "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
+    base_cmd = "stop";
+    clientDebug(formatMessage("base", "stop"));
   }
 }
