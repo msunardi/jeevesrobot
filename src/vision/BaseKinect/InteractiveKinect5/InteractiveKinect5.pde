@@ -68,13 +68,14 @@ boolean tablet_flag = false;
 boolean ipad_connected = false;
 boolean obstacle = false;
 boolean user_detected = false;
+boolean multiple_user_detected = false;
 boolean searching_or_hello = false;
 boolean stopping_from_wallfollowing = false;
 
 //=============== DEBUG Variables ========
 boolean onScreenInstructionDebugFlag = false;
 boolean onScreenCommandDebugFlag = true;
-boolean clientDebugFlag = false;
+boolean clientDebugFlag = true;
 boolean printDebugFlag = false;
 //============== Text positions ===========
 
@@ -182,7 +183,8 @@ void draw()
   background(0); // clean the background with black color
   close = 6000; // set the closest point to 6000 mm as a starting point 
   kinect.update(); // update the kinect
-  int[] userList = kinect.getUsers();
+  int[] userList = {};
+  userList = kinect.getUsers();
   
   
   if (rgbFlag) {
@@ -205,9 +207,16 @@ void draw()
   if (userList.length > 0) {
     println("Users detected: "+userList.length);
     user_detected = true;
+    multiple_user_detected = false;
     //makeNotificationBoxCenter("HELLO, THERE!");
-    if (userList.length > 1) image(user_icon_multiple, 590,10);
-    else image(user_icon, 590,10);
+    if (userList.length > 1) {
+      image(user_icon_multiple, 590,10);
+      multiple_user_detected = true;
+    }
+    else {
+      image(user_icon, 590,10);
+      multiple_user_detected = false;
+    }
     if (send != STOP){ // If so, then check if we have already sent this command
       send = STOP;// if not, set the send variable to STOP
       port.write(send); // send it   
@@ -217,6 +226,7 @@ void draw()
   } else {
     println("I see nobody");
     user_detected = false;
+    multiple_user_detected = false;
     handsTrackFlag = false;
   }
   
@@ -296,7 +306,7 @@ void draw()
    line(HlineX1, HlineY1, HlineX2, HlineY2);
    line(VlineX1, VlineY1, VlineX2, VlineY2);
    strokeWeight(1);*/
-   
+   obstacle = true;
    //========== end of warning display ====================//
  } else if(followWallFlag) {
     int stopCenter_x = 320;
@@ -305,6 +315,8 @@ void draw()
  
     int x = stopCenter_x;
     int y = stopCenter_y;
+    if (close >= 600) obstacle = false;
+    
     makeWarningBoxCenter("WALL FOLLOWING");
     makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
     //image(stop_sign, stopCenter_x, stopCenter_y);
@@ -374,19 +386,19 @@ void draw()
    }*/
       
  } else if(stopping_from_wallfollowing) {
-     
+     if (close >= 600) obstacle = false;
      makeWarningBoxCenter("STOPPING...");
      makeStop();
      if (millis() - savedTime > 3000) {
        stopping_from_wallfollowing = false;
        savedTime = millis();
        followWallFlag = false;
-       userDete
+       
      }
  }
  else if(handsTrackFlag == true && !followWallFlag) {  // Check if we are tracking the hand?
    idleFlag = false; // it's not idle anymore
-   
+   if (close >= 600) obstacle = false;
    if (previousCmd != "tracking hand") {
      clientDebug(formatMessage("all","kinect_flag:true"));
      clientDebug(formatMessage("status","trackhand"));
@@ -760,7 +772,7 @@ void draw()
       text("Interaction mode",status_x,status_y);*/
       writeInstructionStatus("Speech mode",1, true);
       if (speech_flag) {
-        text("You may speak...",status_x,status_y+30);
+        text(".",status_x,status_y+30);
         if (!cmdToDisplay.equals("")) writeCommand(cmdToDisplay,0, onScreenCommandDebugFlag);
       } else if (kinect_flag) {
         text("Gesture!", status_x,status_y+30);
@@ -777,7 +789,7 @@ void draw()
     else text("Hello? ...",instruction_x-20,instruction_y);
     
   } else { // otherwise, the hand is not being tracked. could be the begining of session, or hand is lost. Display instruction to detect hand  
-    obstacle = false;
+    if (close >= 600) obstacle = false;
     idleFlag = true;
     if (previousCmd != "idle") {
       println("Idle mode...");
@@ -1448,6 +1460,7 @@ void sendStatus() {
     json += "{\"playmusic_flag\" : \"" + playMusicFlag + end;
     json += "{\"rgb_flag\" : \"" + rgbFlag + end;
     json += "{\"followwall_flag\" : \"" + followWallFlag + end;
+    json += "{\"users\" : [{\"detected\" :\"" + user_detected + "\", \"multiple\" : \"" + multiple_user_detected + "\"}]},";
     json += "{\"base_cmd\" : \"" + base_cmd + end;
     
     /*json += "{\"idle\" : ";
