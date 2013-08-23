@@ -781,12 +781,13 @@ void draw()
       //updateScreen();
    
   } else if (user_detected) {
-    
+    if (close >= 600) obstacle = false;
     if (userList.length > 1) writeInstructionStatus("Humans Detected", 1, true);
     else writeInstructionStatus("Human Detected", 1, true);
     
     if (onScreenInstructionDebugFlag) text("Hello? ...",idle_x-20,idle_y);
     else text("Hello? ...",instruction_x-20,instruction_y);
+    
     
   } else { // otherwise, the hand is not being tracked. could be the begining of session, or hand is lost. Display instruction to detect hand  
     if (close >= 600) obstacle = false;
@@ -1299,12 +1300,12 @@ void keyPressed(){
 //============= Parse message from server =========
 void parseMessage(String msg) {
   String [] message = split(trim(msg),':');
-  String sender, target, command;
+  String origin, target, command;
   int msg_length = message.length;
-  //println("Message from server: "+ msg);
+  println("Message from server: "+ msg);
   if (msg_length >= 3 && message[1].equals("base") && !message[0].equals("kinect")) {
     
-    sender = trim(message[0]);
+    origin = trim(message[0]);
     target = trim(message[1]);
     command = trim(message[2]);
     
@@ -1385,6 +1386,7 @@ void parseMessage(String msg) {
       }
       //println(flag + ": " + value);
   } else if(message[0].equals("ipad") && message[1].equals("ip")) {
+    println("YES I GET THE NEW IP!");
      sender.updateClientIp(message[2]); 
   } else {
     println("Message length is: " + message.length);
@@ -1503,7 +1505,7 @@ void adjustStatus() {
 
 void clientDebug(String message) {
   if (clientDebugFlag) {
-    println("Trying to send message: " + message);
+    printlnDebug("Trying to send message: " + message);
     client.write(message);
   }
 }

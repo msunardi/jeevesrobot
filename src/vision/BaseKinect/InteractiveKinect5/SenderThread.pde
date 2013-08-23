@@ -83,6 +83,7 @@ class SenderThread extends Thread {
           //ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName("localhost"),clientPort));
           ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName(clientIp),clientPort));
           if (debug) println("Success");
+          println("CLIENT IP: "+clientIp);
           frameTime = millis();
         } 
         catch (IOException e) {

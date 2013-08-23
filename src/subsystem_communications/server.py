@@ -22,7 +22,7 @@ class IphoneChat(Protocol):
 			json = True
 			msg = a[1:]
 			print "json: "
-			print msg[0]
+			#print msg[0]
 		else:
 			a = data.split(':')
 			print "data: "
@@ -52,8 +52,10 @@ class IphoneChat(Protocol):
 					msg = ""
 					if command == "iam":
 						self.name = content
-						msg = self.name + " has joined."
-						print msg
+						#msg = self.name + " has joined." # Don't need to print this as msg (broadcasted)
+						# It will make clients receive this comment along with the actual message
+						print self.name + " has joined."
+						#msg = "iam:" + self.name
 	
 					elif command == "msg":
 						msg = self.name + ": " + content
