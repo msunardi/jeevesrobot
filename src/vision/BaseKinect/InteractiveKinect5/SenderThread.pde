@@ -1,6 +1,7 @@
 class SenderThread extends Thread {
   int clientPort = 9100;
-  String clientIp = "131.252.241.96";
+  //String clientIp = "131.252.241.96";
+  String clientIp = "127.0.0.1";
   DatagramSocket ds;
   //byte[] buffer = new byte[65536];
 
@@ -32,6 +33,10 @@ class SenderThread extends Thread {
   void updateImage() {
     img = get();
     available = true;
+  }
+  
+  void updateClientIp(String ip) {
+    clientIp = ip;
   }
 
   void start() {
@@ -72,12 +77,12 @@ class SenderThread extends Thread {
     
       // Send JPEG data as a datagram
       if (debug) println("Sending datagram with " + packet.length + " bytes");
-      if ((packet.length > 10000) && (millis() - frameTime > 33) && available) {
+      if ((packet.length > 10000) && (millis() - frameTime > 533) && available) {
         try {
-          print("Trying to send...");
+          if (debug) print("Trying to send...");
           //ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName("localhost"),clientPort));
           ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByName(clientIp),clientPort));
-          println("Success");
+          if (debug) println("Success");
           frameTime = millis();
         } 
         catch (IOException e) {

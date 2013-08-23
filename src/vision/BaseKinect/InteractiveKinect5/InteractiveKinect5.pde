@@ -1384,6 +1384,8 @@ void parseMessage(String msg) {
         println(message[2] + message[3]);
       }
       //println(flag + ": " + value);
+  } else if(message[0].equals("ipad") && message[1].equals("ip")) {
+     sender.updateClientIp(message[2]); 
   } else {
     println("Message length is: " + message.length);
     //println(msg);
