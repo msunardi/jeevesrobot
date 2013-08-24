@@ -432,20 +432,20 @@ void draw()
    // ============= hand has been detected, inform the user (UI) ==========//
             
     
-    if (followHandFlag) {
+    /*if (followHandFlag) {
       rectMode(CENTER);
       fill(255);
       stroke(255);
       rect(BoxX, BoxY, BoxW, BoxH);
       line(HlineX1, HlineY1, HlineX2, HlineY2);
       line(VlineX1, VlineY1, VlineX2, VlineY2);
-    }
+    }*/
     
-    makeCommandBox(song, playButton_x, playButton_y, buttonWidth, buttonHeight);
-    makeCommandBox(followhand, followButton_x, followButton_y, buttonWidth, buttonHeight);
-    makeCommandBox(rgbmode, rgbButton_x, rgbButton_y, buttonWidth, buttonHeight);
+    if(!followHandFlag && !followWallFlag)makeCommandBox(song, playButton_x, playButton_y, buttonWidth, buttonHeight);
+    if(!playMusicFlag && !followWallFlag) makeCommandBox(followhand, followButton_x, followButton_y, buttonWidth, buttonHeight);
+    if(!followHandFlag && !playMusicFlag && !followWallFlag) makeCommandBox(rgbmode, rgbButton_x, rgbButton_y, buttonWidth, buttonHeight);
     //makeCommandBox("Base Data", rgbButton_x, rgbButton_y+60, buttonWidth, buttonHeight);
-    makeCommandBox("Follow Wall", followWallButton_x, followWallButton_y, buttonWidth, buttonHeight);
+    if(!followHandFlag && !playMusicFlag) makeCommandBox("Follow Wall", followWallButton_x, followWallButton_y, buttonWidth, buttonHeight);
     
         
 //============== end of display ========================//
@@ -593,7 +593,7 @@ void draw()
           writeCommand("Left",0,onScreenCommandDebugFlag);
           
           //text("Rotation satisfied? "+roto,340, 20);
-          rectMode(CENTER);
+          /*rectMode(CENTER);
           fill(255, 136, 0);
           stroke(255);
           rect(BoxX, BoxY, BoxW, BoxH);
@@ -602,7 +602,7 @@ void draw()
           stroke(255, 0, 0);
           strokeWeight(10);
           line(BoxX, BoxY, HlineX1, HlineY1);
-          strokeWeight(1);
+          strokeWeight(1);*/
           //======= end of LEFT display =========//
           
         }
@@ -633,7 +633,7 @@ void draw()
             text("Right", command_x, command_y);*/
             writeCommand("Right",0, onScreenCommandDebugFlag);
             //text("Rotation satisfied? "+roto,340, 20);
-            rectMode(CENTER);
+            /*rectMode(CENTER);
             fill(255, 136, 0);
             stroke(255);
             rect(BoxX, BoxY, BoxW, BoxH);
@@ -642,7 +642,7 @@ void draw()
             stroke(255, 0, 0);
             strokeWeight(bowStroke);
             line(BoxX, BoxY, HlineX2, HlineY2);
-            strokeWeight(1);            
+            strokeWeight(1);   */         
             //======= end of RIGHT display==========//
 
         }
@@ -664,12 +664,12 @@ void draw()
               } else {// otherwise, we do not need to re-send the command, just inform the user
               //================= STOP display=================//
                 
-                rectMode(CENTER);
+                /*rectMode(CENTER);
                 fill(0, 255, 0);
                 stroke(255);
                 rect(BoxX, BoxY, BoxW, BoxH);
                 line(HlineX1, HlineY1, HlineX2, HlineY2);
-                line(VlineX1, VlineY1, VlineX2, VlineY2);
+                line(VlineX1, VlineY1, VlineX2, VlineY2);*/
               }// end of STOP display
               writeCommand("Stay",0, onScreenCommandDebugFlag);
               //updateScreen();
@@ -690,7 +690,7 @@ void draw()
         //====================== BACKWARD display=====================//
           
           //text("Distance satisfied? "+DisBF,110,20);
-          rectMode(CENTER);
+          /*rectMode(CENTER);
           fill(255, 136, 0);
           stroke(255);
           rect(BoxX, BoxY, BoxW, BoxH);
@@ -699,7 +699,7 @@ void draw()
           stroke(255, 0, 0);
           strokeWeight(bowStroke);
           line(BoxX, BoxY, VlineX2, VlineY2);
-          strokeWeight(1);
+          strokeWeight(1);*/
           //=============== end of BACKWARD display ====================//
           
         }
@@ -719,7 +719,7 @@ void draw()
         //============== just display the FORWARD command ======================//
           
           //text("Distance satisfied? "+DisBF,110,20);
-          rectMode(CENTER);
+         /* rectMode(CENTER);
           fill(255, 136, 0);
           stroke(255);
           rect(BoxX, BoxY, BoxW, BoxH);
@@ -729,6 +729,7 @@ void draw()
           strokeWeight(bowStroke);
           line(BoxX, BoxY, VlineX1, VlineY1);
           strokeWeight(1);
+          */
           //=========== end of FORWARD command =====================//
         }
           writeCommand("Forward",0, onScreenCommandDebugFlag);
@@ -750,12 +751,12 @@ void draw()
         }else{//otherwise, we do not need to re-send the STOP command again
         //============= Display the STOP command ========================//
         
-          rectMode(CENTER);
+          /*rectMode(CENTER);
           fill(0, 255, 0);
           stroke(255);
           rect(BoxX, BoxY, BoxW, BoxH);
           line(HlineX1, HlineY1, HlineX2, HlineY2);
-          line(VlineX1, VlineY1, VlineX2, VlineY2);
+          line(VlineX1, VlineY1, VlineX2, VlineY2);*/
               //============= end of STOP display =====================//
         }
          writeCommand("Stay", 0, onScreenCommandDebugFlag);
@@ -890,13 +891,14 @@ void draw()
      print(".");
    }
    println("");*/
-   if (millis() - frameTime > 60) {
+   if (millis() - frameTime > 160) {
      ///println("Updating screen...");
      updateScreen();
      frameTime = millis();
+     sendStatus();
    }
    //updateScreen();
-   sendStatus();
+   //sendStatus();
    
    // try to get data from Arduino Mega/base
    if (getDataFlag) {
@@ -1008,7 +1010,7 @@ void makeStopButton(String command, int x, int y, int side) {
   float side_half = side/2;
   float side_off = side_half+(sqrt(2)*side/2);
   
-  stroke(255);
+  /*stroke(255);
   strokeWeight(3);
   fill(255,0,0);
   beginShape();
@@ -1020,7 +1022,7 @@ void makeStopButton(String command, int x, int y, int side) {
   vertex(x-side_half, y+side_off);
   vertex(x-side_off, y+side_half);
   vertex(x-side_off, y-side_half);
-  endShape(CLOSE);
+  endShape(CLOSE);*/
   
   textSize((int)side*0.9);
   textAlign(CENTER, CENTER);
@@ -1038,7 +1040,7 @@ void makeStatusBoxTop() {
 
 // ========== MAKE YELLOW WARNING SIGN =================
 void makeWarningBoxCenter(String message) {
-   fill(255,255,0, 235);
+   /*fill(255,255,0, 235);
    noStroke();
    quad(status_x-220, 200, status_x+220, 200, status_x+250, 240, status_x-250, 240);
    quad(status_x-250, 240, status_x+250, 240, status_x+220, 280, status_x-220, 280);
@@ -1052,7 +1054,7 @@ void makeWarningBoxCenter(String message) {
    quad(status_x-315, 240, status_x-297, 240, status_x-267, 280, status_x-285, 280);
    quad(status_x+285, 200, status_x+267, 200, status_x+297, 240, status_x+315, 240);
    quad(status_x+315, 240, status_x+297, 240, status_x+267, 280, status_x+285, 280);
-   
+   */
    textAlign(CENTER,CENTER);
    fill(255,0,0);
    textSize(22);
