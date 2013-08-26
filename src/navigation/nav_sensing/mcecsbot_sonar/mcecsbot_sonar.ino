@@ -1,7 +1,8 @@
 // Slave Sonar
-// Jesse Adams 
+// Jesse Adams
+// Rev 2. Omar Mohsin
 #include <Wire.h>
-#define arraysize 3 // size of array that stores sonar data
+#define arraysize 12 // size of array that stores sonar data
 
 uint8_t pulse1;
 uint8_t pulse2;
@@ -29,6 +30,7 @@ uint8_t sonar10 = 11;
 uint8_t sonar11 = 12;
 uint8_t sonar12 = 13;
 int InterruptPin = A1;
+int txline = 0;
 
 boolean ALERT = false;          // Tells whether object detect. Must "alert" the mega
 uint8_t obstacle;               // Holds value for data transmission to mega
@@ -36,7 +38,7 @@ uint8_t data_to_send[2];        // In I2C protocol, if sending multiple bytes, t
                                 // must be stored in a uint8_t array
 int threshold = 15;             // distance in inches that will trigger robot to stop
 int kinectVal = -1;             // initializing value. ie don't do anything until instructed
-int rangevalue[arraysize] = { 0, 0, 0 };  // data array for sonars
+uint8_t rangevalue[arraysize] = {0,0,0,0,0,0,0,0,0,0,0,0};  // data array for sonars
 int slave_address = 2;          // I2C slave address of Arduino
 
 void setup()
@@ -75,6 +77,9 @@ void setup()
   pulseIn(sonar12, HIGH);
   delay(102); 
   Serial.begin(9600);
+  analogWrite(txline, 255);
+  delayMicroseconds(20);
+  analogWrite(txline, 0);
 }
 
 void loop()
@@ -86,40 +91,108 @@ void loop()
 	Serial.print("Kinectval: ");
 	Serial.println(kinectVal);
   }
-  //else {
-  //  scan();
-  //}  
-  ///// From this point until the end of the loop() is the original code
- 
+  
+  int pulse1,pulse2,pulse3,pulse4,pulse5,pulse6,pulse7,pulse8,pulse9,pulse10,pulse11,pulse12; 
+  int distance1,distance2,distance3,distance4,distance5,distance6,distance7,distance8,distance9, distance10, distance11, distance12;
+
+  pulse1 = pulseIn(sonar1, HIGH);
+  pulse2 = pulseIn(sonar2, HIGH); 
+  pulse3 = pulseIn(sonar3, HIGH);
+  pulse4 = pulseIn(sonar4, HIGH);
+  pulse5 = pulseIn(sonar5, HIGH);
+  pulse6 = pulseIn(sonar6, HIGH);
+  pulse7 = pulseIn(sonar7, HIGH);
+  pulse8 = pulseIn(sonar8, HIGH);
+  pulse9 = pulseIn(sonar9, HIGH);
+  pulse10 = pulseIn(sonar10, HIGH);
+  pulse11 = pulseIn(sonar11, HIGH);
+  pulse12 = pulseIn(sonar12, HIGH);
+
+  distance1 = pulse1/147;
+  distance2 = pulse2/147;
+  distance3 = pulse3/147;
+  distance4 = pulse4/147;
+  distance5 = pulse5/147;
+  distance6 = pulse6/147;
+  
+  distance7 = pulse7/147;
+  distance8 = pulse8/147;
+  distance9 = pulse9/147;
+  distance10 = pulse10/147;
+  distance11 = pulse11/147;
+  distance12 = pulse12/147;
+
+  rangevalue[0] = distance1;
+  rangevalue[1] = distance2;
+  rangevalue[2] = distance3;
+  rangevalue[3] = distance4;
+  rangevalue[4] = distance5;
+  rangevalue[5] = distance6;
+  rangevalue[6] = distance7;
+  rangevalue[7] = distance8;
+  rangevalue[8] = distance9;
+  rangevalue[9] = distance10;
+  rangevalue[10] = distance11;
+  rangevalue[11] = distance12;
+  /*Serial.print(distance1);
+  Serial.print(",");
+  Serial.print(distance2);
+  Serial.print(",");
+  Serial.print(distance3);
+  Serial.print(",");
+  Serial.print(distance4);
+  Serial.print(",");
+  Serial.print(distance5);
+  Serial.print(",");
+  Serial.print(distance6);
+  Serial.print(",       ");
+  
+  Serial.print(distance7);
+  Serial.print(",");
+  Serial.print(distance8);
+  Serial.print(",");
+  Serial.print(distance9);
+  Serial.print(",");
+  Serial.print(distance10);
+  Serial.print(",");
+  Serial.print(distance11);
+  Serial.print(",");
+  Serial.println(distance12);
+  */ 
   
   
   switch(kinectVal){
-/*
-    case 0:                              // case 0: Turn Left 
+
+    case 48:                              // case 0: Turn Left 
+    Serial.print(distance1);
+    Serial.print(",");
+    Serial.print(distance2);
+    Serial.print(",");
+    Serial.print(distance3);
+    Serial.print(",");
+    Serial.print(distance4);
+    Serial.print(",");
+    Serial.print(distance5);
+    Serial.print(",");
+    Serial.print(distance6);
+    Serial.print(",       ");
     
-	Serial.println("Case 0");
-      pulse3 = getSonar(sonar3);
-        if(pulse3 < threshold){
-           stop_robot(sonar3, pulse3);
-        }
-
-      pulse5 = getSonar(sonar5);
-        if(pulse5 < threshold){
-           stop_robot(sonar5, pulse5);
-         }
-
-      pulse8 = getSonar(sonar8);
-        if(pulse8 < threshold){
-           stop_robot(sonar8, pulse8);
-         }
-      pulse11 = getSonar(sonar11);
-        if(pulse11 < threshold){
-           stop_robot(sonar11, pulse11);
-         }
+    Serial.print(distance7);
+    Serial.print(",");
+    Serial.print(distance8);
+    Serial.print(",");
+    Serial.print(distance9);
+    Serial.print(",");
+    Serial.print(distance10);
+    Serial.print(",");
+    Serial.print(distance11);
+    Serial.print(",");
+    Serial.println(distance12);
+	
 
     break;
 
-    case 1:                              // case 1: Turn Right
+    /*case 1:                              // case 1: Turn Right
     Serial.println("Case 1");
       pulse3 = getSonar(sonar3);
         if(pulse3 < threshold){
@@ -141,7 +214,7 @@ void loop()
          }
     break;
 */
-    case 2:                              // case 2: Move Forward 
+ /*   case 2:                              // case 2: Move Forward 
     Serial.println("Case 2");
       pulse1 = getSonar(sonar1);
         if(pulse1 < threshold){
@@ -181,7 +254,7 @@ void loop()
            stop_robot(sonar9, pulse9);
         }
     break;
-
+*/
     case 4:
        // Stopped
        Serial.println("Case 4");
@@ -254,8 +327,9 @@ void stop_robot(uint8_t sonar, uint8_t obstacle){
 // this function is registered as an event, see setup()   
 void requestEvent()
 {
-  Wire.write(data_to_send, 2);  // respond with message of 2 bytes
+  //Wire.write(data_to_send, 2);  // respond with message of 2 bytes
                                 // as expected by master
+  Wire.write(rangevalue, 12); // Send out all 12 sonar measurements
 }
 
 // function that executes whenever data is received from master
@@ -267,7 +341,7 @@ void receiveEvent(int howMany)
 }
 
 // isort is used to sort the array of read values from a sonar //
-void isort(int *a, int n){
+void isort(uint8_t *a, int n){
   for (int i = 1; i < n; ++i){                    
     int j = a[i];                                 
     int k;                          
@@ -280,7 +354,7 @@ void isort(int *a, int n){
 //////////////////////     End isort        ////////////////////
 
 ///        Mode function, returns the mode or median.        ///
-int mode(int *x,int n){
+int mode(uint8_t *x,int n){
   int i = 0;
   int count = 0;
   int maxCount = 0;

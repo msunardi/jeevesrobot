@@ -140,7 +140,7 @@ PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/ttyACM0"; //"/dev/tty.usbmodemfa131";//
+  String portName = "/dev/tty.usbmodemfa131";//"/dev/ttyACM0"; //
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   port.write(STOP);
   
@@ -159,8 +159,8 @@ void setup()
     //String portName = Serial.list()[6]; // Select the Serial port number CUSTIMIZE!!!!!!!!!!!!! this is hardware specific 
   //String portName = "/dev/ttyACM0";
   //port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
- player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
- //player = minim.loadFile("/Users/msunardi/Music/amazonmp3/Keb_Mo/Suitcase/06_-_Rita.mp3");
+ //player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
+ player = minim.loadFile("/Users/msunardi/Music/amazonmp3/Keb_Mo/Suitcase/06_-_Rita.mp3");
   savedTime = millis();  //start internal timer, counts in milliseconds
   
   client = new Client(this, "127.0.0.1", 8008);
@@ -907,7 +907,8 @@ void draw()
      port.write(GETDATA);
      
      int sdata = 0;
-     if (port.available() > 0) {
+     int datasize = 22;
+     if (port.available() > 0 || port.available() == 22) {
        printlnDebug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
        while (port.available() > 0 && getDataFlag) {
          sdata = port.read();
@@ -915,13 +916,15 @@ void draw()
          if (sdata == 35) {  // 35 = beginning of data array
            println("GETTING ACTUAL STATUS DATA");
             
-           // assume 12 values (bytes)
-           int [] data = new int[12];
+           // assume 22 values (bytes)
+           int [] data = new int[datasize];
            data[0] = sdata;
-           for (int i=1; i<12; i++) {
+           for (int i=1; i<datasize; i++) {
              data[i] = port.read();
-             //println("Data : "+ sdata);
-             if (i==11 && sdata == 36) {
+             println("Data : "+ data[i]);
+             // catch that we've read datasize amount of bytes OR the stop byte '36' 
+             // to stop reading serial data
+             if (i==datasize-1 && sdata == 36) { 
                getDataFlag = false; // we're done reading data. Set this to false, so we'll get out of the 'while' loop
                break;  // end of data
              }
