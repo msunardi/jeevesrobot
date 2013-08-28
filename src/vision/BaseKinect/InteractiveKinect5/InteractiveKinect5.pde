@@ -127,6 +127,9 @@ boolean idleFlag = true;
 boolean followWallFlag = false;
 boolean inFollowWallBox = false;
 
+int datasize=22;
+int [] data = new int[datasize];
+
 //============== Screen streaming variables =====
 // This is the port we are sending to
 int clientPort = 9100; 
@@ -140,7 +143,7 @@ PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName = "/dev/tty.usbmodemfa131";//"/dev/ttyACM0"; //
+  String portName ="/dev/ttyACM3"; // "/dev/tty.usbmodemfa131";//
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   port.write(STOP);
   
@@ -159,8 +162,8 @@ void setup()
     //String portName = Serial.list()[6]; // Select the Serial port number CUSTIMIZE!!!!!!!!!!!!! this is hardware specific 
   //String portName = "/dev/ttyACM0";
   //port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
- //player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
- player = minim.loadFile("/Users/msunardi/Music/amazonmp3/Keb_Mo/Suitcase/06_-_Rita.mp3");
+ player = minim.loadFile("/home/mcecsbot/Music/i wanna love ya.mp3"); // Load the music file, MUST BE IN THE SKETCH FOLDER to be loaded!!
+ //player = minim.loadFile("/Users/msunardi/Music/amazonmp3/Keb_Mo/Suitcase/06_-_Rita.mp3");
   savedTime = millis();  //start internal timer, counts in milliseconds
   
   client = new Client(this, "127.0.0.1", 8008);
@@ -455,13 +458,13 @@ void draw()
     if (mapHandVector.x > playButton_x-buttonWidthOffset && mapHandVector.x < playButton_x+buttonWidthOffset && mapHandVector.y > playButton_y-buttonHeightOffset && mapHandVector.y < playButton_y+buttonHeightOffset && !inPlayMusicBox){
       // check if the hand is on the music button we created in the display?
       if(!player.isPlaying() && song.equals("Play Music") && !playMusicFlag){// if so, check if the music is not playing
-         player.play();// if so, play music
+         //player.play();// if so, play music
          song = "Pause Music";// replace music button text with "Pause" instaed of "Play"
          playMusicFlag = true;
          port.write(LRFSCAN);
 
        }else if (player.isPlaying() || playMusicFlag){// otherwise, check if the music is playing
-         player.pause();// if so, pause the music
+         //player.pause();// if so, pause the music
          song = "Play Music";// replace music button text with "Play" instaed of "pause"
          playMusicFlag = false;
 
@@ -907,7 +910,7 @@ void draw()
      port.write(GETDATA);
      
      int sdata = 0;
-     int datasize = 22;
+     //int datasize = 22;
      if (port.available() > 0 || port.available() == 22) {
        printlnDebug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
        while (port.available() > 0 && getDataFlag) {
@@ -917,7 +920,7 @@ void draw()
            println("GETTING ACTUAL STATUS DATA");
             
            // assume 22 values (bytes)
-           int [] data = new int[datasize];
+           //int [] data = new int[datasize];
            data[0] = sdata;
            for (int i=1; i<datasize; i++) {
              data[i] = port.read();
@@ -1457,6 +1460,9 @@ void broadcast(PImage img) {
 }
 
 void sendStatus() {
+  int lrfdata = 5, lrf_startindex=4;
+  int sonardata = 12, sonar_startindex=9;
+  
   String end = "\"},";
   String json = "{\"client\" : \"kinect\",";
     json += "\"status\" : [";
@@ -1471,7 +1477,19 @@ void sendStatus() {
     json += "{\"followwall_flag\" : \"" + followWallFlag + end;
     json += "{\"users\" : [{\"detected\" :\"" + user_detected + "\", \"multiple\" : \"" + multiple_user_detected + "\"}]},";
     json += "{\"base_cmd\" : \"" + base_cmd + end;
-    
+    json += "{\"sensor_readings\" : [{\"lrf\" : [";
+    for (int i=0; i < lrfdata; i++) {
+      json += data[lrf_startindex+i];
+      if (i == lrfdata-1) json += "]}, ";
+      else json += ", ";
+    }
+    json += "{\"sonar\" : [";
+    for (int j=0; j < sonardata; j++) {
+      json += data[sonar_startindex+j];
+      if (j == sonardata-1) json += "]} ";
+      else json += ", ";
+    }
+    json += "]}";
     /*json += "{\"idle\" : ";
     
     if (previousCmd.equals("idle"))
