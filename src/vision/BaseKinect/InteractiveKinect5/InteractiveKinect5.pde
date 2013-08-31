@@ -130,6 +130,9 @@ boolean inFollowWallBox = false;
 int datasize=22;
 int [] data = new int[datasize];
 
+//============== Obstacle filtering =============
+int [] obstacle_count = {0,0,0};
+
 //============== Screen streaming variables =====
 // This is the port we are sending to
 int clientPort = 9100; 
@@ -263,53 +266,64 @@ void draw()
   } 
 // ======== End of Finding the closest point ===========//
  if(close < 600 && close > 0) {// check if the closest point so far is too close
-   if (send != STOP){ // If so, then check if we have already sent this command
-   send = STOP;// if not, set the send variable to STOP
-   port.write(send); // send it   
-   println("STOP, obstacle "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
-   base_cmd = "stop";
-   clientDebug(formatMessage("base", "stop"));
-    if (previousCmd != "tooclose") {
-        clientDebug(formatMessage("status","tooclose"));
-        previousCmd = "tooclose";
-        
-      }
-    obstacle = true;
-    handsTrackFlag = false;
-    //followHandFlag = false;
-    idleFlag = false; 
+   int obs;
+   obs = shiftObstacleCount(1);
+         
+   if (obs==3) {
+     if (send != STOP){ // If so, then check if we have already sent this command
+     send = STOP;// if not, set the send variable to STOP
+     port.write(send); // send it   
+     println("STOP, obstacle "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
+     base_cmd = "stop";
+     clientDebug(formatMessage("base", "stop"));
+      if (previousCmd != "tooclose") {
+          clientDebug(formatMessage("status","tooclose"));
+          previousCmd = "tooclose";
+          
+        }
+      obstacle = true;
+      handsTrackFlag = false;
+      //followHandFlag = false;
+      idleFlag = false; 
+     }
+     
+     /*if (obstacle_count < 3) obstacle_count += 1;
+     else if (obstacle_count < 0) obstacle_count = 0;
+     else obstacle_count = 3;*/
+     
+     
+     // otherwise, we do not need to re-send the command. just display warning
+     //============Warning Display======================//
+     rectMode(CENTER);
+     fill(255,255,0);
+     rect(closeX, closeY, 125, 40,15);
+     textAlign(CENTER);
+     textSize(20);
+     fill(255, 0, 0);
+     textAlign(CENTER, CENTER);
+     text("OBSTACLE",closeX, closeY);
+     /*rectMode(CORNER);
+     fill(255, 255, 0);
+     rect(4, 40, 600, 40);
+     textAlign(CENTER, CENTER);
+     fill(255, 0, 0);*/
+     rectMode(CENTER);
+     
+     makeWarningBoxCenter("OBSTACLE DETECTED");
+     //text("Obstacle on the way, CANNOT follow you anymore!!!", 300, 50);
+     writeInstructionStatus("Obstacle",1, true);
+     writeInstructionStatus("Something is too close.\nI can't move until the path is cleared.",0, onScreenInstructionDebugFlag);
+     /*rectMode(CENTER);
+     fill(255, 0, 0);
+     stroke(255,255, 0);
+     strokeWeight(10);
+     rect(BoxX, BoxY, BoxW, BoxH,15);
+     line(HlineX1, HlineY1, HlineX2, HlineY2);
+     line(VlineX1, VlineY1, VlineX2, VlineY2);
+     strokeWeight(1);*/
+     obstacle = true;
    }
-   
-   // otherwise, we do not need to re-send the command. just display warning
-   //============Warning Display======================//
-   rectMode(CENTER);
-   fill(255,255,0);
-   rect(closeX, closeY, 125, 40,15);
-   textAlign(CENTER);
-   textSize(20);
-   fill(255, 0, 0);
-   textAlign(CENTER, CENTER);
-   text("OBSTACLE",closeX, closeY);
-   /*rectMode(CORNER);
-   fill(255, 255, 0);
-   rect(4, 40, 600, 40);
-   textAlign(CENTER, CENTER);
-   fill(255, 0, 0);*/
-   rectMode(CENTER);
-   
-   makeWarningBoxCenter("OBSTACLE DETECTED");
-   //text("Obstacle on the way, CANNOT follow you anymore!!!", 300, 50);
-   writeInstructionStatus("Obstacle",1, true);
-   writeInstructionStatus("Something is too close.\nI can't move until the path is cleared.",0, onScreenInstructionDebugFlag);
-   /*rectMode(CENTER);
-   fill(255, 0, 0);
-   stroke(255,255, 0);
-   strokeWeight(10);
-   rect(BoxX, BoxY, BoxW, BoxH,15);
-   line(HlineX1, HlineY1, HlineX2, HlineY2);
-   line(VlineX1, VlineY1, VlineX2, VlineY2);
-   strokeWeight(1);*/
-   obstacle = true;
+   else obstacle = false;
    //========== end of warning display ====================//
  } else if(followWallFlag) {
     int stopCenter_x = 320;
@@ -318,7 +332,11 @@ void draw()
  
     int x = stopCenter_x;
     int y = stopCenter_y;
-    if (close >= 600) obstacle = false;
+    if (close >= 600) {
+      int obs;
+      obs = shiftObstacleCount(1);
+      if (obs < 3) obstacle = false;
+    }
     
     makeWarningBoxCenter("WALL FOLLOWING");
     makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
@@ -380,6 +398,7 @@ void draw()
       }
       savedTime = millis();
       stopping_from_wallfollowing = true;
+      base_cmd = "stop";
     }
     
     /*if (millis() - frameTime > 60) {
@@ -389,7 +408,12 @@ void draw()
    }*/
       
  } else if(stopping_from_wallfollowing) {
-     if (close >= 600) obstacle = false;
+     if (close >= 600) {
+      int obs;
+      obs = shiftObstacleCount(1);
+      if (obs < 3) obstacle = false;
+    }
+    
      makeWarningBoxCenter("STOPPING...");
      makeStop();
      if (millis() - savedTime > 3000) {
@@ -401,7 +425,11 @@ void draw()
  }
  else if(handsTrackFlag == true && !followWallFlag) {  // Check if we are tracking the hand?
    idleFlag = false; // it's not idle anymore
-   if (close >= 600) obstacle = false;
+   if (close >= 600) {
+      int obs;
+      obs = shiftObstacleCount(1);
+      if (obs < 3) obstacle = false;
+    }
    if (previousCmd != "tracking hand") {
      clientDebug(formatMessage("all","kinect_flag:true"));
      clientDebug(formatMessage("status","trackhand"));
@@ -894,12 +922,13 @@ void draw()
      print(".");
    }
    println("");*/
-   if (millis() - frameTime > 160) {
+   if (millis() - frameTime > 500) {
      ///println("Updating screen...");
      updateScreen();
      frameTime = millis();
      sendStatus();
-   }
+     getDataFlag = true;
+   } else getDataFlag = false;
    //updateScreen();
    //sendStatus();
    
@@ -1016,7 +1045,7 @@ void makeStopButton(String command, int x, int y, int side) {
   float side_half = side/2;
   float side_off = side_half+(sqrt(2)*side/2);
   
-  /*stroke(255);
+  stroke(255);
   strokeWeight(3);
   fill(255,0,0);
   beginShape();
@@ -1028,7 +1057,7 @@ void makeStopButton(String command, int x, int y, int side) {
   vertex(x-side_half, y+side_off);
   vertex(x-side_off, y+side_half);
   vertex(x-side_off, y-side_half);
-  endShape(CLOSE);*/
+  endShape(CLOSE);
   
   textSize((int)side*0.9);
   textAlign(CENTER, CENTER);
@@ -1046,7 +1075,7 @@ void makeStatusBoxTop() {
 
 // ========== MAKE YELLOW WARNING SIGN =================
 void makeWarningBoxCenter(String message) {
-   /*fill(255,255,0, 235);
+   fill(255,255,0, 235);
    noStroke();
    quad(status_x-220, 200, status_x+220, 200, status_x+250, 240, status_x-250, 240);
    quad(status_x-250, 240, status_x+250, 240, status_x+220, 280, status_x-220, 280);
@@ -1060,7 +1089,7 @@ void makeWarningBoxCenter(String message) {
    quad(status_x-315, 240, status_x-297, 240, status_x-267, 280, status_x-285, 280);
    quad(status_x+285, 200, status_x+267, 200, status_x+297, 240, status_x+315, 240);
    quad(status_x+315, 240, status_x+297, 240, status_x+267, 280, status_x+285, 280);
-   */
+   
    textAlign(CENTER,CENTER);
    fill(255,0,0);
    textSize(22);
@@ -1553,4 +1582,18 @@ void makeStop() {
     base_cmd = "stop";
     clientDebug(formatMessage("base", "stop"));
   }
+}
+
+int shiftObstacleCount(int newvalue) {
+  int sum;
+  if (newvalue > 1) newvalue=1;
+  if (newvalue < 0) newvalue=0;
+  obstacle_count[0] = obstacle_count[1];
+  obstacle_count[1] = obstacle_count[2];
+  obstacle_count[2] = newvalue;
+  
+  sum = obstacle_count[0] + obstacle_count[1] + obstacle_count[2];
+  if (sum > 3) sum=3;
+  
+  return sum;
 }
