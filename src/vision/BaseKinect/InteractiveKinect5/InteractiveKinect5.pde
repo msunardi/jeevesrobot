@@ -223,14 +223,14 @@ void draw()
       image(user_icon, 590,10);
       multiple_user_detected = false;
     }
-    if (send != STOP){ // If so, then check if we have already sent this command
+    if (send != STOP && !followHandFlag){ // If so, then check if we have already sent this command
       send = STOP;// if not, set the send variable to STOP
       port.write(send); // send it   
       println("STOP! User detected "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
       base_cmd = "stop";
     }
   } else {
-    println("I see nobody");
+    //println("I see nobody");
     user_detected = false;
     multiple_user_detected = false;
     handsTrackFlag = false;
@@ -269,7 +269,7 @@ void draw()
    int obs;
    obs = shiftObstacleCount(1);
          
-   if (obs==3) {
+   if (true) {
      if (send != STOP){ // If so, then check if we have already sent this command
      send = STOP;// if not, set the send variable to STOP
      port.write(send); // send it   
@@ -884,7 +884,7 @@ void draw()
     if (idle_wait_done && !kinect_flag && !speech_flag && !user_detected) {
       fill(0,255,0);
       
-      if (idle_action==0  && !user_detected) {
+      if (idle_action==0) {
         if (onScreenInstructionDebugFlag) text("Roaming ...",idle_x,idle_y);
         else text("Roaming ...",instruction_x,instruction_y);
         roaming(savedTime, idle_action_duration);
@@ -922,13 +922,14 @@ void draw()
      print(".");
    }
    println("");*/
-   if (millis() - frameTime > 500) {
+   //if (millis() - frameTime > 2000) {
+   //if (millis() - frameTime > 5000 || base_cmd.equals("stop")) {
      ///println("Updating screen...");
      updateScreen();
-     frameTime = millis();
-     sendStatus();
-     getDataFlag = true;
-   } else getDataFlag = false;
+     //frameTime = millis();
+     //sendStatus();
+     //getDataFlag = true;
+   //} else getDataFlag = false;
    //updateScreen();
    //sendStatus();
    
@@ -937,7 +938,7 @@ void draw()
      // We may have to do this multiple times since the Arduino will send out other bytes/characters
      // that are not the data we want. 
      port.write(GETDATA);
-     
+     getDataFlag = false;
      int sdata = 0;
      //int datasize = 22;
      if (port.available() > 0 || port.available() == 22) {
@@ -978,7 +979,7 @@ void draw()
       // do nothing
     //}
    adjustStatus();
-  
+   println(send);
 }// return to the begining (End of draw loop)
 
 void updateScreen() {
@@ -1425,6 +1426,9 @@ void parseMessage(String msg) {
   } else if(message[0].equals("ipad") && message[1].equals("ip")) {
     println("YES I GET THE NEW IP!");
      sender.updateClientIp(message[2]); 
+  } else if(trim(message[0]).equals("ipad") && trim(message[1]).equals("kinect") && trim(message[2]).equals("getdata")) {
+    getDataFlag = true;
+    sendStatus();
   } else {
     println("Message length is: " + message.length);
     //println(msg);
@@ -1549,8 +1553,8 @@ void adjustStatus() {
         followhand = "Follow Hand";
         followHandFlag = false;
         //send = STOP;// if not, set the send variables to STOP to be sent
-        port.write(STOP);// send it 
-        base_cmd = "stop";      
+        //port.write(STOP);// send it 
+        //base_cmd = "stop";      
     }
   }
 }
