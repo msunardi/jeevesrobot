@@ -36,7 +36,7 @@ int closeY; // the y position of the closest point
 int base_x = 540;
 //int LEFT = 108, RIGHT = 106, STOP= 107, FORWARD = 105, BACKWARD = 44; // integer varialbles to host commands protocol with Arduino
 int LEFT = 97, RIGHT = 100, STOP= 120, FORWARD = 119, BACKWARD = 115, STRAFE_LEFT = 122, STRAFE_RIGHT = 99; // integer varialbles to host commands protocol with Arduino
-int LRFSCAN = 108, GETDATA = 121;
+int LRFSCAN = 108, GETDATA = 121, WALLFOLLOW = 102;
 //int BoxX = 740, BoxW = 50,  HlineX1 = 665, HlineX2= 815, VlineX1 = 740, VlineX2 = 740;  // Horizontal variables for robot base animation
 int BoxX = base_x, BoxW = 50,  HlineX1 = 465, HlineX2= 615, VlineX1 = base_x, VlineX2 = base_x;  // Horizontal variables for robot base animation
 int BoxY = 400, BoxH = 50, HlineY1 = 400, HlineY2 = 400, VlineY1 = 325, VlineY2 = 475;  // vertical variables for robot base animation
@@ -71,6 +71,8 @@ boolean user_detected = false;
 boolean multiple_user_detected = false;
 boolean searching_or_hello = false;
 boolean stopping_from_wallfollowing = false;
+boolean statusChecked= false;
+StatusThread statusThread;
 
 //=============== DEBUG Variables ========
 boolean onScreenInstructionDebugFlag = false;
@@ -142,13 +144,15 @@ PImage screen;
 PImage user_icon, user_icon_multiple, stop_sign;
 SenderThread sender;
 
+
 PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
   String portName ="/dev/ttyACM3"; // "/dev/tty.usbmodemfa131";//
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
-  port.write(STOP);
+  send = STOP;
+  port.write(send);
   
   kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
   kinect.setMirror(true); // Mirror the depth image
@@ -180,6 +184,9 @@ void setup()
   sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight(), false);
   sender.start(); 
   frameTime = millis();
+  
+  statusThread = new StatusThread();
+  statusThread.start();
 }
 //======================== Main Function=============//
 void draw()
@@ -223,7 +230,8 @@ void draw()
       image(user_icon, 590,10);
       multiple_user_detected = false;
     }
-    if (send != STOP && !followHandFlag){ // If so, then check if we have already sent this command
+    //if (send != STOP && !followHandFlag && !followWallFlag){ // If so, then check if we have already sent this command
+    if (!followHandFlag && !followWallFlag){
       send = STOP;// if not, set the send variable to STOP
       port.write(send); // send it   
       println("STOP! User detected "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
@@ -266,10 +274,10 @@ void draw()
   } 
 // ======== End of Finding the closest point ===========//
  if(close < 600 && close > 0) {// check if the closest point so far is too close
-   int obs;
-   obs = shiftObstacleCount(1);
+   //int obs;
+   //obs = shiftObstacleCount(1);
          
-   if (true) {
+   //if (true) {
      if (send != STOP){ // If so, then check if we have already sent this command
      send = STOP;// if not, set the send variable to STOP
      port.write(send); // send it   
@@ -322,8 +330,8 @@ void draw()
      line(VlineX1, VlineY1, VlineX2, VlineY2);
      strokeWeight(1);*/
      obstacle = true;
-   }
-   else obstacle = false;
+   //}
+   //else obstacle = false;
    //========== end of warning display ====================//
  } else if(followWallFlag) {
     int stopCenter_x = 320;
@@ -332,12 +340,25 @@ void draw()
  
     int x = stopCenter_x;
     int y = stopCenter_y;
-    if (close >= 600) {
+    /*if (close >= 600) {
       int obs;
       obs = shiftObstacleCount(1);
       if (obs < 3) obstacle = false;
+    }*/
+    obstacle = false;
+    while (!statusChecked) {
+      port.write('?');
+      if (port.available() > 0) {
+        int wf = port.read();
+        if (wf > 0) statusChecked = true; 
+        else {
+          port.write('f');
+          println("Resending wallfollowing command ...");
+        }
+      }
+      println("statusChecked still false ...");
     }
-    
+       
     makeWarningBoxCenter("WALL FOLLOWING");
     makeStopButton("STOP", stopCenter_x, stopCenter_y, stopSide);
     //image(stop_sign, stopCenter_x, stopCenter_y);
@@ -425,11 +446,12 @@ void draw()
  }
  else if(handsTrackFlag == true && !followWallFlag) {  // Check if we are tracking the hand?
    idleFlag = false; // it's not idle anymore
-   if (close >= 600) {
+   if (close >= 600) obstacle = false;
+   /*{
       int obs;
       obs = shiftObstacleCount(1);
       if (obs < 3) obstacle = false;
-    }
+    }*/
    if (previousCmd != "tracking hand") {
      clientDebug(formatMessage("all","kinect_flag:true"));
      clientDebug(formatMessage("status","trackhand"));
@@ -489,7 +511,8 @@ void draw()
          //player.play();// if so, play music
          song = "Pause Music";// replace music button text with "Pause" instaed of "Play"
          playMusicFlag = true;
-         port.write(LRFSCAN);
+         send = LRFSCAN;
+         port.write(send);
 
        }else if (player.isPlaying() || playMusicFlag){// otherwise, check if the music is playing
          //player.pause();// if so, pause the music
@@ -519,8 +542,8 @@ void draw()
       } else if (followhand.equals("Stop Following")) {
         followhand = "Follow Hand";
         followHandFlag = false;
-        //send = STOP;// if not, set the send variables to STOP to be sent
-        port.write(STOP);// send it 
+        send = STOP;// if not, set the send variables to STOP to be sent
+        port.write(send);// send it 
         base_cmd = "stop";       
       }
       inFollowHandBox = true;      
@@ -545,8 +568,8 @@ void draw()
       } else if (rgbmode.equals("Show RGB")) {
         rgbmode = "Show Depth";
         rgbFlag = true;
-        //send = STOP;// if not, set the send variables to STOP to be sent
-        port.write(STOP);// send it  
+        send = STOP;// if not, set the send variables to STOP to be sent
+        port.write(send);// send it  
         base_cmd = "stop";
         getDataFlag = false;     
       }
@@ -566,8 +589,8 @@ void draw()
       if (!followWallFlag) {
         
         followWallFlag = true;
-     
-        port.write('f'); // send it   
+        send = WALLFOLLOW;
+        port.write(send); // send it   
         println("Wall following start"); // print the sent value to the console for checking, (unnecessary but useful for debuging)
         base_cmd = "wallfollowing";
         clientDebug(formatMessage("base", "wallfollowing"));       
@@ -691,8 +714,8 @@ void draw()
                 println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
                 clientDebug(formatMessage("base","stop"));
                 //==== display the command====//
-               
-              } else {// otherwise, we do not need to re-send the command, just inform the user
+              } 
+              //} else {// otherwise, we do not need to re-send the command, just inform the user
               //================= STOP display=================//
                 
                 /*rectMode(CENTER);
@@ -701,7 +724,7 @@ void draw()
                 rect(BoxX, BoxY, BoxW, BoxH);
                 line(HlineX1, HlineY1, HlineX2, HlineY2);
                 line(VlineX1, VlineY1, VlineX2, VlineY2);*/
-              }// end of STOP display
+              //}// end of STOP display
               writeCommand("Stay",0, onScreenCommandDebugFlag);
               //updateScreen();
 
@@ -778,8 +801,8 @@ void draw()
           port.write(send);// send it
           println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           clientDebug(formatMessage("base","stop"));
-              
-        }else{//otherwise, we do not need to re-send the STOP command again
+        }      
+        //}else{//otherwise, we do not need to re-send the STOP command again
         //============= Display the STOP command ========================//
         
           /*rectMode(CENTER);
@@ -789,7 +812,7 @@ void draw()
           line(HlineX1, HlineY1, HlineX2, HlineY2);
           line(VlineX1, VlineY1, VlineX2, VlineY2);*/
               //============= end of STOP display =====================//
-        }
+        //}
          writeCommand("Stay", 0, onScreenCommandDebugFlag);
          //updateScreen();
 
@@ -922,22 +945,23 @@ void draw()
      print(".");
    }
    println("");*/
-   //if (millis() - frameTime > 2000) {
+   if (millis() - frameTime > 2000) {
    //if (millis() - frameTime > 5000 || base_cmd.equals("stop")) {
      ///println("Updating screen...");
      updateScreen();
-     //frameTime = millis();
+     frameTime = millis();
      //sendStatus();
-     //getDataFlag = true;
-   //} else getDataFlag = false;
+     getDataFlag = true;
+   } else getDataFlag = false;
    //updateScreen();
    //sendStatus();
    
    // try to get data from Arduino Mega/base
    if (getDataFlag) {
      // We may have to do this multiple times since the Arduino will send out other bytes/characters
-     // that are not the data we want. 
-     port.write(GETDATA);
+     // that are not the data we want.
+     send = GETDATA; 
+     port.write(send);
      getDataFlag = false;
      int sdata = 0;
      //int datasize = 22;
@@ -971,6 +995,7 @@ void draw()
         }  // else if port.available = 0, we're done reading
         int btime = millis();
         //while (millis() - btime < 5000) {}
+        sendStatus();
       } else {
         printlnDebug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA NOT AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
       } // else if port.available = 0, do nothing
@@ -979,7 +1004,7 @@ void draw()
       // do nothing
     //}
    adjustStatus();
-   println(send);
+   println("SENDING: "+send);
 }// return to the begining (End of draw loop)
 
 void updateScreen() {
@@ -1313,7 +1338,7 @@ void onUpdateHands(int handId, PVector pos, float time)
 void onDestroyHands(int handId,float time)
 {// OpenNI callback function. it gets called when hand is lost or not available
   handsTrackFlag = false;// set hand tracking flag to false
-        if (send != STOP){// check if we have already sent this command 
+        if (send != STOP && !followWallFlag){// check if we have already sent this command 
           send = STOP;// if not, set the send variable to STOP to be sent
           port.write(send);// send it
           println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
@@ -1370,30 +1395,32 @@ void parseMessage(String msg) {
     // END OF DEBUGGING STUFF 
     print("Command to execute: ");
     if (command.equals("stop")) {
-      port.write(STOP);
+      send = STOP;      
       println("STOP");
     } else if (command.equals("forward")) {
-      port.write(FORWARD);
+      send = FORWARD;
       println("FORWARD");
     } else if (command.equals("right")) {
-      port.write(RIGHT);
+      send = RIGHT;
       println("RIGHT");
     } else if (command.equals("left")) {
-      port.write(LEFT);
+      send = LEFT;
       println("LEFT");
     } else if (command.equals("reverse")) {
-      port.write(BACKWARD);
+      send = BACKWARD;
       println("REVERSE"); 
     } else if (command.equals("strafeleft")) {
-      port.write(STRAFE_LEFT);
+      send = STRAFE_LEFT;
       println("STRAFE_LEFT");
     } else if (command.equals("straferight")) {
-      port.write(STRAFE_RIGHT);
+      send = STRAFE_RIGHT;
       println("STRAFE_RIGHT");      
     } else { // Default position
       //port.write(STOP);
+      send = STOP;
       println("Unknown command. So I'm stopping.");
     }
+    port.write(send);
   } else if (msg_length == 4 && message[1].equals("all")) {
       // Broadcasted message, all clients must pay attention to this
       String flag = trim(message[2]);

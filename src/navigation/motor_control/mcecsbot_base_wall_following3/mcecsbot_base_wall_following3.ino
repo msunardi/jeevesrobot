@@ -147,6 +147,7 @@ uint8_t sonar[arraysize] = {0,0,0,0,0,0,0,0,0,0,0,0};
 
 boolean DEBUG = false;
 boolean statusRequest;
+boolean wallFollowing;
 
 
 void setup()
@@ -205,14 +206,19 @@ void setup()
   POST();
   
   doneAccelerating = true;
-  statusRequest = true;
+  statusRequest = false;
+  wallFollowing = false;
 }
 
 void loop() {
 
   readSerial();
   if (pos != 'f')readInterrupt();
-  doMove();
+  //doMove();
+  if (doMove() && statusRequest) {    
+    returnAllData();
+    statusRequest = false;
+  }
   delay(150);
 }
 
@@ -244,7 +250,7 @@ void readSerial() {
 int keyboardDebug(int pos) {
   
   int debug_pos = -1;  // value=-1 for non-movement commands
-
+  int wf = 0;
   // depending what that byte is, perform an action     
   switch (pos) {
     case 'r':
@@ -369,6 +375,13 @@ int keyboardDebug(int pos) {
        statusRequest = true;
        //returnAllData();
        break;
+       
+     case '?':
+       
+       if (wallFollowing) wf=1;       
+       
+       Serial.write(wf);
+       break;
      
      case 'p':
        debug_pos = -1;
@@ -456,6 +469,7 @@ int wall_following() {
   //int right_dis, left_dis;
   int in_Left = 0, in_Right = 0, in_Front = 0, in_Back = 0;
   do {
+    wallFollowing = true;
     getSonarData();
     S1 = sonar[0]; //Front left sonar
     S3 = sonar[2]; //right sonar
@@ -503,14 +517,14 @@ int wall_following() {
           new_movement = ST_RIGHT;
           Left_Obs = true;
           Right_Obs = false;
-          avoid(new_movement);
+          //avoid(new_movement);
           debugPrintln("(Following Left) obstacle and moving right");
         //  goto start;
         } else { 
            if (Left_Obs){
              new_movement = FORWARD;
              Left_Obs = false;
-             avoid(new_movement);
+             //avoid(new_movement);
              debugPrintln("(Following Left) avoiding obstacle and moving forward");
             // goto start;
            } else { 
@@ -533,7 +547,7 @@ int wall_following() {
                 //S9 = sonar[8];
                 //*S10 = sonar[9];
                 //S12 = sonar[11];         
-                avoid(new_movement);
+                //avoid(new_movement);
                 debugPrintln("(Following Left) less than 10 and moving right");
                 
                 //goto No_ObsL;
@@ -554,14 +568,14 @@ int wall_following() {
                 // S9 = sonar[8];
                  //*S10 = sonar[9];
                 // S12 = sonar[11];
-                 avoid(new_movement);
+                 //avoid(new_movement);
                  debugPrintln("(Following Left) larger than 20 and moving left");
                   
                  //goto No_ObsL;
                } else {
                  new_movement = FORWARD;
                  debugPrintln("(Following Left) Forward"); 
-                 avoid(new_movement);
+                 //avoid(new_movement);
              //  goto start;
                }
              }
@@ -573,14 +587,14 @@ int wall_following() {
           Right_Obs = true;
           Left_Obs = false;
           debugPrintln("(Following right) obstacle and moving left");
-          avoid(new_movement);
+          //avoid(new_movement);
         //  goto start;
         } else { 
            if (Right_Obs) { 
              new_movement = FORWARD;
              Right_Obs = false;
              debugPrintln("(Following right) avoiding obstacle and moving forward");
-             avoid(new_movement);
+             //avoid(new_movement);
            //  goto start;
            } else {
 //No_ObsR:     
@@ -595,7 +609,7 @@ int wall_following() {
                 //*S10 = sonar[9];
                 //S12 = sonar[11];
                 debugPrintln("(Following Right) less than 10 and moving left");
-                avoid(new_movement);
+                //avoid(new_movement);
                 
                 // Check bumper
                 /*
@@ -617,7 +631,7 @@ int wall_following() {
                        //*S10 = sonar[9];
                        //S12 = sonar[11];
                        debugPrintln("(Following Right) larger than 20 and moving right");
-                       avoid(new_movement);
+                       //avoid(new_movement);
                        
                       // Read from bumper
                    /*   in = digitalRead(bumper_left);
@@ -632,13 +646,13 @@ int wall_following() {
                     else {
                        new_movement = FORWARD;
                        debugPrintln("(Following right) Forward"); 
-                       avoid(new_movement);
+                       //avoid(new_movement);
                      //  goto start;
                      }
                    }
                  }
                }
-        avoid(new_movement);
+        //avoid(new_movement);
       } 
             
       debugPrint("Fr_Obs: ");
@@ -668,12 +682,21 @@ int wall_following() {
         }
     
      }
-     
-   } while(Serial.available() < 1);
+     if (Serial.available() > 0) {
+       char serialin = Serial.read();
+       if (serialin == 'x') break;
+       else if (serialin == 'y') statusRequest = true;
+     }
+     if (doMove() && statusRequest) {
+       returnAllData();
+       statusRequest = false;
+     }
+   } while(true);
    
    Serial.read();
    debugPrintln("Done wall following!");
    new_movement = STOP;
+   wallFollowing = false;
    avoid(new_movement);
    return -1;
  
@@ -1178,7 +1201,7 @@ void POST() {
 
 /////////////////		Do Move start		////////////////////////////////
 
-void doMove() {
+boolean doMove() {
 	if(new_movement == STOP && old_movement != STOP) {
         //debugPrintln("new_movement==STOP && old_movement!=STOP");
 		while(MotorSpeed > 10) {
@@ -1188,8 +1211,8 @@ void doMove() {
                 }
                 MotorSpeed = 0;
 		goStop();
-                //old_movement = new_movement;
-                //return true;
+                old_movement = new_movement;
+                return true;
 	}
 	else if(new_movement != old_movement) {
         //debugPrintln("new_movement!=old_movement");
@@ -1199,19 +1222,19 @@ void doMove() {
                   delay(1);
                 }
 		function[new_movement](MotorSpeed);
-                //old_movement = new_movement;
-                //return true;
+                old_movement = new_movement;
+                return true;
 	}
 	else if(MotorSpeed < TopMotorSpeed && old_movement != STOP) {
         //debugPrintln("MotorSpeed<TopMotorSpeed && old_movement!=STOP");
 	  MotorSpeed = MotorSpeed + increment;
           if(MotorSpeed > TopMotorSpeed){
             MotorSpeed = TopMotorSpeed;
-            //return true;
+            return true;
           }            
 	  function[new_movement](MotorSpeed);
-          //old_movement = new_movement;
-          //return false;
+          old_movement = new_movement;
+          return false;
 	}
         
         // DEBUG OUTPUT
