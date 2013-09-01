@@ -381,8 +381,8 @@ int keyboardDebug(int pos) {
        }
        break;
      
-     case 48:
-       getSonarData();
+     case 48:  // number 0 (zero)
+       //getSonarData();
        Wire.requestFrom(sonar_controller, 12);
   
        delay(100);
@@ -392,8 +392,8 @@ int keyboardDebug(int pos) {
        if (Wire.available() == arraysize) {
          for( int i=0; i < arraysize; i++ ) {
            sonar[i] = Wire.read();
-           Serial.print(sonar[i]);
-           Serial.print(", ");
+           debugPrintInt(sonar[i]);
+           debugPrint(", ");
          }
          Serial.println("");
        } 
@@ -408,7 +408,7 @@ int keyboardDebug(int pos) {
       lrf_data[3] = 0;
       lrf_data[4] = 0;
 
-      Serial.write(lrf_data,5);
+      //Serial.write(lrf_data,5);
       debug_pos = -1;
       break;
   }
@@ -421,7 +421,7 @@ void getSonarData() {
   boolean data_ok = false;
   
   while(!data_ok) {  // Keep requesting sonar data from UNO until no reading is 0
-    Wire.requestFrom(sonar_controller, 12);
+    Wire.requestFrom(sonar_controller, arraysize);
     
      delay(100);
      //debugPrint("Bytes available: ");
@@ -430,12 +430,18 @@ void getSonarData() {
      if (Wire.available() == arraysize) {
        for( int i=0; i < arraysize; i++ ) {
          sonar[i] = Wire.read();
-         if (sonar[i] == 0) break;  // If reading 0, retry requesting from UNO
+         //if (sonar[i] == 0) {
+         //  debugPrintln("reading sonar failed. Repeating ...");
+         //  break;  // If reading 0, retry requesting from UNO
+         //}
          //Serial.print(sonar[i]);
+         debugPrintInt(sonar[i]);
+         debugPrint(",");
          //Serial.print(", ");
          if (i==arraysize-1) data_ok = true;
        }
        //Serial.println("");
+       debugPrintln("");
      } 
   }
 }
@@ -458,99 +464,58 @@ int wall_following() {
     S10 = sonar[9];//left sonar
     S12 = sonar[11];//Front right sonar
     
-    Serial.print(S1);
-    Serial.print(" ");
-    Serial.print(S3);
-    Serial.print(" ");
-    Serial.print(S4);
-    Serial.print(" ");
-    Serial.print(S9);
-    Serial.print(" ");
-    Serial.print(S10);
-    Serial.print(" ");
-    Serial.println(S12);
-    /*if (S1 < 5) { S1 = 200; } // if any sensor value below 5 inches, set it to avery high vlue.
-    if (S3 < 5) { S3 = 200; }
-    if (S4 < 5) { S4 = 200; }
-    if (S9 < 5) { S9 = 200; }
-    if (S10 < 5) { S10 = 200; }
-    if (S12 < 5) { S12 = 200; }*/
+    debugPrintInt(S1);
+    debugPrint(" ");
+    debugPrintInt(S3);
+    debugPrint(" ");
+    debugPrintInt(S4);
+    debugPrint(" ");
+    debugPrintInt(S9);
+    debugPrint(" ");
+    debugPrintInt(S10);
+    debugPrint(" ");
+    debugPrintlnInt(S12);
+    
     delay(100);
     in_Left = digitalRead(bumper_left);
     in_Right = digitalRead(bumper_right);
     in_Front = digitalRead(bumper_front);
     in_Back = digitalRead(bumper_back);
     
+    // IF no bumper is hit, then continue with wall following
     if (in_Left == HIGH && in_Right == HIGH && in_Front == HIGH && in_Back == HIGH) {
-    digitalWrite(left_led,LOW);
-    digitalWrite(right_led,LOW);
-    digitalWrite(front_led,LOW);
-    digitalWrite(back_led,LOW);
+      digitalWrite(left_led,LOW);
+      digitalWrite(right_led,LOW);
+      digitalWrite(front_led,LOW);
+      digitalWrite(back_led,LOW);
+     
+      debugPrint("\nRight distance: ");
+      debugPrintlnInt(S10); //Print right distance
+      debugPrint("Left distance: ");
+      debugPrintlnInt(S3); // pring left distance
     
+      
+      if ((S1 < 10 && S1 > 0) || (S12 < 10 && S12 > 0)) Fr_Obs = true; else Fr_Obs = false;
+      debugPrintln("checking front obstacle"); 
     
-       
-    
-    
-   
-    
-    /*Serial.print("right distance: ");
-    Serial.println(right_dis);
-    Serial.print("left distance: ");
-    Serial.println(left_dis);
-    */
-    debugPrint("\nRight distance: ");
-    debugPrintlnInt(S10); //Print right distance
-    debugPrint("Left distance: ");
-    debugPrintlnInt(S3); // pring left distance
-  /*  if (right_dis < left_dis) {
-       if (!DontMoveRight){
-           myservo.write(right90);
-           delay(1000);
-           DontMoveRight = true;
-           DontMoveLeft = false;
-         }
-         Serial.println("not LWall");
-       right_dis = complicatedread();
-       delay(1000);
-       
-     }       
-          
-     if (left_dis < right_dis) {
-       if (!DontMoveLeft){
-           myservo.write(left90);
-           delay(1000);
-           DontMoveLeft = true;
-           DontMoveRight = false;
-         }
-         Serial.println("not RWall");
-       left_dis = complicatedread();
-       delay(1000);
-     }      */
-    
-    
-    
-    if (S1 < 10 || S12 < 10) Fr_Obs = true; else Fr_Obs = false;
-    debugPrintln("checking front obstacle");   
-    if ((S3 < S10) || (S3 == S10)){
-      if (Fr_Obs){ 
-        new_movement = ST_RIGHT;
-        Left_Obs = true;
-        Right_Obs = false;
-        avoid(new_movement);
-        debugPrintln("(Following Left) obstacle and moving right");
-      //  goto start;
-      }
-      else { 
-         if (Left_Obs){
-           new_movement = FORWARD;
-           Left_Obs = false;
-           avoid(new_movement);
-           debugPrintln("(Following Left) avoiding obstacle and moving forward");
-          // goto start;
-         }
-         else { 
+      if ((S3 < S10) || (S3 == S10)) {
+        if (Fr_Obs) { 
+          new_movement = ST_RIGHT;
+          Left_Obs = true;
+          Right_Obs = false;
+          avoid(new_movement);
+          debugPrintln("(Following Left) obstacle and moving right");
+        //  goto start;
+        } else { 
+           if (Left_Obs){
+             new_movement = FORWARD;
+             Left_Obs = false;
+             avoid(new_movement);
+             debugPrintln("(Following Left) avoiding obstacle and moving forward");
+            // goto start;
+           } else { 
 //No_ObsL:     
-            if (S3 < 10 && S3 > 0){
+             if (S3 < 10 && S3 > 0) {
   
                 // check bumper
                 /*in = digitalRead(bumper_left);
@@ -572,57 +537,54 @@ int wall_following() {
                 debugPrintln("(Following Left) less than 10 and moving right");
                 
                 //goto No_ObsL;
-              }
-             else if (S3 >= 10){ 
-                       if (S3 > 20){
-                                        // Read from bumper
-                          /*in = digitalRead(bumper_left);
-                          // Keep stopping while bumper is on
-                          while (in == LOW) {
-                            goStop();
-                            in = digitalRead(bumper_left);
-                          }*/
-                         new_movement = ST_LEFT;
-                         //*getSonarData();
-                         //S1 = sonar[0];
-                         //*S3 = sonar[2];
-                        // S4 = sonar[3];
-                        // S9 = sonar[8];
-                         //*S10 = sonar[9];
-                        // S12 = sonar[11];
-                         avoid(new_movement);
-                         debugPrintln("(Following Left) larger than 20 and moving left");
-                          
-                         //goto No_ObsL;
-                       }
-                       else {
-                         new_movement = FORWARD;
-                         debugPrintln("(Following Left) Forward"); 
-                         avoid(new_movement);
-                     //  goto start;
-                     }}}}
-      }
-
-    else { 
-      if (Fr_Obs){
-        new_movement = ST_LEFT;
-        Right_Obs = true;
-        Left_Obs = false;
-        debugPrintln("(Following right) obstacle and moving left");
-        avoid(new_movement);
-      //  goto start;
-      }
-      else { 
-         if (Right_Obs){ 
-           new_movement = FORWARD;
-           Right_Obs = false;
-           debugPrintln("(Following right) avoiding obstacle and moving forward");
-           avoid(new_movement);
-         //  goto start;
-         } 
-         else {
+             } else if (S3 >= 10) { 
+               if (S3 > 20){
+                                // Read from bumper
+                  /*in = digitalRead(bumper_left);
+                  // Keep stopping while bumper is on
+                  while (in == LOW) {
+                    goStop();
+                    in = digitalRead(bumper_left);
+                  }*/
+                 new_movement = ST_LEFT;
+                 //*getSonarData();
+                 //S1 = sonar[0];
+                 //*S3 = sonar[2];
+                // S4 = sonar[3];
+                // S9 = sonar[8];
+                 //*S10 = sonar[9];
+                // S12 = sonar[11];
+                 avoid(new_movement);
+                 debugPrintln("(Following Left) larger than 20 and moving left");
+                  
+                 //goto No_ObsL;
+               } else {
+                 new_movement = FORWARD;
+                 debugPrintln("(Following Left) Forward"); 
+                 avoid(new_movement);
+             //  goto start;
+               }
+             }
+           }
+         }
+      } else { 
+        if (Fr_Obs){
+          new_movement = ST_LEFT;
+          Right_Obs = true;
+          Left_Obs = false;
+          debugPrintln("(Following right) obstacle and moving left");
+          avoid(new_movement);
+        //  goto start;
+        } else { 
+           if (Right_Obs) { 
+             new_movement = FORWARD;
+             Right_Obs = false;
+             debugPrintln("(Following right) avoiding obstacle and moving forward");
+             avoid(new_movement);
+           //  goto start;
+           } else {
 //No_ObsR:     
-            if (S10 < 10 && S10 > 0){
+             if (S10 < 10 && S10 > 0) {
                 //if (right_dis < 33) goto start;
                 new_movement = ST_LEFT;
                 //*getSonarData();
@@ -644,9 +606,7 @@ int wall_following() {
                   in = digitalRead(bumper_left);
                 }*/
                 //goto No_ObsR;
-              }
-                
-             else if (S10 >= 10) { 
+              } else if (S10 >= 10) { 
                     if (S10 > 20){
                        new_movement = ST_RIGHT;
                        //*getSonarData();
@@ -674,60 +634,49 @@ int wall_following() {
                        debugPrintln("(Following right) Forward"); 
                        avoid(new_movement);
                      //  goto start;
-                     }}}}
-      avoid(new_movement);} 
-          
-    debugPrint("Fr_Obs: ");
-    debugPrintlnInt(Fr_Obs);
-    debugPrint("Right_Obs: ");
-    debugPrintlnInt(Right_Obs);
-    debugPrint("Left_Obs: ");
-    debugPrintlnInt(Left_Obs);
-          
+                     }
+                   }
+                 }
+               }
+        avoid(new_movement);
+      } 
+            
+      debugPrint("Fr_Obs: ");
+      debugPrintlnInt(Fr_Obs);
+      debugPrint("Right_Obs: ");
+      debugPrintlnInt(Right_Obs);
+      debugPrint("Left_Obs: ");
+      debugPrintlnInt(Left_Obs);          
     
-    }
-    
-  else { 
+    } else { 
         goStop(); // Stop the motors and indicate which bumpers has been tregered using the serial moniter and led's.
         if (in_Left == LOW)  {
           digitalWrite(left_led,HIGH);
-          Serial.println(":  LEFT BUMPER");}
+          debugPrintln(":  LEFT BUMPER");
+        }
         if (in_Right == LOW) {
           digitalWrite(right_led,HIGH);
-          Serial.println(":  RIGHT BUMPER");}
+          debugPrintln(":  RIGHT BUMPER");
+        }
         if (in_Front == LOW) {
           digitalWrite(front_led,HIGH);
-          Serial.println(":  FRONT BUMPER");}
+          debugPrintln(":  FRONT BUMPER");
+        }
         if (in_Back == LOW)  {
           digitalWrite(back_led,HIGH);      
-          Serial.println(":  BACK BUMPER");}
+          debugPrintln(":  BACK BUMPER");
+        }
     
-  }
-       
-   
-     
-   
+     }
      
    } while(Serial.available() < 1);
+   
    Serial.read();
    debugPrintln("Done wall following!");
+   new_movement = STOP;
+   avoid(new_movement);
    return -1;
-  // tell uno wall following mode 
-  
-  // lrf point to left
-  // read lrf
-  // lrf point to right
-  // read lrf
-  // if right < left
-  //    follow right
-  // else
-  //    follow left
-  // send case 5
-  // request reading from first sonar
-  // send case 6
-  // request reading from second sonar
-  // ...
-  // 
+ 
 }
 
 void readInterrupt() {
@@ -989,7 +938,8 @@ void readEncoder()
    //Serial.println(y1,DEC);
    debugPrintlnInt(y1);
    debugPrint("Angle in radians: ");
-   if (DEBUG) {
+   
+   if (DEBUG) {  // Float number - can't use debugPrint* - function doesn't accept float
      Serial.print(phi1fl);
    }
    debugPrint("Angle in degrees: ");
