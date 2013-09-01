@@ -20,11 +20,16 @@
 // #include <SoftwareSerial.h>  don't include because we are using BMserial and there's a conflict
 #include <BMSerial.h>
 #include <RoboClaw.h>
-int ledpin = 3;  //led on pin 13
+
+int left_led = 3;  //led's to indicate which bumpers is trigered.
+int right_led = 4;
+int front_led = 6;
+int back_led = 5;
+
 int bumper_left = 22;  //button on pin 
-int bumper_right = 23;
-int bumper_front = 24;
-int bumper_back = 25;
+int bumper_right = 24;
+int bumper_front = 26;
+int bumper_back = 28;
 // opcode which determines case to execute
 char pos;
 
@@ -94,7 +99,7 @@ uint8_t TopMotorSpeed = 30;        // Top speed is actually TopMotorSpeed + 1
 uint8_t NoMotorSpeed = 0;          // variable to name a speed of zero
 uint8_t increment = 3;//5;             // Rate of acceleration. Make sure it is a multiple of TopMotorSpeed
 boolean stopmoving = false;        // Tells whether the robot has been asked to stop moving
-
+boolean doneAccelerating;
 boolean first_iteration = false;   // As the robot accelerates it only needs to send the Uno (sonar_controller)
                                    // when it initiates a new movement. Otherwise the controller would be bogged
                                    // down with unnecessary communication.   
@@ -141,6 +146,8 @@ uint8_t sonar_number, obstacle; // used in detected_obstacle()
 uint8_t sonar[arraysize] = {0,0,0,0,0,0,0,0,0,0,0,0};
 
 boolean DEBUG = false;
+boolean statusRequest;
+
 
 void setup()
 {
@@ -156,9 +163,22 @@ void setup()
  
   Wire.begin(); 
   
-  pinMode(ledpin, OUTPUT);  //led output
+  pinMode(left_led, OUTPUT);  //led output
+  pinMode(right_led, OUTPUT);  //led output
+  pinMode(front_led, OUTPUT);  //led output
+  pinMode(back_led, OUTPUT);  //led output
+  
   pinMode(bumper_left, INPUT);  //button input
+  pinMode(bumper_right, INPUT);  //button input
+  pinMode(bumper_front, INPUT);  //button input
+  pinMode(bumper_back, INPUT);  //button input
+  
+  
   digitalWrite(bumper_left,HIGH);//pull this input on.
+  digitalWrite(bumper_right,HIGH);//pull this input on.
+  digitalWrite(bumper_front,HIGH);//pull this input on.
+  digitalWrite(bumper_back,HIGH);//pull this input on.
+  
   // attaches the servo on pin 9 to the servo object
   myservo.attach(8);       
 
@@ -183,6 +203,9 @@ void setup()
   attachInterrupt(1, bumper_3, FALLING);*/
   
   POST();
+  
+  doneAccelerating = true;
+  statusRequest = true;
 }
 
 void loop() {
@@ -343,7 +366,8 @@ int keyboardDebug(int pos) {
        
      case 'y':
        debug_pos = -1;
-       returnAllData();
+       statusRequest = true;
+       //returnAllData();
        break;
      
      case 'p':
@@ -393,7 +417,7 @@ int keyboardDebug(int pos) {
 }
 
 void getSonarData() {
-  delay(200);
+  //delay(200);
   boolean data_ok = false;
   
   while(!data_ok) {  // Keep requesting sonar data from UNO until no reading is 0
@@ -424,7 +448,7 @@ int wall_following() {
   //DontMoveLeft = false;
   //DontMoveRight = false;
   //int right_dis, left_dis;
-  int in = 0;
+  int in_Left = 0, in_Right = 0, in_Front = 0, in_Back = 0;
   do {
     getSonarData();
     S1 = sonar[0]; //Front left sonar
@@ -433,6 +457,7 @@ int wall_following() {
     S9 = sonar[8]; //left sonar
     S10 = sonar[9];//left sonar
     S12 = sonar[11];//Front right sonar
+    
     Serial.print(S1);
     Serial.print(" ");
     Serial.print(S3);
@@ -451,9 +476,17 @@ int wall_following() {
     if (S10 < 5) { S10 = 200; }
     if (S12 < 5) { S12 = 200; }*/
     delay(100);
-    in = digitalRead(bumper_left);
-    if (in==HIGH) {
-    digitalWrite(ledpin,LOW);
+    in_Left = digitalRead(bumper_left);
+    in_Right = digitalRead(bumper_right);
+    in_Front = digitalRead(bumper_front);
+    in_Back = digitalRead(bumper_back);
+    
+    if (in_Left == HIGH && in_Right == HIGH && in_Front == HIGH && in_Back == HIGH) {
+    digitalWrite(left_led,LOW);
+    digitalWrite(right_led,LOW);
+    digitalWrite(front_led,LOW);
+    digitalWrite(back_led,LOW);
+    
     
        
     
@@ -516,50 +549,52 @@ int wall_following() {
           // goto start;
          }
          else { 
-No_ObsL:     if (S3 < 10 && S3 > 0){
+//No_ObsL:     
+            if (S3 < 10 && S3 > 0){
   
                 // check bumper
-                in = digitalRead(bumper_left);
+                /*in = digitalRead(bumper_left);
                 // Keep stopping while bumper is on
                 while (in == LOW) {
                   goStop();
                   in = digitalRead(bumper_left);
-                }
+                }*/
                 //if (left_dis < 33) goto start;
                 new_movement = ST_RIGHT;              
-                getSonarData();
+                //*getSonarData();
                 //S1 = sonar[0];
-                S3 = sonar[2];
+                //*S3 = sonar[2];
                 //S4 = sonar[3];
                 //S9 = sonar[8];
-                S10 = sonar[9];
+                //*S10 = sonar[9];
                 //S12 = sonar[11];         
                 avoid(new_movement);
                 debugPrintln("(Following Left) less than 10 and moving right");
                 
-                goto No_ObsL;
+                //goto No_ObsL;
               }
              else if (S3 >= 10){ 
                        if (S3 > 20){
                                         // Read from bumper
-                          in = digitalRead(bumper_left);
+                          /*in = digitalRead(bumper_left);
                           // Keep stopping while bumper is on
                           while (in == LOW) {
                             goStop();
                             in = digitalRead(bumper_left);
-                          }
+                          }*/
                          new_movement = ST_LEFT;
-                         getSonarData();
+                         //*getSonarData();
                          //S1 = sonar[0];
-                         S3 = sonar[2];
+                         //*S3 = sonar[2];
                         // S4 = sonar[3];
                         // S9 = sonar[8];
-                         S10 = sonar[9];
+                         //*S10 = sonar[9];
                         // S12 = sonar[11];
                          avoid(new_movement);
                          debugPrintln("(Following Left) larger than 20 and moving left");
                           
-                         goto No_ObsL;}
+                         //goto No_ObsL;
+                       }
                        else {
                          new_movement = FORWARD;
                          debugPrintln("(Following Left) Forward"); 
@@ -586,50 +621,54 @@ No_ObsL:     if (S3 < 10 && S3 > 0){
          //  goto start;
          } 
          else {
-No_ObsR:     if (S10 < 10 && S10 > 0){
+//No_ObsR:     
+            if (S10 < 10 && S10 > 0){
                 //if (right_dis < 33) goto start;
                 new_movement = ST_LEFT;
-                getSonarData();
+                //*getSonarData();
                // S1 = sonar[0];
-                S3 = sonar[2];
+                //*S3 = sonar[2];
                 //S4 = sonar[3];
                 //S9 = sonar[8];
-                S10 = sonar[9];
+                //*S10 = sonar[9];
                 //S12 = sonar[11];
                 debugPrintln("(Following Right) less than 10 and moving left");
                 avoid(new_movement);
                 
                 // Check bumper
+                /*
                 in = digitalRead(bumper_left);
                 // Keep stopping while bumper is on
                 while (in == LOW) {
                   goStop();
                   in = digitalRead(bumper_left);
-                }
-                goto No_ObsR;}
+                }*/
+                //goto No_ObsR;
+              }
                 
              else if (S10 >= 10) { 
                     if (S10 > 20){
                        new_movement = ST_RIGHT;
-                       getSonarData();
+                       //*getSonarData();
                        //S1 = sonar[0];
-                       S3 = sonar[2];
+                       //*S3 = sonar[2];
                      //  S4 = sonar[3];
                       // S9 = sonar[8];
-                       S10 = sonar[9];
+                       //*S10 = sonar[9];
                        //S12 = sonar[11];
                        debugPrintln("(Following Right) larger than 20 and moving right");
                        avoid(new_movement);
                        
                       // Read from bumper
-                      in = digitalRead(bumper_left);
+                   /*   in = digitalRead(bumper_left);
                       // Keep stopping while bumper is on
                       while (in == LOW) {
                         goStop();
                         in = digitalRead(bumper_left);
-                      }
+                      }*/
                        
-                       goto No_ObsR;}
+                       //goto No_ObsR;
+                     }
                     else {
                        new_movement = FORWARD;
                        debugPrintln("(Following right) Forward"); 
@@ -649,8 +688,21 @@ No_ObsR:     if (S10 < 10 && S10 > 0){
     }
     
   else { 
-        goStop();
-        digitalWrite(ledpin,HIGH);}
+        goStop(); // Stop the motors and indicate which bumpers has been tregered using the serial moniter and led's.
+        if (in_Left == LOW)  {
+          digitalWrite(left_led,HIGH);
+          Serial.println(":  LEFT BUMPER");}
+        if (in_Right == LOW) {
+          digitalWrite(right_led,HIGH);
+          Serial.println(":  RIGHT BUMPER");}
+        if (in_Front == LOW) {
+          digitalWrite(front_led,HIGH);
+          Serial.println(":  FRONT BUMPER");}
+        if (in_Back == LOW)  {
+          digitalWrite(back_led,HIGH);      
+          Serial.println(":  BACK BUMPER");}
+    
+  }
        
    
      
@@ -1186,6 +1238,8 @@ void doMove() {
                 }
                 MotorSpeed = 0;
 		goStop();
+                //old_movement = new_movement;
+                //return true;
 	}
 	else if(new_movement != old_movement) {
         //debugPrintln("new_movement!=old_movement");
@@ -1195,14 +1249,19 @@ void doMove() {
                   delay(1);
                 }
 		function[new_movement](MotorSpeed);
+                //old_movement = new_movement;
+                //return true;
 	}
 	else if(MotorSpeed < TopMotorSpeed && old_movement != STOP) {
         //debugPrintln("MotorSpeed<TopMotorSpeed && old_movement!=STOP");
 	  MotorSpeed = MotorSpeed + increment;
           if(MotorSpeed > TopMotorSpeed){
             MotorSpeed = TopMotorSpeed;
+            //return true;
           }            
 	  function[new_movement](MotorSpeed);
+          //old_movement = new_movement;
+          //return false;
 	}
         
         // DEBUG OUTPUT
