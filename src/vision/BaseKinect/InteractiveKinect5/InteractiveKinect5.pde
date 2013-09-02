@@ -78,7 +78,7 @@ StatusThread statusThread;
 boolean onScreenInstructionDebugFlag = false;
 boolean onScreenCommandDebugFlag = true;
 boolean clientDebugFlag = true;
-boolean printDebugFlag = false;
+boolean printDebugFlag = true;
 //============== Text positions ===========
 
 
@@ -152,7 +152,7 @@ void setup()
   String portName ="/dev/ttyACM3"; // "/dev/tty.usbmodemfa131";//
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   send = STOP;
-  port.write(send);
+  writeport(send);
   
   kinect = new SimpleOpenNI(this, SimpleOpenNI.RUN_MODE_MULTI_THREADED); // initialize the kinect object
   kinect.setMirror(true); // Mirror the depth image
@@ -183,7 +183,7 @@ void setup()
   
   sender = new SenderThread(kinect.depthWidth(), kinect.depthHeight(), false);
   sender.start(); 
-  frameTime = millis();
+  frameTime = millis() + 5000;
   
   statusThread = new StatusThread();
   statusThread.start();
@@ -218,7 +218,7 @@ void draw()
   //println(width+"-"+height);
   
   if (userList.length > 0) {
-    println("Users detected: "+userList.length);
+    //println("Users detected: "+userList.length);
     user_detected = true;
     multiple_user_detected = false;
     //makeNotificationBoxCenter("HELLO, THERE!");
@@ -233,7 +233,7 @@ void draw()
     //if (send != STOP && !followHandFlag && !followWallFlag){ // If so, then check if we have already sent this command
     if (!followHandFlag && !followWallFlag){
       send = STOP;// if not, set the send variable to STOP
-      port.write(send); // send it   
+      writeport(send); // send it   
       println("STOP! User detected "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
       base_cmd = "stop";
     }
@@ -280,7 +280,7 @@ void draw()
    //if (true) {
      if (send != STOP){ // If so, then check if we have already sent this command
      send = STOP;// if not, set the send variable to STOP
-     port.write(send); // send it   
+     writeport(send); // send it   
      println("STOP, obstacle "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
      base_cmd = "stop";
      clientDebug(formatMessage("base", "stop"));
@@ -347,12 +347,12 @@ void draw()
     }*/
     obstacle = false;
     while (!statusChecked) {
-      port.write('?');
+      writeport('?');
       if (port.available() > 0) {
         int wf = port.read();
         if (wf > 0) statusChecked = true; 
         else {
-          port.write('f');
+          writeport('f');
           println("Resending wallfollowing command ...");
         }
       }
@@ -412,7 +412,7 @@ void draw()
     
       if (send != STOP) { // If so, then check if we have already sent this command
         send = STOP;// if not, set the send variable to STOP
-        port.write(send); // send it   
+        writeport(send); // send it   
         println("STOP, obstacle "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
         base_cmd = "stop";
         clientDebug(formatMessage("base", "stop"));
@@ -512,7 +512,7 @@ void draw()
          song = "Pause Music";// replace music button text with "Pause" instaed of "Play"
          playMusicFlag = true;
          send = LRFSCAN;
-         port.write(send);
+         writeport(send);
 
        }else if (player.isPlaying() || playMusicFlag){// otherwise, check if the music is playing
          //player.pause();// if so, pause the music
@@ -543,7 +543,7 @@ void draw()
         followhand = "Follow Hand";
         followHandFlag = false;
         send = STOP;// if not, set the send variables to STOP to be sent
-        port.write(send);// send it 
+        writeport(send);// send it 
         base_cmd = "stop";       
       }
       inFollowHandBox = true;      
@@ -569,7 +569,7 @@ void draw()
         rgbmode = "Show Depth";
         rgbFlag = true;
         send = STOP;// if not, set the send variables to STOP to be sent
-        port.write(send);// send it  
+        writeport(send);// send it  
         base_cmd = "stop";
         getDataFlag = false;     
       }
@@ -590,7 +590,7 @@ void draw()
         
         followWallFlag = true;
         send = WALLFOLLOW;
-        port.write(send); // send it   
+        writeport(send); // send it   
         println("Wall following start"); // print the sent value to the console for checking, (unnecessary but useful for debuging)
         base_cmd = "wallfollowing";
         clientDebug(formatMessage("base", "wallfollowing"));       
@@ -632,7 +632,7 @@ void draw()
             base_cmd = "straferight";
           }
          
-          port.write(send);// send it
+          writeport(send);// send it
           println("Right  "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           clientDebug(formatMessage("base",base_cmd)); 
           //======== display the command =======//
@@ -673,7 +673,7 @@ void draw()
             base_cmd = "strafeleft";
           }
          
-          port.write(send);//send it
+          writeport(send);//send it
           println("Left "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           clientDebug(formatMessage("base",base_cmd));
           //===== display the command ======//
@@ -710,7 +710,7 @@ void draw()
                 //text("Rotation satisfied? "+roto,340, 20);
               if (send != STOP) {// check if we have already sent this command 
                 send = STOP;// if not, set the send variables to STOP to be sent
-                port.write(send);// send it
+                writeport(send);// send it
                 println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
                 clientDebug(formatMessage("base","stop"));
                 //==== display the command====//
@@ -734,7 +734,7 @@ void draw()
       if (millimeters < 900 && millimeters > 0) {// if so, check if the hand is close. execlude the 0! its NOISE!!
         if (send != BACKWARD){// if so, check if we have already 
           send = BACKWARD;// if not, set the send variable to move BACKWARD to be sent
-          port.write(send);// send it
+          writeport(send);// send it
           base_cmd = "reverse";
           println("BACKWARD "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           clientDebug(formatMessage("base",base_cmd));
@@ -763,7 +763,7 @@ void draw()
       } else if (millimeters > 1200 && millimeters > 0) {//otherwise, check if the hand is far. execlude the 0! it is NOISE!!!
         if(send != FORWARD){// chekc if we have already sent this command
           send= FORWARD;// if not, set the send variable to move forward to be sent
-          port.write(send);// send it
+          writeport(send);// send it
           base_cmd = "forward";
           println("FORWARD "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           clientDebug(formatMessage("base",base_cmd));
@@ -798,7 +798,7 @@ void draw()
         //text("Distance satisfied? "+DisBF,110,20);
         if (send != STOP){// check if we have already sent this command 
           send = STOP;// if not, set the send variable to STOP to be sent
-          port.write(send);// send it
+          writeport(send);// send it
           println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           clientDebug(formatMessage("base","stop"));
         }      
@@ -870,7 +870,7 @@ void draw()
       // First thing to do is to tell the robot to stop
       if (send != STOP){// check if we have already sent this command 
           send = STOP;// if not, set the send variable to STOP to be sent
-          port.write(send);// send it
+          writeport(send);// send it
           base_cmd = "stop";
           println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           clientDebug(formatMessage("base",base_cmd));
@@ -938,34 +938,27 @@ void draw()
              player.rewind();// if so, rewind it, nobody is here :/
      }//otherwise, music not playing, just resume execution
      //updateScreen();
-  }
-   /*int currenttime = millis();
-   print("Killing time...");
-   while (millis() - currenttime < 30) {
-     print(".");
-   }
-   println("");*/
-   if (millis() - frameTime > 2000) {
+  } // END OF IDLE/END OF Kinect-based commands
+  
+   
+   if (millis() - frameTime > 1000) {
    //if (millis() - frameTime > 5000 || base_cmd.equals("stop")) {
      ///println("Updating screen...");
-     updateScreen();
-     frameTime = millis();
+     //updateScreen();
+     //frameTime = millis();
      //sendStatus();
-     getDataFlag = true;
-   } else getDataFlag = false;
-   //updateScreen();
-   //sendStatus();
-   
-   // try to get data from Arduino Mega/base
-   if (getDataFlag) {
+     //getDataFlag = true;
+     // try to get data from Arduino Mega/base
+   //if (getDataFlag) {
      // We may have to do this multiple times since the Arduino will send out other bytes/characters
      // that are not the data we want.
      send = GETDATA; 
-     port.write(send);
-     getDataFlag = false;
+     writeport(send);
+     //getDataFlag = false;
      int sdata = 0;
+     
      //int datasize = 22;
-     if (port.available() > 0 || port.available() == 22) {
+     if (port.available() > 0 && port.available() == 22) {
        printlnDebug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
        while (port.available() > 0 && getDataFlag) {
          sdata = port.read();
@@ -978,6 +971,7 @@ void draw()
            data[0] = sdata;
            for (int i=1; i<datasize; i++) {
              data[i] = port.read();
+             sdata = data[i];
              println("Data : "+ data[i]);
              // catch that we've read datasize amount of bytes OR the stop byte '36' 
              // to stop reading serial data
@@ -987,19 +981,29 @@ void draw()
              }
            }           
            println(data);
-           getDataFlag = false;   
+           getDataFlag = false;
+           //frameTime = millis();
             // serial data must be formatted - must check back later
               // See ref: http://www.varesano.net/blog/fabio/serial-communication-arduino-and-processing-simple-examples-and-arduino-based-gamepad-int
-              
+             
           } // if not the character for start of data ('#'/35, ignore
+          else printlnDebug("Not getting data!");
         }  // else if port.available = 0, we're done reading
         int btime = millis();
         //while (millis() - btime < 5000) {}
-        sendStatus();
+        
       } else {
         printlnDebug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA NOT AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+       
       } // else if port.available = 0, do nothing
-    } 
+      getDataFlag = false;
+      frameTime = millis();
+     } 
+   // else getDataFlag = false;
+   updateScreen();
+   sendStatus();
+   
+   
     //else { // if getDataFlag = false
       // do nothing
     //}
@@ -1166,7 +1170,7 @@ void roam(int passedTime) {
     if (passedTime > 5000 && passedTime <10000){  // after a five second delay, go forward for five seconds
       if (send != FORWARD){
         send=FORWARD;
-        port.write(send);//send command to go forward. Wall following and sensor based code to be added here
+        writeport(send);//send command to go forward. Wall following and sensor based code to be added here
         println("Forward "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
         base_cmd = "forward";
       }
@@ -1174,7 +1178,7 @@ void roam(int passedTime) {
     if(passedTime > 10000  && passedTime <15000){  // go RIGHT for five seconds 
       if (send != RIGHT){
         send=RIGHT;
-        port.write(send);//send command to go RIGHT. Wall following and sensor based code to be added here
+        writeport(send);//send command to go RIGHT. Wall following and sensor based code to be added here
         println("Right "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
         base_cmd = "right";
       }
@@ -1182,7 +1186,7 @@ void roam(int passedTime) {
     if (passedTime > 15000  && passedTime <20000){  // go backward for five seconds
       if (send != BACKWARD){
         send=BACKWARD;
-        port.write(send);//send command to go BACKWARD. Wall following and sensor based code to be added here
+        writeport(send);//send command to go BACKWARD. Wall following and sensor based code to be added here
         println("Backward "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
         base_cmd = "reverse";
       }
@@ -1190,7 +1194,7 @@ void roam(int passedTime) {
     if(passedTime > 20000  && passedTime <25000){    // go right for five seconds
       if (send != LEFT){
         send=LEFT;
-        port.write(send);//send command to go forward. Wall following and sensor based code to be added here
+        writeport(send);//send command to go forward. Wall following and sensor based code to be added here
         println("Left "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
         base_cmd = "left";
       }
@@ -1208,7 +1212,7 @@ void roaming(int savedTime, int duration) {
     if (send != FORWARD) {
       base_cmd = "forward";
       send=FORWARD;
-      port.write(send);//send command to go forward. Wall following and sensor based code to be added here
+      writeport(send);//send command to go forward. Wall following and sensor based code to be added here
       println("Forward "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
     }
   } else {
@@ -1233,7 +1237,7 @@ void searching(int savedTime, int duration, float dir) {
       if (send != RIGHT) {
         base_cmd = "right";
         send=RIGHT;        
-        port.write(send);//send command to go forward. Wall following and sensor based code to be added here
+        writeport(send);//send command to go forward. Wall following and sensor based code to be added here
         println("Right "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
       }
     } else {
@@ -1242,7 +1246,7 @@ void searching(int savedTime, int duration, float dir) {
       if (send != LEFT) {
         base_cmd = "left";
         send=LEFT;        
-        port.write(send);//send command to go forward. Wall following and sensor based code to be added here
+        writeport(send);//send command to go forward. Wall following and sensor based code to be added here
         println("Left "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
       }
     }
@@ -1340,7 +1344,7 @@ void onDestroyHands(int handId,float time)
   handsTrackFlag = false;// set hand tracking flag to false
         if (send != STOP && !followWallFlag){// check if we have already sent this command 
           send = STOP;// if not, set the send variable to STOP to be sent
-          port.write(send);// send it
+          writeport(send);// send it
           println("stay "+send);//print the sent value to the console for checking, (unnecessary but useful for debuging)
           textSize(20);
           fill(0,255,0);
@@ -1420,7 +1424,7 @@ void parseMessage(String msg) {
       send = STOP;
       println("Unknown command. So I'm stopping.");
     }
-    port.write(send);
+    writeport(send);
   } else if (msg_length == 4 && message[1].equals("all")) {
       // Broadcasted message, all clients must pay attention to this
       String flag = trim(message[2]);
@@ -1608,7 +1612,7 @@ void printlnDebug(String message) {
 void makeStop() {
   if (send != STOP) { // If so, then check if we have already sent this command
     send = STOP;// if not, set the send variable to STOP
-    port.write(send); // send it   
+    writeport(send); // send it   
     println("STOP, obstacle "+send); // print the sent value to the console for checking, (unnecessary but useful for debuging)
     base_cmd = "stop";
     clientDebug(formatMessage("base", "stop"));
@@ -1627,4 +1631,9 @@ int shiftObstacleCount(int newvalue) {
   if (sum > 3) sum=3;
   
   return sum;
+}
+
+void writeport(int cmd) {
+  port.write(cmd);
+  printlnDebug("Writing to port! " + cmd);
 }
