@@ -26,6 +26,11 @@ int right_led = 4;
 int front_led = 6;
 int back_led = 5;
 
+int FLCorner = 39;
+int FRCorner = 41;
+int BLCorner = 43;
+int BRCorner = 45;
+
 int bumper_left = 22;  //button on pin 
 int bumper_right = 24;
 int bumper_front = 26;
@@ -168,6 +173,11 @@ void setup()
   pinMode(right_led, OUTPUT);  //led output
   pinMode(front_led, OUTPUT);  //led output
   pinMode(back_led, OUTPUT);  //led output
+  
+  pinMode(FLCorner, OUTPUT);  //led output
+  pinMode(FRCorner, OUTPUT);  //led output
+  pinMode(BLCorner, OUTPUT);  //led output
+  pinMode(BRCorner, OUTPUT);  //led output
   
   pinMode(bumper_left, INPUT);  //button input
   pinMode(bumper_right, INPUT);  //button input
@@ -459,6 +469,38 @@ void getSonarData() {
   }
 }
 
+void getSonars_LED(){
+  getSonarData();
+  //Serial.println("getting sonars dude!");
+  if(sonar[0]<10 || sonar[1]<10 || sonar[2]<10){
+    digitalWrite(FLCorner,HIGH);
+    Serial.println("Front Left Corner LED is on!");}
+  else if (sonar[0]>=10 && sonar[1]>=10 && sonar[2]>=10){
+    digitalWrite(FLCorner,LOW);
+    Serial.println("Front Left Corner LED is off!");}
+    
+  if(sonar[3]<10 || sonar[4]<10 || sonar[5]<10){
+    digitalWrite(BLCorner,HIGH);
+    Serial.println("Back Left Corner LED is on!");} //else digitalWrite(BLCorner,LOW);
+  else if (sonar[3]>=10 && sonar[4]>=10 && sonar[5]>=10){
+    digitalWrite(BLCorner,LOW);
+    Serial.println("Back Left Corner LED is off!");}
+    
+  if(sonar[6]<10 || sonar[7]<10 || sonar[8]<10){
+    digitalWrite(BRCorner,HIGH); //else digitalWrite(BRCorner,LOW);
+    Serial.println("Back Right Corner LED is on!");}
+  else if (sonar[6]>=10 && sonar[7]>=10 && sonar[8]>=10){
+    digitalWrite(BRCorner,LOW);
+    Serial.println("Back Right Corner LED is off!");}
+    
+  if(sonar[9]<10 || sonar[10]<10 || sonar[11]<10){
+    digitalWrite(FRCorner,HIGH);// else digitalWrite(FLCorner,LOW);
+    Serial.println("Front Right Corner LED is on!");}
+  else if (sonar[9]>=10 && sonar[10]>=10 && sonar[11]>=10){
+    digitalWrite(FRCorner,LOW);
+    Serial.println("Front Right Corner LED is off!");}}
+  
+  
 int wall_following() {
   //Serial.println();
   boolean Fr_Obs = false;
@@ -489,6 +531,8 @@ int wall_following() {
     debugPrintInt(S10);
     debugPrint(" ");
     debugPrintlnInt(S12);
+    
+    getSonars_LED();
     
     delay(100);
     in_Left = digitalRead(bumper_left);
