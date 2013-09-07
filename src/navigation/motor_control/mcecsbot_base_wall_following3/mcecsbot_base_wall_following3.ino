@@ -52,6 +52,7 @@ int pos4 = center - 20;
 int right90 = 170;
 int left90 = 30;
 
+
 // address for motor controller
 #define address 0x80
 
@@ -223,7 +224,7 @@ void setup()
 void loop() {
 
   readSerial();
-  if (pos != 'f')readInterrupt();
+  if (pos != 'f')readInterruptx();
   //doMove();
   if (doMove() && statusRequest) {    
     returnAllData();
@@ -472,33 +473,33 @@ void getSonarData() {
 void getSonars_LED(){
   getSonarData();
   //Serial.println("getting sonars dude!");
-  if(sonar[0]<10 || sonar[1]<10 || sonar[2]<10){
+  if((sonar[0]<10 && sonar[0] > 0)|| (sonar[1]<10 && sonar[1] > 0) || (sonar[2]<10 && sonar[2] > 0)){
     digitalWrite(FLCorner,HIGH);
-    Serial.println("Front Left Corner LED is on!");}
+    debugPrintln("Front Left Corner LED is on!");}
   else if (sonar[0]>=10 && sonar[1]>=10 && sonar[2]>=10){
     digitalWrite(FLCorner,LOW);
-    Serial.println("Front Left Corner LED is off!");}
+    debugPrintln("Front Left Corner LED is off!");}
     
-  if(sonar[3]<10 || sonar[4]<10 || sonar[5]<10){
+  if((sonar[3]<10 && sonar[3] > 0) || (sonar[4]<10 && sonar[4] > 0) || (sonar[5]<10 && sonar[5] > 0)){
     digitalWrite(BLCorner,HIGH);
-    Serial.println("Back Left Corner LED is on!");} //else digitalWrite(BLCorner,LOW);
+    debugPrintln("Back Left Corner LED is on!");} //else digitalWrite(BLCorner,LOW);
   else if (sonar[3]>=10 && sonar[4]>=10 && sonar[5]>=10){
     digitalWrite(BLCorner,LOW);
-    Serial.println("Back Left Corner LED is off!");}
+    debugPrintln("Back Left Corner LED is off!");}
     
-  if(sonar[6]<10 || sonar[7]<10 || sonar[8]<10){
+  if((sonar[6]<10 && sonar[6] > 0) || (sonar[7]<10 && sonar[7] > 0) || (sonar[8]<10 && sonar[8] > 0)){
     digitalWrite(BRCorner,HIGH); //else digitalWrite(BRCorner,LOW);
-    Serial.println("Back Right Corner LED is on!");}
+    debugPrintln("Back Right Corner LED is on!");}
   else if (sonar[6]>=10 && sonar[7]>=10 && sonar[8]>=10){
     digitalWrite(BRCorner,LOW);
-    Serial.println("Back Right Corner LED is off!");}
+    debugPrintln("Back Right Corner LED is off!");}
     
-  if(sonar[9]<10 || sonar[10]<10 || sonar[11]<10){
+  if((sonar[9]<10 && sonar[9] > 0) || (sonar[10]<10 && sonar[10] > 0) || (sonar[11]<10 && sonar[11] > 0)){
     digitalWrite(FRCorner,HIGH);// else digitalWrite(FLCorner,LOW);
-    Serial.println("Front Right Corner LED is on!");}
+    debugPrintln("Front Right Corner LED is on!");}
   else if (sonar[9]>=10 && sonar[10]>=10 && sonar[11]>=10){
     digitalWrite(FRCorner,LOW);
-    Serial.println("Front Right Corner LED is off!");}}
+    debugPrintln("Front Right Corner LED is off!");}}
   
   
 int wall_following() {
@@ -745,14 +746,23 @@ int wall_following() {
    return -1;
  
 }
-
 void readInterrupt() {
+  getSonarData();
+  //getSonars_LED();
+  if (((sonar[0] < threshold) || (sonar[2] < threshold) || (sonar[3] < threshold) || (sonar[5] < threshold) || (sonar[6] < threshold) || (sonar[8] < threshold) || (sonar[9] < threshold) || (sonar[11] < threshold)) &&
+  ((sonar[0] > 0) && (sonar[2] > 0) && (sonar[3] > 0) && (sonar[5] > 0) && (sonar[6] > 0) && (sonar[8] > 0) && (sonar[9] > 0) && (sonar[11] > 0))) {
+    digitalWrite(interruptLED, HIGH);
+    detected_obstacle();
+  }
+}
+
+void readInterruptx() {
     was_interrupt = digitalRead(interruptPin);    // Poll interrupt pin from sonar controller. 
     if(was_interrupt == true){
 	//Serial.println("Interrupt true.");
         digitalWrite(interruptLED, HIGH);
         if(new_movement == FORWARD || new_movement == BACKWARD) {
-             detected_obstacle();                         // jump to stop routine for detected obstacle
+             detected_obstaclex();                         // jump to stop routine for detected obstacle
         }
         was_interrupt = false;
     }
@@ -1602,7 +1612,29 @@ in the while loop if the obstacle remains, thereby
 preventing the robot from moving until the obstacle
 has been removed. 
 */
-void detected_obstacle(){
+void detected_obstacle() {
+  //uint8_t sonar_number, obstacle;
+  int interrupted_movement;
+  interrupted_movement = new_movement;
+
+  debugPrint("Obstacle Detected:   ");
+  
+  if(old_movement == BACKWARD) {
+    //new_movement = FORWARD;
+    avoid(FORWARD);
+  }
+  else {
+    //new_movement = BACKWARD;
+    avoid(BACKWARD);
+    avoid(RIGHT);
+  }
+  
+  avoid(STOP);
+  getSonarData();
+  getSonars_LED();
+}
+
+void detected_obstaclex(){
   //uint8_t sonar_number, obstacle;
   int interrupted_movement;
   interrupted_movement = new_movement;

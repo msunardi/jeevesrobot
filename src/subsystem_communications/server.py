@@ -69,6 +69,7 @@ class IphoneChat(Protocol):
 	
 			else:
 				print "I don't understand!"
+				msg=""
 				#msg = "I don't understand what you're trying to do."
 		
 		print "messaging...\n"	

@@ -266,6 +266,11 @@ void loop()
 
 
   }
+  
+  if (((distance1 < threshold) || (distance3 < threshold) || (distance4 < threshold) || (distance6 < threshold) || (distance7 < threshold) || (distance9 < threshold) || (distance10 < threshold) || (distance12 < threshold)) &&
+  ((distance1 > 0) && (distance3 > 0) && (distance4 > 0) && (distance6 > 0) && (distance7 > 0) && (distance9 > 0) && (distance10 > 0) && (distance12 > 0)) {
+    digitalWrite(InterruptPin, ALERT);
+  }
 }
 
 ///             Get Sonar Function              ///
