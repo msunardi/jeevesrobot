@@ -31,8 +31,8 @@ void setup() {
   client.write("iam:body");
   // Instantiate a serial port
   //String portName = Serial.list()[0];
-  String portName = "/dev/ttyACM4";
-  myPort = new Serial(this, portName, 9600);
+  //String portName = "/dev/ttyACM4";
+  //myPort = new Serial(this, portName, 9600);
 }
 
 void draw() {
@@ -98,25 +98,25 @@ void parseMessage(String msg) {
       // END OF DEBUGGING STUFF 
       print("Command to execute: ");
       if (command.equals("left")) {
-        myPort.write('K');
+        //myPort.write('K');
         println("LEFT");
       } else if (command.equals("right")) {
-        myPort.write('J');
+        //myPort.write('J');
         println("RIGHT");
       } else if (command.equals("down")) {
-        myPort.write('L');
+        //myPort.write('L');
         println("DOWN");
       } else if (command.equals("wave")) {
-        myPort.write('W');
+        //myPort.write('W');
         println("WAVE");
       /*} else if (command.equals("dance")) {
-        myPort.write('W');
+        //myPort.write('W');
         println("DANCE");
         delay(3000);
         client.write("msg:I'm dancing...");      
         //dance();*/
       } else { // Default position
-        myPort.write('H');
+        //myPort.write('H');
         println("UPRIGHT");
       }
     } else if (message[1].equals("arm")) {
@@ -145,13 +145,13 @@ void parseMessage(String msg) {
 }
 
 /*void dance() {
-  myPort.write('B');
+  //myPort.write('B');
   delay(1500);
-  myPort.write('J');
+  //myPort.write('J');
   delay(1500);
-  myPort.write('F');
+  //myPort.write('F');
   delay(1500);
-  myPort.write('K');
+  //myPort.write('K');
    
   delay(3000);
   client.write("msg:OK. I'm done dancing.");
