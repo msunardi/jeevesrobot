@@ -134,6 +134,8 @@ struct TThreadRobotParam
 	volatile double Hz;
 	mrpt::synch::CThreadSafeVariable<COccupancyGridMap2D>		 * 	gridmap;	//
 	mrpt::synch::CThreadSafeVariable<CPose2D>					 	currentOdo;
+	mrpt::synch::CThreadSafeVariable<CPose2D>					 	currentKF;
+	mrpt::synch::CThreadSafeVariable<CPose2D>					 	currentSonar;
 	mrpt::synch::CThreadSafeVariable<CPose2D>					 	targetOdo;
 
 	mrpt::synch::CThreadSafeVariable<CObservation2DRangeScanPtr>    	new_obs;     // RGB+D (+3D points)
@@ -179,6 +181,7 @@ struct TThreadRobotParam
 };
 
 float initial_front_wall = 0.0f;
+bool initialize_front = 1;
 
 int scanTest = 0;  //Testing global variable. Delete After test
 /* prototypes */
@@ -673,7 +676,12 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 		}
 	}
 
-	thrPar.front_wall.set(float(buf[3])/38.4);
+	if (initialize_front) {
+	    initial_front_wall = float(buf[2])/38.4;    // Set initial front wall only the first time the program run
+	    initialize_front = 0;
+	}
+
+	thrPar.front_wall.set(float(buf[2])/38.4);
 
 	thrPar.gettingLRF.set(false);
 	cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;
@@ -1317,6 +1325,24 @@ void thread_display(TThreadRobotParam &p)
 		theScene->insert( obj );
 	}
 
+    {	/* display pose by encoder */
+		opengl::CSpherePtr obj = opengl::CSphere::Create();
+		obj->setColor(1,1,0);
+		obj->setRadius(0.1);
+		obj->setLocation(0,0,0);
+		obj->setName( "encoder");
+		theScene->insert( obj );
+	}
+
+	{	/* display pose by sonar */
+		opengl::CSpherePtr obj = opengl::CSphere::Create();
+		obj->setColor(0,0,1);
+		obj->setRadius(0.1);
+		obj->setLocation(0,0,0);
+		obj->setName( "sonarpos");
+		theScene->insert( obj );
+	}
+
 	{	/* display target point */
 		opengl::CSpherePtr obj = opengl::CSphere::Create();
 		obj->setColor(0,1,0);
@@ -1352,6 +1378,14 @@ void thread_display(TThreadRobotParam &p)
 	win.setCameraElevationDeg( 25.0f );
 	//win.setCameraProjective(false);
 
+    CDisplayWindowPlots		winEKF("Tracking - Extended Kalman Filter",450,400);
+
+
+	winEKF.setPos(10,10);
+
+
+	winEKF.axis(-2,20,-10,10); winEKF.axis_equal();
+
 		// Create EKF
 	// ----------------------
 	CRangeBearing 	EKF;
@@ -1369,6 +1403,7 @@ void thread_display(TThreadRobotParam &p)
 	//float initial_front_wall;
 	float dy=0, old_y=0;
 	float  t=0;
+	float sonarposition = 0;
 
 	int counter = 0;
 
@@ -1391,8 +1426,7 @@ void thread_display(TThreadRobotParam &p)
 		v+=1.0f*DELTA_TIME*cos(t);
 		w-=0.1f*DELTA_TIME*sin(t);
 
-		//cout << format("KF parameters: x=%.03f, y=%.03f, phi=%.03f, v=%.03f, w=%.03f, t=%.03f", x,y,phi,v,w, t) << endl;
-		cout << format("y=%.03f, old_y=%.03f, dy=%.03f", y, old_y, dy) << endl;
+
 
         /*
 		// Simulate noisy observation:
@@ -1413,6 +1447,23 @@ void thread_display(TThreadRobotParam &p)
 		sonar12 = p.front_wall.get();
 
 		EKF.doProcess(sonar12, dy);
+
+		/*EKF.getProfiler().enter("PF:complete_step");
+		PF.executeOn(particles, NULL,&SF);  // Process in the PF
+		EKF.getProfiler().leave("PF:complete_step");*/
+
+		// Show EKF state:
+		CRangeBearing::KFVector EKF_xkk;
+		CRangeBearing::KFMatrix EKF_pkk;
+
+		EKF.getState( EKF_xkk, EKF_pkk );
+
+		//printf("Real: x:%.03f  y=%.03f heading=%.03f v=%.03f w=%.03f\n",x,y,phi,v,w);
+		//cout << format("KF parameters: x=%.03f, y=%.03f, phi=%.03f, v=%.03f, w=%.03f, t=%.03f", x,y,phi,v,w, t) << endl;
+		cout << format("y=%.03f, front_sonar=%.03f, dy=%.03f, initial front wall distance=%.03f", y, p.front_wall.get(), dy, initial_front_wall) << endl;
+		cout << "EKF: " << EKF_xkk << endl;
+
+
 
 		old_y = y; // replace old y with current y
 
@@ -1455,13 +1506,35 @@ void thread_display(TThreadRobotParam &p)
 		// Point camera at the current robot position.
 		win.setCameraPointingToPoint(p.currentOdo.get().x(),p.currentOdo.get().y(),0);
 
+        CPose2D kalman;
+        kalman.y(EKF_xkk[0]);
+        kalman.x(0);
+        kalman.phi(p.currentOdo.get().phi());
+		p.currentKF.set(kalman);
+
+		sonarposition = (initial_front_wall - p.front_wall.get());
+		CPose2D sonarpos_;
+        sonarpos_.y(sonarposition);
+        sonarpos_.x(0);
+        sonarpos_.phi(p.currentOdo.get().phi());
+		p.currentSonar.set(sonarpos_);
+
 		/* Change pose of robot in display */
 		opengl::CRenderizablePtr obj1 = theScene->getByName("robot");
-		obj1->setPose( p.currentOdo.get() ); //.x() , p.currentOdo.get().y() , 0 );
+		obj1->setPose( p.currentKF.get() ); //.x() , p.currentOdo.get().y() , 0 );
+
+		/* Change pose of robot based on encoder in display */
+		opengl::CRenderizablePtr obj2 = theScene->getByName("encoder");
+		obj2->setPose( p.currentOdo.get() ); //.x() , p.currentOdo.get().y() , 0 );
+
+		/* Change pose of robot based on sonar in display */
+		opengl::CRenderizablePtr obj3 = theScene->getByName("sonarpos");
+
+		obj3->setPose( p.currentSonar.get() ); //.x() , p.currentOdo.get().y() , 0 );
 
 		/* Change location of target marker */
-		opengl::CRenderizablePtr obj2 = theScene->getByName("target");
-		obj2->setLocation(p.targetOdo.get().x() , p.targetOdo.get().y() , 0 );
+		opengl::CRenderizablePtr obj4 = theScene->getByName("target");
+		obj4->setLocation(p.targetOdo.get().x() , p.targetOdo.get().y() , 0 );
 
 		/* Put new path in the display */
 		if(p.displayNewPath.get() )
@@ -1541,7 +1614,8 @@ void thread_display(TThreadRobotParam &p)
 				if (obj4 != NULL) ( theScene->removeObject(obj4) );
 				opengl::CPlanarLaserScanPtr kinect_scan = opengl::CPlanarLaserScan::Create();
 				kinect_scan->setScan( *obs_2d );
-				kinect_scan->setPose(p.currentOdo.get() );
+				//kinect_scan->setPose(p.currentOdo.get() );
+				kinect_scan->setPose(p.currentKF.get() );
 				kinect_scan->setName( "kinect" );
 				kinect_scan->setColor(1,0,0);
 				theScene->insert( kinect_scan );
@@ -2305,7 +2379,7 @@ void CRangeBearing::OnGetObservationNoise(KFMatrix_OxO &R) const
 	/*R(0,0) = square( BEARING_SENSOR_NOISE_STD );
 	R(1,1) = square( RANGE_SENSOR_NOISE_STD );
 	*/
-	R(0,0) = 5; // changed by omar
+	R(0,0) = 25; // changed by omar
 }
 
 void CRangeBearing::OnGetObservationsAndDataAssociation(
@@ -2624,6 +2698,7 @@ int main(int argc, char **argv)
 			{
 
                 initial_front_wall = thrPar.front_wall.get();
+                sleep(1000);
 
 				if (c=='w') cur_v = 1;
 				if (c=='s') cur_v = -1;
