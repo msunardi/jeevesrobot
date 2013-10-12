@@ -76,6 +76,7 @@ using namespace std;
 #define VEHICLE_INITIAL_V           1.0f
 #define VEHICLE_INITIAL_W           DEG2RAD(20.0f)
 
+
 #define TRANSITION_MODEL_STD_XY 	0.03f
 #define TRANSITION_MODEL_STD_VXY 	0.20f
 
@@ -172,9 +173,12 @@ struct TThreadRobotParam
 	mrpt::synch::CThreadSafeVariable<int>							odo_fd; //file descripter for odometry port
 	mrpt::synch::CThreadSafeVariable<int>							lrf_fd; //file descripter for lrf (may be same as odometry)
 	mrpt::synch::CThreadSafeVariable<int>							vel_fd;
+	mrpt::synch::CThreadSafeVariable<float>                         front_wall;
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMean;
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMostLikely;
 };
+
+float initial_front_wall = 0.0f;
 
 int scanTest = 0;  //Testing global variable. Delete After test
 /* prototypes */
@@ -206,14 +210,17 @@ void setVelocities(int linear, int angular, TThreadRobotParam &thrPar);
 //		Implementation of the system models as a EKF
 // ------------------------------------------------------
 class CRangeBearing :
-	public mrpt::bayes::CKalmanFilterCapable<4 /* x y vx vy*/, 2 /* range yaw */, 0               , 1 /* Atime */>
+	//public mrpt::bayes::CKalmanFilterCapable<4 /* x y vx vy*/, 2 /* range yaw */, 0               , 1 /* Atime */>
+								   // <size_t VEH_SIZE,        size_t OBS_SIZE,   size_t FEAT_SIZE, size_t ACT_SIZE, size typename kftype = double>
+	public mrpt::bayes::CKalmanFilterCapable<1 /* x y vx vy*/, 1 /* range yaw */, 0               , 1 /* Atime */>
 								   // <size_t VEH_SIZE,        size_t OBS_SIZE,   size_t FEAT_SIZE, size_t ACT_SIZE, size typename kftype = double>
 {
 public:
 	CRangeBearing( );
 	virtual ~CRangeBearing();
 
-	void  doProcess( double DeltaTime, double observationRange, double observationBearing );
+	//void  doProcess( double DeltaTime, double observationRange, double observationBearing );
+	void  doProcess( double sonar12, double dy );
 
 	void getState( KFVector &xkk, KFMatrix &pkk)
 	{
@@ -225,6 +232,8 @@ public:
 
 	float m_obsBearing,m_obsRange;
 	float m_deltaTime;
+	float m_sonar12;    // latest sonar reading
+	float m_dy; // current positon - previous position
 
 	/** @name Virtual methods for Kalman Filter implementation
 		@{
@@ -610,11 +619,37 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 	sleep(150);
 
 	 printf("%i bytes got read...\n", n);
-	 printf("Buffer 1 contains...\n%d\n", buf[1]);
-	 printf("Buffer 2 contains...\n%d\n", buf[2]);
-	 printf("Buffer 3 contains...\n%d\n", buf[3]);
-	 printf("Buffer 4 contains...\n%d\n", buf[4]);
-	 printf("Buffer 5 contains...\n%d\n", buf[5]);
+	 printf("Buffer 1 contains...\n%d (%.03f)\n", buf[1], buf[1]/38.4);
+	 printf("Buffer 2 contains...\n%d (%.03f)\n", buf[2], buf[2]/38.4);
+	 printf("Buffer 3 contains...\n%d (%.03f)\n", buf[3], buf[3]/38.4);
+	 printf("Buffer 4 contains...\n%d (%.03f)\n", buf[4], buf[4]/38.4);
+	 printf("Buffer 5 contains...\n%d (%.03f)\n", buf[5], buf[5]/38.4);
+
+
+    /*
+                CPose2D 	odo;
+                double 		v,w;
+                int64_t  	left_ticks, right_ticks;
+                bool 		pollLRF = true;
+                cout<<"counter getting odo"<<endl;
+                p.isMoving.set(true);
+                while(p.gettingLRF.get());
+                //{
+                //	pollLRF = returnGettingLRF(thrPar);
+                //	cout<<pollLRF<<endl;
+                //	sleep(1000);
+
+                //}
+
+                cout<<"OK"<<endl;
+                getOdometry( odo, fd, p );
+                p.isMoving.set(false);
+                printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
+                fixOdometry( odo, p.odometryOffset.get() );
+                p.currentOdo.set(odo);
+                printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
+                cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
+    */
 
 	CPose2D curOdo = thrPar.currentOdo.get();
 	CPose2D newOffset(curOdo.x(),curOdo.y(),curOdo.phi());
@@ -622,19 +657,23 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 	fixOdometry( newOffset, thrPar.odometryOffset.get() );
 	out_obs.validRange.clear();
 	out_obs.setSensorPose(thrPar.odometryOffset.get());
-	out_obs.aperture = M_PI*40/180;
+	out_obs.aperture = M_PI*120/180;
 	sleep(1000);
 
-	for(int i = 1; i < LRF_READ_MIN; i++)
+	//for(int i = 1; i < LRF_READ_MIN; i++)
+	for(int i=5; i > 0; i--)
 	{
 //	 	printf("Buffer %d contains...\n%d\n",i,buf[i]);
 		if (i > 0)
 		{
-			out_obs.scan.push_back(float(buf[i])/100);
+			//out_obs.scan.push_back(float(buf[i])/100);
+			out_obs.scan.push_back(float(buf[i])/38.4); // inches converted into metric / map unit
 			out_obs.validRange.push_back(1);
 			cout << "yak!";
 		}
 	}
+
+	thrPar.front_wall.set(float(buf[3])/38.4);
 
 	thrPar.gettingLRF.set(false);
 	cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;
@@ -707,7 +746,8 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 
 	out_odom.x(float(x)/100.0);
 	out_odom.y(float(y)/100.0);
-	out_odom.phi(float(phi)*M_PI/180.0);
+	out_odom.phi((float(phi)+90)*M_PI/180.0);
+
 
 	sleep(1000);
 
@@ -1297,7 +1337,8 @@ void thread_display(TThreadRobotParam &p)
 		opengl::CArrowPtr obj = opengl::CArrow::Create(0,0,2, 0,0,0, 0.05, 0.01,0.02, 0,0,0 );
 		obj->setPose(p.currentOdo.get());
 		obj->setName( "mostlikelyParticle" );
-		theScene->insert( obj );
+		// uncomment to display particles
+		//theScene->insert( obj );
 	}
 
 	// IMPORTANT!!! IF NOT UNLOCKED, THE WINDOW WILL NOT BE UPDATED!
@@ -1325,7 +1366,11 @@ void thread_display(TThreadRobotParam &p)
 	timer.Tic();
 
 	float x=VEHICLE_INITIAL_X,y=VEHICLE_INITIAL_Y,phi=DEG2RAD(-180),v=VEHICLE_INITIAL_V,w=VEHICLE_INITIAL_W;
+	//float initial_front_wall;
+	float dy=0, old_y=0;
 	float  t=0;
+
+	int counter = 0;
 
 	while (!end && win.isOpen() )
 	{
@@ -1334,26 +1379,42 @@ void thread_display(TThreadRobotParam &p)
 		// Move the scene:
 		COpenGLScenePtr &theScene = win.get3DSceneAndLock();
 
-		x+=v*DELTA_TIME*(cos(phi)-sin(phi));
-		y+=v*DELTA_TIME*(sin(phi)+cos(phi));
+		//x+=v*DELTA_TIME*(cos(phi)-sin(phi));
+		//y+=v*DELTA_TIME*(sin(phi)+cos(phi));
+		x=0;
+		y=p.currentOdo.get().y();
+
+		dy = y - old_y; //
+
 		phi+=w*DELTA_TIME;
 
 		v+=1.0f*DELTA_TIME*cos(t);
 		w-=0.1f*DELTA_TIME*sin(t);
 
+		//cout << format("KF parameters: x=%.03f, y=%.03f, phi=%.03f, v=%.03f, w=%.03f, t=%.03f", x,y,phi,v,w, t) << endl;
+		cout << format("y=%.03f, old_y=%.03f, dy=%.03f", y, old_y, dy) << endl;
 
+        /*
 		// Simulate noisy observation:
 		float realBearing = atan2( y,x );
 		float obsBearing = realBearing  + BEARING_SENSOR_NOISE_STD * randomGenerator.drawGaussian1D_normalized();
 		//printf("Real/Simulated bearing: %.03f / %.03f deg\n", RAD2DEG(realBearing), RAD2DEG(obsBearing) );
-		win.addTextMessage(0.2, 0.5, format("Real/Simulated bearing: %.03f / %.03f deg\n", RAD2DEG(realBearing), RAD2DEG(obsBearing) ), TColorf(0,0,1), "mono", 9, mrpt::opengl::NICE,10);
+		win.addTextMessage(0.01, 0.93, format("Real/Simulated bearing: %.03f / %.03f deg\n", RAD2DEG(realBearing), RAD2DEG(obsBearing) ), TColorf(0,0,1), "mono", 9, mrpt::opengl::NICE,10);
 
 		float realRange = sqrt(square(x)+square(y));
 		float obsRange = max(0.0, realRange  + RANGE_SENSOR_NOISE_STD * randomGenerator.drawGaussian1D_normalized() );
-		printf("Real/Simulated range: %.03f / %.03f \n", realRange, obsRange );
-		win.addTextMessage(5,-17, format("Real/Simulated range: %.03f / %.03f \n", realRange, obsRange ), TColorf(0,0,1), "mono", 9, mrpt::opengl::NICE,10);
+		//printf("Real/Simulated range: %.03f / %.03f \n", realRange, obsRange );
+		win.addTextMessage(0.01, 0.9, format("Real/Simulated range: %.03f / %.03f \n", realRange, obsRange ), TColorf(0,0,1), "mono", 9, mrpt::opengl::NICE,12);
+        */
 
-		EKF.doProcess(DELTA_TIME,obsRange, obsBearing);
+		//EKF.doProcess(DELTA_TIME,obsRange, obsBearing);
+
+		float sonar12;
+		sonar12 = p.front_wall.get();
+
+		EKF.doProcess(sonar12, dy);
+
+		old_y = y; // replace old y with current y
 
 		// Display the current gridmap x,y position of the cursor on the screen.
 		int mouse_x,mouse_y;
@@ -1475,7 +1536,7 @@ void thread_display(TThreadRobotParam &p)
 			if (obs_2d != NULL)
 			{
 			    cout << "obs_2d IS NOT NULL!\n";
-				obs_2d->truncateByDistanceAndAngle(kinectMinTruncateDistance,3);
+				obs_2d->truncateByDistanceAndAngle(kinectMinTruncateDistance,5);
 				opengl::CRenderizablePtr obj4 = theScene->getByName( "kinect" );
 				if (obj4 != NULL) ( theScene->removeObject(obj4) );
 				opengl::CPlanarLaserScanPtr kinect_scan = opengl::CPlanarLaserScan::Create();
@@ -1607,6 +1668,8 @@ void thread_display(TThreadRobotParam &p)
 			}		// end case
 
 		}
+
+
 
 	}
 
@@ -2132,19 +2195,25 @@ CRangeBearing::CRangeBearing()
 	KF_options.method = kfEKFAlaDavison;
 
 	// INIT KF STATE
-	m_xkk.resize(4,0);	// State: (x,y,heading,v,w)
+	/*m_xkk.resize(4,0);	// State: (x,y,heading,v,w)
 	m_xkk[0]= VEHICLE_INITIAL_X;
 	m_xkk[1]= VEHICLE_INITIAL_Y;
 	m_xkk[2]=-VEHICLE_INITIAL_V;
 	m_xkk[3]=0;
+	*/
+	m_xkk.resize(1,0);
+	m_xkk[0]=0;
 
 	// Initial cov:  Large uncertainty
-	m_pkk.setSize(4,4);
+	/*m_pkk.setSize(4,4);
 	m_pkk.unit();
 	m_pkk(0,0)=
 	m_pkk(1,1)= square( 5.0f );
 	m_pkk(2,2)=
-	m_pkk(3,3)= square( 1.0f );
+	m_pkk(3,3)= square( 1.0f );*/
+	m_pkk.setSize(1,1);
+	m_pkk.unit();
+	m_pkk(0,0)=square( 5.0f );
 }
 
 CRangeBearing::~CRangeBearing()
@@ -2153,13 +2222,21 @@ CRangeBearing::~CRangeBearing()
 }
 
 
-void  CRangeBearing::doProcess( double DeltaTime, double observationRange, double observationBearing )
+/*void  CRangeBearing::doProcess( double DeltaTime, double observationRange, double observationBearing )
 {
 	m_deltaTime = (float)DeltaTime;
 	m_obsBearing = (float)observationBearing;
 	m_obsRange = (float) observationRange;
 
 	runOneKalmanIteration();
+}*/
+
+void CRangeBearing::doProcess( double sonar12, double dy ) {
+
+    m_sonar12 = (float)sonar12;
+    m_dy = (float)dy;
+
+    runOneKalmanIteration();
 }
 
 
@@ -2168,7 +2245,7 @@ void  CRangeBearing::doProcess( double DeltaTime, double observationRange, doubl
   */
 void CRangeBearing::OnGetAction( KFArray_ACT &u ) const
 {
-	u[0] = m_deltaTime;
+	u[0] = 1;
 }
 
 /** Implements the transition model \f$ \hat{x}_{k|k-1} = f( \hat{x}_{k-1|k-1}, u_k ) \f$
@@ -2184,8 +2261,11 @@ void CRangeBearing::OnTransitionModel(
 {
 	// in_u[0] : Delta time
 	// in_out_x: [0]:x  [1]:y  [2]:vx  [3]: vy
-	inout_x[0] += in_u[0] * inout_x[2];
-	inout_x[1] += in_u[0] * inout_x[3];
+	//inout_x[0] += in_u[0] * inout_x[2];
+	//inout_x[1] += in_u[0] * inout_x[3];
+
+	inout_x[0] += in_u[0]*(m_dy); // changed by omar, + is removed look at the paper!
+	//This should  be:       inout_x[0] = y that comes from the encoder. as the state equals y from encoder.
 
 }
 
@@ -2197,8 +2277,9 @@ void CRangeBearing::OnTransitionJacobian(KFMatrix_VxV  &F) const
 {
 	F.unit();
 
-	F(0,2) = m_deltaTime;
-	F(1,3) = m_deltaTime;
+	//F(0,2) = m_deltaTime;
+	//F(1,3) = m_deltaTime;
+	F(0,0) = 1; //changed by omar // THIS IS the A matrix
 }
 
 /** Implements the transition noise covariance \f$ Q_k \f$
@@ -2207,10 +2288,12 @@ void CRangeBearing::OnTransitionJacobian(KFMatrix_VxV  &F) const
   */
 void CRangeBearing::OnTransitionNoise(KFMatrix_VxV &Q) const
 {
-	Q(0,0) =
+	/*Q(0,0) =
 	Q(1,1) = square( TRANSITION_MODEL_STD_XY );
 	Q(2,2) =
 	Q(3,3) = square( TRANSITION_MODEL_STD_VXY );
+	*/
+	Q(0,0) = 0.06; //changed by omar
 }
 
 /** Return the observation NOISE covariance matrix, that is, the model of the Gaussian additive noise of the sensor.
@@ -2219,8 +2302,10 @@ void CRangeBearing::OnTransitionNoise(KFMatrix_VxV &Q) const
 */
 void CRangeBearing::OnGetObservationNoise(KFMatrix_OxO &R) const
 {
-	R(0,0) = square( BEARING_SENSOR_NOISE_STD );
+	/*R(0,0) = square( BEARING_SENSOR_NOISE_STD );
 	R(1,1) = square( RANGE_SENSOR_NOISE_STD );
+	*/
+	R(0,0) = 5; // changed by omar
 }
 
 void CRangeBearing::OnGetObservationsAndDataAssociation(
@@ -2232,9 +2317,11 @@ void CRangeBearing::OnGetObservationsAndDataAssociation(
 	const KFMatrix_OxO          &in_R
 	)
 {
+	//out_z.resize(1);
+	//out_z[0][0] = m_obsBearing;
+	//out_z[0][1] = m_obsRange;
 	out_z.resize(1);
-	out_z[0][0] = m_obsBearing;
-	out_z[0][1] = m_obsRange;
+	out_z[0][0] = m_sonar12;
 
 	out_data_association.clear(); // Not used
 }
@@ -2250,7 +2337,7 @@ void CRangeBearing::OnObservationModel(
 	) const
 {
 	// predicted bearing:
-	kftype x = m_xkk[0];
+	/*kftype x = m_xkk[0];
 	kftype y = m_xkk[1];
 
 	kftype h_bear = atan2(y,x);
@@ -2260,6 +2347,13 @@ void CRangeBearing::OnObservationModel(
 	out_predictions.resize(1);
 	out_predictions[0][0] = h_bear;
 	out_predictions[0][1] = h_range;
+	*/
+	kftype y = m_xkk[0]; //OMAR, this is the state, and in our case the state is the encoder measurement.
+
+	kftype h_distance = initial_front_wall - y;
+
+	out_predictions.resize(1);
+	out_predictions[0][0] = h_distance;
 }
 
 /** Implements the observation Jacobians \f$ \frac{\partial h_i}{\partial x} \f$ and (when applicable) \f$ \frac{\partial h_i}{\partial y_i} \f$.
@@ -2274,7 +2368,7 @@ void CRangeBearing::OnObservationJacobians(
 	) const
 {
 	// predicted bearing:
-	kftype x = m_xkk[0];
+	/*kftype x = m_xkk[0];
 	kftype y = m_xkk[1];
 
 	Hx.zeros();
@@ -2282,9 +2376,12 @@ void CRangeBearing::OnObservationJacobians(
 	Hx(0,1) = 1/(x*(1+square(y/x)));
 
 	Hx(1,0) = x/sqrt(square(x)+square(y));
-	Hx(1,1) = y/sqrt(square(x)+square(y));
+	Hx(1,1) = y/sqrt(square(x)+square(y));*/
 
 	// Hy: Not used
+
+	Hx.zeros();
+	Hx(0,0) = -1; //changed by omar
 }
 
 /** Computes A=A-B, which may need to be re-implemented depending on the topology of the individual scalar components (eg, angles).
@@ -2436,7 +2533,7 @@ int main(int argc, char **argv)
 		thrPar.isTurning.set(false);
 		thrPar.gettingLRF.set(false);
 
-		pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
+		//pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
 		displayHandle = mrpt::system::createThreadRef(thread_display ,thrPar);
 		thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
 		//wallDetectHandle = mrpt::system::createThreadRef(thread_wall_detect, thrPar);
@@ -2457,6 +2554,9 @@ int main(int argc, char **argv)
 			return 0;
 
 		bool show_menu = true;
+
+		int counter = 0;
+
 		while (1)
 		{
 			if (show_menu)
@@ -2485,7 +2585,36 @@ int main(int argc, char **argv)
 				mrpt::system::sleep(20);
 				continue;
 			}*/
-			char c = mrpt::system::os::getch();
+
+			char c;
+
+			// ==== Update odometry
+				CPose2D 	odo;
+				double 		v,w;
+				int64_t  	left_ticks, right_ticks;
+				bool 		pollLRF = true;
+				cout<<"getting odo"<<endl;
+				thrPar.isMoving.set(true);
+				while(thrPar.gettingLRF.get());
+				//{
+				//	pollLRF = returnGettingLRF(thrPar);
+				//	cout<<pollLRF<<endl;
+				//	sleep(1000);
+
+				//}
+
+				cout<<"OK"<<endl;
+				getOdometry( odo, odo_fd, thrPar );
+				thrPar.isMoving.set(false);
+				//printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
+				fixOdometry( odo, thrPar.odometryOffset.get() );
+				thrPar.currentOdo.set(odo);
+				//printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
+				cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
+				counter = 0;
+            // ==== End update odometry
+
+			c = mrpt::system::os::getch();
 
 			show_menu=true;
 
@@ -2493,11 +2622,15 @@ int main(int argc, char **argv)
 
 			if (c=='w' || c=='s') /* increase or decrease current linear velocity */
 			{
+
+                initial_front_wall = thrPar.front_wall.get();
+
 				if (c=='w') cur_v = 1;
 				if (c=='s') cur_v = -1;
 				setVelocities( cur_v, 0, thrPar);
 				sleep(1000);
-				setVelocities( 0, 0, thrPar);
+				//setVelocities( 0, 0, thrPar);
+
 			}
 
 			if (c=='a' || c=='d')  /* increase or decrease current angular velocity */
@@ -2515,8 +2648,15 @@ int main(int argc, char **argv)
 				cur_w = 0;
 				setVelocities( cur_v, cur_w, thrPar );
 			}
+			/*
 
-			if (c=='o')  /* get current odometry reading */
+			if (counter >= 3) {
+			    c='o';
+			} else {
+			    counter += 1;
+			}
+
+			if (c=='o')  // get current odometry reading
 			{
 				CPose2D 	odo;
 				double 		v,w;
@@ -2540,7 +2680,9 @@ int main(int argc, char **argv)
 				thrPar.currentOdo.set(odo);
 				printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
 				cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
+				counter = 0;
 			}
+			*/
 
 			if (c=='p')  /* get current bumper readings */
 			{
@@ -2668,12 +2810,15 @@ int main(int argc, char **argv)
 			}
 
 
+
+
+
 		}
 
 	/*join threads */
 		cout << "Waiting for grabbing thread to exit...\n";
 		thrPar.quit = true;
-		mrpt::system::joinThread(pdfHandle);
+		//mrpt::system::joinThread(pdfHandle);
 		mrpt::system::joinThread(thHandle);
 		//mrpt::system::joinThread(wallDetectHandle);
 		mrpt::system::joinThread(displayHandle);
