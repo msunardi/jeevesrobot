@@ -1,0 +1,42 @@
+# This is a database containing MAC addresses with their respective coordinate locations.
+# Coordinates are pre-translated for MRPT.
+
+# Format is simply "MAC ADDRESS, x, y, z'/n'" so keep this in mind for parsing.
+# A sorting mechanism should be considered for search performance during nav routine.
+
+# ***NOTE z is not implemented yet.
+
+# PL
+08:1F:F3:23:FC:A0, 6, 5
+00:1D:70:03:3F:90, 6, 5
+04:FE:7F:49:27:50, 6, 5
+00:21:D8:7D:A0:40, 6, 5
+08:1F:F3:22:C8:60, 6, 6
+3C:CE:73:F9:24:60, 6, 6
+00:21:55:C0:42:E0, 6, 6
+00:21:D8:44:FA:20, 6, 6
+FC:FB:FB:D9:5C:C0, 6, 6
+
+# LL
+08:1F:F3:B2:74:60, 6, 6
+08:1F:F3:B2:96:E0, 6, 6
+00:13:C3:1F:7D:20, 6, 6
+00:0F:34:8A:6A:C0, 6, 6
+3C:CE:73:C6:73:80, 6, 6
+C0:62:6B:67:58:D0, 6, 6
+30:37:A6:C3:2C:70, 6, 6
+08:1F:F3:23:DB:E0, 6, 6
+00:0F:34:C0:4C:A0, 6, 6
+08:1F:F3:22:B1:60, 6, 6
+00:21:D8:7D:9C:E0, 6, 6
+00:0F:34:C1:86:40, 6, 6
+00:0F:34:C1:82:F0, 6, 6
+00:22:55:DF:B6:B0, 6, 6
+68:BC:0C:2D:5A:A0, 6, 6
+00:0F:34:C0:49:80, 6, 6
+00:27:0D:48:BF:90, 6, 6
+C4:7D:4F:53:27:30, 6, 6
+00:1A:30:2E:78:C0, 6, 6
+C4:7D:4F:53:25:90, 6, 6
+C4:7D:4F:53:16:C0, 6, 6
+C4:7D:4F:53:1C:F0, 6, 6
