@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <cstring>
 #include "WirelessLocalizer.h"
 
 using namespace std;
@@ -10,8 +11,8 @@ WirelessLocalizer::WirelessLocalizer()
   scanResults = new vector<WAP>;
   dbResults = new vector<WAP>;
   nodes = new vector<WAP>;
-  // Open the DB and parse the contents
 
+  // Open the DB and parse the contents
   size_t found;
   int coordinates[3];
   ifstream dbFile;
@@ -110,13 +111,12 @@ void WirelessLocalizer::Localize()
    */
   filePointer = popen("getconf PATH 2>&1", "r");
 
-  // Replace with getline() using while !fp.eof()
-  // Parse the path string up to the first ':' character to use
+  //Parse the path string up to the first ':' character to use
   while (fgets(buffer, 1024, filePointer))
   {
     string line;
 
-    for (int i = 0; i < 1024; ++i)
+    for (size_t i = 0; i < strlen(buffer); ++i)
       line+=buffer[i];
 
     // Parse up to the first ':' character
@@ -124,9 +124,8 @@ void WirelessLocalizer::Localize()
     if (found < 1024 && found != string::npos)
       path = line.substr(0, found - 1);
   }
-
   pclose(filePointer);
-
+  
   /*
    * Pipe the stream from (read mode) the system call "iwlist scan"
    * to parse out the MAC address and signal level fields.
@@ -149,13 +148,11 @@ void WirelessLocalizer::Localize()
     string line;
 
     // Append the characters in the array to a string
-    for (int i = 0; i < 1024; ++i)
-      line+=buffer[i];
+    for (size_t i = 0; i < strlen(buffer); ++i)
+      line += buffer[i];
 
-    /*
-     * Need a check here for making sure the interface is not down.
-     * If the interface is not up then don't waste time trying to parse garbage.
-     */
+     //Need a check here for making sure the interface is not down.
+     //If the interface is not up then don't waste time trying to parse garbage.
 
     found = line.find("Address:");
     if (found < 1024 && found != string::npos)
@@ -179,11 +176,8 @@ void WirelessLocalizer::Localize()
       scanResults->push_back(*node);
     }
   }
-
   // Close the stream
   pclose(filePointer);
-
-
 
   /*
    * This will be replaced with a hash table data structure that we can search

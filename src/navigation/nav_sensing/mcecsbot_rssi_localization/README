@@ -1,0 +1,2 @@
+The WirelessLocalizer library implements an RSSI localization algorithm
+that can be used to localize within a certain probability.
