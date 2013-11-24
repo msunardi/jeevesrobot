@@ -3,6 +3,7 @@
 
 #define SIGNAL_CUTOFF_LOW   -100
 #define SIGNAL_CUTOFF_HIGH  -20
+#define SIGNAL_CUTOFF_STEP  5
 
 #include <vector>
 #include "WAP.h"

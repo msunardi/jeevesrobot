@@ -180,22 +180,9 @@ void WirelessLocalizer::Localize()
   pclose(filePointer);
 
   /*
-   * This will be replaced with a hash table data structure that we can search
-   * instead of using ghetto nested for loops to find matches.
-   *
-   * The loose algorithm for this is:
-   *
-   * Get the size of the scannedResults vector and allocate a hash table
-   * accordingly to store any matches between scannedResults and dbResults
-   * in to.
-   *
-   * for each node in the WAP vector:
-   * compute hash and check if an entry exists in our hash table
-   *    -if there is a match then add point to datastructure used for geometry calculations in nav alg
+   * Compare scanned results to the nodes listed in the database
+   * If there is a match then store it in a vector of matches
    */
-
-  // Compare scanned results to the nodes listed in the database
-  // If there is a match then store it in a vector of matches
   for (vector<WAP>::iterator it = scanResults->begin(); it != scanResults->end(); ++it)
   {
     for (vector<WAP>::iterator it2 = dbResults->begin(); it2 != dbResults->end(); ++it2)
@@ -209,20 +196,32 @@ void WirelessLocalizer::Localize()
   }
 
   /*
-   * scan in WAPs (DONE)
-   * read in db (DONE)
-   * store matches between scanned results and db (DONE)
-   *
-   * run localization algorithm on matches:
-   * for (int i = (weakest signal); i > max signal; increase cutoff)
-   * run localization algorithm to find approximate center point
-   * store point in datastructure
-   * end for
+   * Localize iteratively through increasing signal cutoffs to create vectors of
+   * approximated center points and probable areas of our location.
    */
+  for (int i = SIGNAL_CUTOFF_LOW; i < SIGNAL_CUTOFF_HIGH; i = i + SIGNAL_CUTOFF_STEP)
+  {
+    // Run localization scheme on nodes
+    // Get outer bounds
+    // Find center
+    // Get area x 2
+    // Store center and area bounds in respective datastructures
+    
+    for (vector<WAP>::iterator it = nodes->begin(); it != nodes->end(); ++it)
+    {
+      if (stoi(it->GetSignalLevel()) < SIGNAL_CUTOFF_LOW)
+      {
+        // Erase the current node, and set the iterator to come back to this index
+        nodes->erase(it);
+        --it;
+      }
+    }
+  }
 
   return;
 }
 
+// View the perceived wireless networks
 void WirelessLocalizer::PrintScannedResults()
 {
   for (vector<WAP>::iterator it = scanResults->begin(); it != scanResults->end(); ++it)
