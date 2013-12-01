@@ -4,12 +4,20 @@ using namespace std;
 
 WAP::WAP()
 {
+  _address = "";
+  _signalLevel = "";
+  _x = 0;
+  _y = 0;
+  _x = 0;
 }
 
 WAP::WAP(const string address, const string signalLevel)
 {
   _address = address;
   _signalLevel = signalLevel;
+  _x = 0;
+  _y = 0;
+  _x = 0;
 }
 
 WAP::WAP(const string address, const string signalLevel, const int x, const int y)
@@ -18,6 +26,7 @@ WAP::WAP(const string address, const string signalLevel, const int x, const int 
   _signalLevel = signalLevel;
   _x = x;
   _y = y;
+  _z = 0;
 }
 
 WAP::WAP(const string address, const string signalLevel, const int x, const int y, const int z)
