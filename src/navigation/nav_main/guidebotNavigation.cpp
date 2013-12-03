@@ -686,7 +686,7 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 			//out_obs.scan.push_back(float(buf[i])/100);
 			out_obs.scan.push_back(float(buf[i])/38.4); // inches converted into metric / map unit
 			out_obs.validRange.push_back(1);
-			cout << "yak!";
+			//cout << "yak!";
 		}
 	}
 
@@ -1602,7 +1602,7 @@ void thread_display(TThreadRobotParam &p)
 		/* Change pose of robot based on encoder in display */
 		opengl::CRenderizablePtr obj2 = theScene->getByName("encoder");
 		obj2->setPose( p.currentOdo.get() ); //.x() , p.currentOdo.get().y() , 0 );
-		cout << format("x=%.03f, y=%.03f, phi=%.03f", p.currentOdo.get().x(), p.currentOdo.get().y(), p.currentOdo.get().phi()) << endl;
+		//cout << format("x=%.03f, y=%.03f, phi=%.03f", p.currentOdo.get().x(), p.currentOdo.get().y(), p.currentOdo.get().phi()) << endl;
 
 		/* Change pose of robot based on sonar in display */
 		opengl::CRenderizablePtr obj3 = theScene->getByName("sonarpos");
@@ -1685,7 +1685,7 @@ void thread_display(TThreadRobotParam &p)
 			/* make sure that we have new kinect reading */
 			if (obs_2d != NULL)
 			{
-			    cout << "obs_2d IS NOT NULL!\n";
+			    //cout << "obs_2d IS NOT NULL!\n";
 				obs_2d->truncateByDistanceAndAngle(kinectMinTruncateDistance,5);
 				opengl::CRenderizablePtr obj4 = theScene->getByName( "kinect" );
 				if (obj4 != NULL) ( theScene->removeObject(obj4) );
@@ -1697,7 +1697,7 @@ void thread_display(TThreadRobotParam &p)
 				kinect_scan->setColor(1,0,0);
 				theScene->insert( kinect_scan );
 			} else {
-			    cout << "obs_2d IS NULL!\n";
+			    //cout << "obs_2d IS NULL!\n";
 			}
 		}
 
