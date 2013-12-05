@@ -12,8 +12,9 @@ int main()
 {
   rssi = new WirelessLocalizer();
   rssi->Localize();
-  rssi->PrintScannedResults();
-  rssi->PrintDatabaseResults();
+  //rssi->PrintScannedResults();
+  //rssi->PrintDatabaseResults();
+  rssi->PrintMatches();
   rssi->PrintCenterPoints();
 
   int height = rssi->GetRectangleHeight();

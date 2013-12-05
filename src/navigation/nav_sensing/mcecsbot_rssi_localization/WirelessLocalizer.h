@@ -38,6 +38,7 @@ class WirelessLocalizer
     void Localize();
     void PrintCenterPoints();
     void PrintDatabaseResults();
+    void PrintMatches();
     void PrintScannedResults();
 
   private:
