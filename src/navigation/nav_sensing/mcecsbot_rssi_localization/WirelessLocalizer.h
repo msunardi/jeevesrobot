@@ -12,16 +12,16 @@ using namespace std;
 
 struct Coordinates
 {
-  int x;
-  int y;
-  int z;
+  float x;
+  float y;
+  float z;
 };
 
 struct Bounds
 {
-  int xLength;
-  int yLength;
-  int zLength;
+  float xLength;
+  float yLength;
+  float zLength;
 };
 
 class WirelessLocalizer
@@ -29,12 +29,12 @@ class WirelessLocalizer
   public:
     WirelessLocalizer();
     ~WirelessLocalizer();
-    //int GetRectangleDepth();
-    //int GetRectangleDepthMax();
-    int GetRectangleHeight();
-    int GetRectangleHeightMax();
-    int GetRectangleWidth();
-    int GetRectangleWidthMax();
+    //float GetRectangleDepth();
+    //float GetRectangleDepthMax();
+    float GetRectangleHeight();
+    float GetRectangleHeightMax();
+    float GetRectangleWidth();
+    float GetRectangleWidthMax();
     void Localize();
     void PrintCenterPoints();
     void PrintDatabaseResults();

@@ -5,7 +5,7 @@
 # ***THESE ARE DEPENDENCIES REQUIRED BY THIS SOFTWARE
 
 CXX      = g++
-CXXFLAGS = -g -Wall -std=gnu++11
+CXXFLAGS = -g -Wall
 LDFLAGS  =
 
 TARGET = scan

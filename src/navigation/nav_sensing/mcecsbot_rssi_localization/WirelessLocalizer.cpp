@@ -1,7 +1,8 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <math.h>
+#include <sstream>
+#include <cmath>
 #include "WirelessLocalizer.h"
 //#include "TestVector.h"
 
@@ -20,10 +21,11 @@ WirelessLocalizer::WirelessLocalizer()
 
   // Open the DB and parse the contents
   size_t found;
-  int coordinates[3];
+  float coordinates[3];
   ifstream dbFile;
   dbFile.open("WAP.db");
   string buffer;
+  stringstream stream;
 
   // Parse for MAC, X, Y format (Z not yet implemented)
   while (!dbFile.eof())
@@ -58,14 +60,18 @@ WirelessLocalizer::WirelessLocalizer()
         if (found != string::npos)
         {
           string dbCoordinate = buffer.substr(1, found - 1);    // Start at 1 to trim space
-          coordinates[index] = atoi(dbCoordinate.c_str());
+          stream << dbCoordinate;
+          stream >> coordinates[index];
+
           //cout << dbCoordinate << endl;
         }
 
         else
         {
           string dbCoordinate = buffer.substr(1);       // Start at 1 to trim space
-          coordinates[index] = atoi(dbCoordinate.c_str());
+          stream << dbCoordinate;
+          stream >> coordinates[index];
+          
           //cout << dbCoordinate << endl;
         }
 
@@ -109,17 +115,17 @@ WirelessLocalizer::~WirelessLocalizer()
     delete zOuterBoundsHistory;
 }
 
-//int WirelessLocalizer::GetRectangleDepth()
+//float WirelessLocalizer::GetRectangleDepth()
 //{
   //return rectangleLengths->back().zLength;
 //}
 
-//int WirelessLocalizer::GetRectangleDepthMax()
+//float WirelessLocalizer::GetRectangleDepthMax()
 //{
   //return rectangleLengths->front().zLength;
 //}
 
-int WirelessLocalizer::GetRectangleWidth()
+float WirelessLocalizer::GetRectangleWidth()
 {
   if (rectangleLengths)
     return rectangleLengths->back().xLength;
@@ -128,7 +134,7 @@ int WirelessLocalizer::GetRectangleWidth()
     return -1;
 }
 
-int WirelessLocalizer::GetRectangleWidthMax()
+float WirelessLocalizer::GetRectangleWidthMax()
 {
   if (rectangleLengths)
     return rectangleLengths->front().xLength;
@@ -137,7 +143,7 @@ int WirelessLocalizer::GetRectangleWidthMax()
     return -1;
 }
 
-int WirelessLocalizer::GetRectangleHeight()
+float WirelessLocalizer::GetRectangleHeight()
 {
   if (rectangleLengths)
     return rectangleLengths->back().yLength;
@@ -146,7 +152,7 @@ int WirelessLocalizer::GetRectangleHeight()
     return -1;
 }
 
-int WirelessLocalizer::GetRectangleHeightMax()
+float WirelessLocalizer::GetRectangleHeightMax()
 {
   if (rectangleLengths)
     return rectangleLengths->front().yLength;
@@ -386,7 +392,15 @@ void WirelessLocalizer::Localize()
 
       for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
       {
-        if (stoi(it->GetSignalLevel()) < SIGNAL_CUTOFF_LOW)
+        // Convert signal level string to integer value
+        string buffer = it->GetSignalLevel();
+
+        float signalLevel;
+        stringstream stream;
+        stream << buffer;
+        stream >> signalLevel;
+
+        if (signalLevel < SIGNAL_CUTOFF_LOW)
         {
           // Erase the current node, and set the iterator to come back to this index
           matchedNodes->erase(it);

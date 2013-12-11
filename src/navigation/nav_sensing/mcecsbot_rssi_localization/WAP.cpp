@@ -20,7 +20,7 @@ WAP::WAP(const string address, const string signalLevel)
   _x = 0;
 }
 
-WAP::WAP(const string address, const string signalLevel, const int x, const int y)
+WAP::WAP(const string address, const string signalLevel, const float x, const float y)
 {
   _address = address;
   _signalLevel = signalLevel;
@@ -29,7 +29,7 @@ WAP::WAP(const string address, const string signalLevel, const int x, const int 
   _z = 0;
 }
 
-WAP::WAP(const string address, const string signalLevel, const int x, const int y, const int z)
+WAP::WAP(const string address, const string signalLevel, const float x, const float y, const float z)
 {
   _address = address;
   _signalLevel = signalLevel;
@@ -52,17 +52,17 @@ string WAP::GetSignalLevel()
   return _signalLevel;
 }
 
-int WAP::GetX()
+float WAP::GetX()
 {
   return _x;
 }
 
-int WAP::GetY()
+float WAP::GetY()
 {
   return _y;
 }
 
-int WAP::GetZ()
+float WAP::GetZ()
 {
   return _z;
 }
@@ -79,32 +79,32 @@ void WAP::SetSignalLevel(const string signalLevel)
   return;
 }
 
-void WAP::SetX(const int x)
+void WAP::SetX(const float x)
 {
   _x = x;
   return;
 }
 
-void WAP::SetY(const int y)
+void WAP::SetY(const float y)
 {
   _y = y;
   return;
 }
 
-void WAP::SetZ(const int z)
+void WAP::SetZ(const float z)
 {
   _z = z;
   return;
 }
 
-void WAP::SetXY(const int x, const int y)
+void WAP::SetXY(const float x, const float y)
 {
   _x = x;
   _y = y;
   return;
 }
 
-void WAP::SetXYZ(const int x, const int y, const int z)
+void WAP::SetXYZ(const float x, const float y, const float z)
 {
   _x = x;
   _y = y;
