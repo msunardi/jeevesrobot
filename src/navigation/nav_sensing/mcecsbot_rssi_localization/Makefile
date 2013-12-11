@@ -1,5 +1,11 @@
+# Makefile for the RSSI localization class
+# By Michael Walton and Benjamin Huntsman
+#
+# ***IMPLEMENT CHECK FOR WIRELESS-TOOLS BINARIES
+# ***THESE ARE DEPENDENCIES REQUIRED BY THIS SOFTWARE
+
 CXX      = g++
-CXXFLAGS = -g -Wall -std=gnu++11
+CXXFLAGS = -g -Wall
 LDFLAGS  =
 
 TARGET = scan
