@@ -27,320 +27,507 @@
  *   issue with the changeOdometry() function from MRPT. A temporary fix for this
  *   (odometryOffset) is implemented, but not thoroughly tested.
  */
-#include <mrpt/hwdrivers.h>
-#include <mrpt/maps.h>
-#include <mrpt/system/filesystem.h>
-#include <mrpt/bayes/CKalmanFilterCapable.h>
+#include "guidebotNavigation.h"
 
-#include <mrpt/base.h>
-#include <mrpt/slam.h>
-#include <mrpt/gui.h>
-#include <mrpt/utils/CImage.h>
-#include <mrpt/slam/COccupancyGridMap2D.h>
-#include <mrpt/hwdrivers/CActivMediaRobotBase.h>
-#include <iostream>
-
-//Includes for arduino serial communication
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <unistd.h>
-
-//includes for network communication
-#include <sys/socket.h>
-#include <arpa/inet.h>
-
-//#include "robotcode.c"
-
-using namespace mrpt;
-using namespace mrpt::hwdrivers;
-using namespace mrpt::utils;
-using namespace mrpt::math;
-using namespace mrpt::slam;
-using namespace mrpt::poses;
-using namespace mrpt::gui;
-using namespace mrpt::bayes;
-using namespace mrpt::random;
-using namespace std;
-
-#define CONFIG_FILE_NAME    "guidebotNavConf.ini"
-
-#define BEARING_SENSOR_NOISE_STD 	DEG2RAD(15.0f)
-#define RANGE_SENSOR_NOISE_STD 		0.3f
-#define DELTA_TIME                  	0.1f
-
-#define VEHICLE_INITIAL_X			0.0f
-#define VEHICLE_INITIAL_Y			0.0f
-#define VEHICLE_INITIAL_V           1.0f
-#define VEHICLE_INITIAL_W           DEG2RAD(20.0f)
-
-
-#define TRANSITION_MODEL_STD_XY 	0.03f
-#define TRANSITION_MODEL_STD_VXY 	0.20f
 
 
 /**************************************************************************************************/
-/*                                            NAVIGATION PARAMS                                   */
+/*                                            MAIN THREAD                                         */
 /**************************************************************************************************/
-/* DEFAULT PARAM, SEE "guidebotNavConf.ini" */
-static string TTY_PORT       =     "/dev/ttyACM0";
-static string COM_PORT       =     "COM4";
-static int BAUD_RATE         =     9600;
+/*
+ * @Description
+ * After starting the threads for kinect, pdf, display and collision avoidance,
+ * loop while accepting manual commands.
+ * command menu:
+ * 	- 	a/d   : +/- angular speed
+ * 	- 	space : stop current motion
+ * 	- 	o     : Query odometry (display odometry is only updated here)
+ * 	- 	n     : Query sonars
+ * 	- 	b     : Query battery level
+ * 	- 	p     : Query bumpers
+ * 	- 	P	  : Follow Path (manual control is not available during navigation)
+ * 	- 	e	  : Enter new current pose
+ * 	- 	t 	  : Enter new target for path Planning
+ * 	- 	m 	  : Obstacle avoidance demo
+ * 	- 	x     : Quit
+ *
+ * @param	pose: 		the pose to be adjusted.
+ * 			offset:		the pose containing the x,y, phi offset.
+ * @return	none
+ */
 
-static float ROBOT_RADIUS    =     0.30f;
-static float MIN_STEP        =     0.40f;
 
-static double TURN_THRESHOLD     =  M_PI/90;  /* stop condition while turning */
-static double FORWARD_THRESHOLD  =  0.09f;    /* stop condition while forward */
-static double SHARP_TURN         =  M_PI/5;   /* when robot should stop and turn */
-static int POLL_INTERVAL         =  100;	  /* delay interval between sensor readings */
-static int POLL_INTERVAL_DIV     =  5;
-
-static double ANGULAR_SPEED      =  0.3;      /* angular velocity */
-static double LINEAR_SPEED       =  0.2;      /* linear velocity */
-static double SMALL_NUMBER       =  0.001;    /* a useful number for comparing purpose */
-static int ANGULAR_SPEED_DIV     =  5;
-static int LINEAR_SPEED_DIV      =  2;
-
-static string MAP_FILE			=	"MCECSbot_map.png";
-static float MAP_RESOLUTION		= 	0.048768f;
-static int X_CENTRAL_PIXEL		=	-1; /* start location, ()-1,-1) means center of map */
-static int Y_CENTRAL_PIXEL		=	-1;
-
-static CMonteCarloLocalization2D pdf;
-static float kinectMinTruncateDistance = 0.5;
-
-static char* LRF_PORT_NAME		=	"/dev/ttyACM0";
-static char* ODO_PORT_NAME		=	"/dev/ttyACM0";
-static char* MOTOR_PORT_NAME		=	"/dev/ttyACM0";
-static int   ODO_READ_MIN		=	7;
-static int   LRF_READ_MIN		=	6;
-#define PORT "80" // the port client will be connecting to
-
-#define MAXDATASIZE 100 // max number of bytes we can get at once
-
-#define LOCAL_HOST "127.0.0.1"
-
-/* our threads 's sharing resources */
-struct TThreadRobotParam
+int main(int argc, char **argv)
 {
-	TThreadRobotParam() : quit(false), pushed_key(0), Hz(0) { }
-
-	mrpt::synch::CThreadSafeVariable<bool>   						quit;
-	mrpt::synch::CThreadSafeVariable<bool>   						stop;
-	mrpt::synch::CThreadSafeVariable<int>							pushed_key;
-	volatile double Hz;
-	mrpt::synch::CThreadSafeVariable<COccupancyGridMap2D>		 * 	gridmap;	//
-	mrpt::synch::CThreadSafeVariable<CPose2D>					 	currentOdo;
-	mrpt::synch::CThreadSafeVariable<CPose2D>					 	currentKF;
-	mrpt::synch::CThreadSafeVariable<CPose2D>					 	currentSonar;
-	mrpt::synch::CThreadSafeVariable<CPose2D>					 	targetOdo;
-
-	mrpt::synch::CThreadSafeVariable<CObservation2DRangeScanPtr>    	new_obs;     // RGB+D (+3D points)
-	mrpt::synch::CThreadSafeVariable<CObservationIMUPtr>            new_obs_imu; // Accelerometers
-	//mrpt::synch::CThreadSafeVariable<CActivMediaRobotBase>     * robot;   // robot info
-	//mrpt::synch::CThreadSafeVariable<CPose2D>                    new_pose;   // robot info
-
-	//mrpt::synch::CThreadSafeVariable<CActionCollectionPtr>       actions;
-	//mrpt::synch::CThreadSafeVariable<CSensoryFramePtr>           observations;
-	//mrpt::synch::CThreadSafeVariable<CMonteCarloLocalization2D>  pdf;
-	mrpt::synch::CThreadSafeVariable<CObjectPtr>                    pdf;
-	mrpt::synch::CThreadSafeVariable<CParticleFilter>               PF;
-	mrpt::synch::CThreadSafeVariable<bool>							displayNewPdf;
-
-	mrpt::synch::CThreadSafeVariable<std::deque<poses::TPoint2D> > 	thePath;
-	mrpt::synch::CThreadSafeVariable<bool>							displayNewPath;
-
-	mrpt::synch::CThreadSafeVariable<deque<TSegment3D> >			sonars;
-	mrpt::synch::CThreadSafeVariable<bool>							displayNewSonars;
-
-	mrpt::synch::CThreadSafeVariable<bool>							displayClearOldPdf;
-	mrpt::synch::CThreadSafeVariable<bool>							displayClearOldSonar;
-	mrpt::synch::CThreadSafeVariable<bool>							displayClearOldPath;
-
-	mrpt::synch::CThreadSafeVariable<bool>							pdfResetDeterministic;
-
-	mrpt::synch::CThreadSafeVariable<bool>							leftObstacle;
-	mrpt::synch::CThreadSafeVariable<bool>							rightObstacle;
-	mrpt::synch::CThreadSafeVariable<bool>							centerObstacle;
-	mrpt::synch::CThreadSafeVariable<bool>							isMoving; //set when robot is moving, clear otherwise
-	mrpt::synch::CThreadSafeVariable<bool>							gettingLRF; //set when robot is using LRF, clear otherwise
-	mrpt::synch::CThreadSafeVariable<bool>							isTurning; //set when robot is using LRF, clear otherwise
-	mrpt::synch::CThreadSafeVariable<bool>							goForward;
-	mrpt::synch::CThreadSafeVariable<bool>							goRight;
-
-
-	mrpt::synch::CThreadSafeVariable<CPose2D>						odometryOffset;
-
-	mrpt::synch::CThreadSafeVariable<int>							odo_fd; //file descripter for odometry port
-	mrpt::synch::CThreadSafeVariable<int>							lrf_fd; //file descripter for lrf (may be same as odometry)
-	mrpt::synch::CThreadSafeVariable<int>							vel_fd;
-	mrpt::synch::CThreadSafeVariable<float>                         front_wall;
-	mrpt::synch::CThreadSafeVariable<float>                         right_wall;
-	mrpt::synch::CThreadSafeVariable<float>                         left_wall;
-	mrpt::synch::CThreadSafeVariable<float>                         D1;
-	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMean;
-	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMostLikely;
-};
-
-float initial_front_wall = 0.0f;
-float initial_right_wall = 0.0f;
-bool initialize_walls = 1;
-
-int scanTest = 0;  //Testing global variable. Delete After test
-/* prototypes */
-double turnAngle(CActivMediaRobotBase & aRobot, double phi, TThreadRobotParam thrPar);
-double turnAngle(double current_phi, double phi);
-static void turn( double phi, TThreadRobotParam &p);
-static int PathPlanning(std::deque<poses::TPoint2D> &thePath, CPoint2D  origin, CPoint2D  target);
-static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar);
-static CObservation2DRangeScan* getKinect2DScan(const TThreadRobotParam & TP, CObservation3DRangeScanPtr & lastObs);
-void thread_LRF(TThreadRobotParam &p);
-void thread_update_pdf(TThreadRobotParam &p);
-void thread_display(TThreadRobotParam &p);
-void createCObservationRange( CObservationRange	&obs );
-void displaySonars(TThreadRobotParam &p, CObservationRange &sonars);
-static void displayFollowPath(TThreadRobotParam &p, deque<poses::TPoint2D> thePath);
-double CObservationRangeLikelihood(COccupancyGridMap2D & map, CPose2D & pose, CObservationRange & obs);
-void computePdfLikelihoodValues(COccupancyGridMap2D & map, CMonteCarloLocalization2D & pdf, CObservationRange & obs);
-void adjustCObservationRangeSonarPose( CObservationRange &obs );
-void thread_wall_detect(TThreadRobotParam &p);
-void fixOdometry(CPose2D & pose, CPose2D offset);
-int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd,TThreadRobotParam &thrPar);
-void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar);
-int setupArduino(char * port, int readBytes);
-int clientCommunication();
-int parseServerReply(char * server_reply);
-void setVelocities(int linear, int angular, TThreadRobotParam &thrPar);
-
-int parsesequence(TThreadRobotParam &thrPar);
-void sequence(char sequencechar, TThreadRobotParam &thrPar);
-
-// ------------------------------------------------------
-//		Implementation of the system models as a
-// ------------------------------------------------------
-class CRangeBearing :
-	//public mrpt::bayes::CKalmanFilterCapable<4 /* x y vx vy*/, 2 /* range yaw */, 0               , 1 /* Atime */>
-								   // <size_t VEH_SIZE,        size_t OBS_SIZE,   size_t FEAT_SIZE, size_t ACT_SIZE, size typename kftype = double>
-	public mrpt::bayes::CKalmanFilterCapable<2 /* x y vx vy*/, 2 /* range yaw */, 0               , 1 /* Atime */>
-								   // <size_t VEH_SIZE,        size_t OBS_SIZE,   size_t FEAT_SIZE, size_t ACT_SIZE, size typename kftype = double>
-{
-public:
-	CRangeBearing( );
-	virtual ~CRangeBearing();
-
-	//void  doProcess( double DeltaTime, double observationRange, double observationBearing );
-	void  doProcess( double sonar12,double sonar10, double dy, double dx );
-
-	void getState( KFVector &xkk, KFMatrix &pkk)
+	try
 	{
-		xkk = m_xkk;
-		pkk = m_pkk;
+				/* read parametters from config file */
+		ASSERT_(fileExists(CONFIG_FILE_NAME))
+		CConfigFile guidebotConfFile(CONFIG_FILE_NAME);
+
+		TTY_PORT       =     guidebotConfFile.read_string("NavigationParams","TTY_PORT","/dev/ttyACM0", true);
+		COM_PORT       =     guidebotConfFile.read_string("NavigationParams","COM_PORT","COM4", true);
+		BAUD_RATE      =     guidebotConfFile.read_int("NavigationParams","BAUD_RATE",9600, true);
+		ROBOT_RADIUS   =     guidebotConfFile.read_float("NavigationParams","ROBOT_RADIUS",0.30f, true);
+		MIN_STEP       =     guidebotConfFile.read_float("NavigationParams","MIN_STEP",0.40f, true);
+		TURN_THRESHOLD     =  guidebotConfFile.read_double("NavigationParams","TURN_THRESHOLD",M_PI/90, true);
+		SHARP_TURN         =  guidebotConfFile.read_double("NavigationParams","SHARP_TURN",M_PI/5, true);
+		FORWARD_THRESHOLD  =  guidebotConfFile.read_double("NavigationParams","FORWARD_THRESHOLD",0.09, true);
+		POLL_INTERVAL      =  guidebotConfFile.read_int("NavigationParams","POLL_INTERVAL",100, true);
+		ANGULAR_SPEED      =  guidebotConfFile.read_double("NavigationParams","ANGULAR_SPEED",0.3, true);
+		LINEAR_SPEED       =  guidebotConfFile.read_double("NavigationParams","LINEAR_SPEED",0.2, true);
+		SMALL_NUMBER       =  guidebotConfFile.read_double("NavigationParams","SMALL_NUMBER",0.001, true);
+		ANGULAR_SPEED_DIV  =  guidebotConfFile.read_int("NavigationParams","ANGULAR_SPEED_DIV",5, true);
+		LINEAR_SPEED_DIV  =  guidebotConfFile.read_int("NavigationParams","LINEAR_SPEED_DIV",2, true);
+
+		MAP_FILE			=	guidebotConfFile.read_string("NavigationParams","MAP_FILE","MCECSbot_map.png",true);
+		MAP_RESOLUTION		= 	guidebotConfFile.read_float("NavigationParams","MAP_RESOLUTION",0.048768f, true);
+		X_CENTRAL_PIXEL		=	guidebotConfFile.read_int("NavigationParams","X_CENTRAL_PIXEL",-30, true);
+		Y_CENTRAL_PIXEL		=	guidebotConfFile.read_int("NavigationParams","Y_CENTRAL_PIXEL",6, true);
+
+		kinectMinTruncateDistance = guidebotConfFile.read_float("NavigationParams","kinectMinTruncateDistance", .5f , true);
+
+		TURN_THRESHOLD = DEG2RAD(TURN_THRESHOLD);
+		SHARP_TURN     = DEG2RAD(SHARP_TURN);
+
+		/* our robot base object REMOVED FOR MCECS*/
+		CActivMediaRobotBase	robot;
+/*
+#ifdef MRPT_OS_WINDOWS
+		string	port= COM_PORT;
+#else
+		string	port= TTY_PORT;
+#endif
+
+		int 	port_baud = BAUD_RATE;
+
+		cout << "Setting serial port to: " << port << " @ " << port_baud << endl;
+		robot.setSerialPortConfig( port, port_baud );
+
+		// -------------------------------------------
+		//  Init comms:
+		// -------------------------------------------
+		robot.enableSonars();
+		robot.initialize();
+*/
+		double cur_v = 0;
+		double cur_w = 0;
+
+		CActivMediaRobotBase::TRobotDescription  robInfo;
+		robot.getRobotInformation(robInfo);
+
+		CPoint2D  target( -29, 8);  // target for path planning.
+
+
+		//CPoint2D  origin( -29, 10 );  // origin for path planning.
+
+	//	cout << "Robot # front bumpers : " << robInfo.nFrontBumpers << endl;
+	//	cout << "Robot # rear bumpers  : " << robInfo.nRearBumpers << endl;
+	//	cout << "Robot # sonars        : " << robInfo.nSonars << endl;
+
+
+
+
+		/* --------------------------------------------------------
+		 * Launch threads
+		 * --------------------------------------------------------
+		 */
+		TThreadRobotParam thrPar;
+		mrpt::system::TThreadHandle pdfHandle;
+		mrpt::system::TThreadHandle thHandle;
+		mrpt::system::TThreadHandle displayHandle;
+		//mrpt::system::TThreadHandle wallDetectHandle;
+
+
+
+		//setup arduino for odo
+		cout<<"Initializing odometry arduino"<<endl;
+		int odo_fd = setupArduino(ODO_PORT_NAME,ODO_READ_MIN);
+		thrPar.odo_fd.set(odo_fd);
+		cout<<"odo_fd: "<<odo_fd<<endl;
+		//if lrf and odometry are on the same arduino port
+		if(strcmp(ODO_PORT_NAME,LRF_PORT_NAME) == 0)
+		{
+			cout<<"Initializing lrf arduino on the same port as odometry"<<endl;
+			thrPar.lrf_fd.set(odo_fd);
+
+		}
+		else
+		{
+			cout<<"Initializing lrf arduino on unique port"<<endl;
+			int lrf_fd = setupArduino(LRF_PORT_NAME,LRF_READ_MIN);
+			thrPar.lrf_fd.set(lrf_fd);
+		}
+
+		//if motor is also on the same port
+		if(strcmp(ODO_PORT_NAME,MOTOR_PORT_NAME) == 0)
+		{
+			cout<<"Initializing motor arduino on the same port as odometry"<<endl;
+			thrPar.vel_fd.set(odo_fd);
+		}
+		else
+		{
+			cout<<"Initializing vel arduino on unique port"<<endl;
+			int vel_fd = setupArduino(MOTOR_PORT_NAME,1);
+			thrPar.vel_fd.set(vel_fd);
+		}
+
+		//Robot is not in motion, or getting LRF value
+		thrPar.isMoving.set(false);
+		thrPar.isTurning.set(false);
+		thrPar.gettingLRF.set(false);
+
+		//pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
+		displayHandle = mrpt::system::createThreadRef(thread_display ,thrPar);
+		thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
+		//wallDetectHandle = mrpt::system::createThreadRef(thread_wall_detect, thrPar);
+		/* Wait until data stream starts so we can say for sure the sensor has been initialized OK: */
+		cout << "Waiting for sensor initialization...\n";
+		/* May need to do similar for LRF
+		do
+		{
+			CObservation3DRangeScanPtr possiblyNewObs = thrPar.new_obs.get();
+			if (possiblyNewObs && possiblyNewObs->timestamp!=INVALID_TIMESTAMP)
+				break;
+			else
+				mrpt::system::sleep(10);
+		} while (!thrPar.quit);
+		*/
+		/* Check error condition: */
+		if (thrPar.quit.get())
+			return 0;
+
+        bool show_menu = true;
+        char c;
+		int counter = 0;
+
+        bool run = true;
+
+		while (run)
+		{
+			/*if (!mrpt::system::os::kbhit())
+			{
+				robot.doProcess();
+				CGenericSensor::TListObservations dummy;
+				robot.getObservations(dummy);  // Empty the list
+				mrpt::system::sleep(20);
+				continue;
+			}*/
+
+
+ 			// ==== Update odometry
+				CPose2D 	odo;
+				double 		v,w;
+				int64_t  	left_ticks, right_ticks;
+				bool 		pollLRF = true;
+				cout<<"getting odo"<<endl;
+				thrPar.isMoving.set(true);
+				while(thrPar.gettingLRF.get());
+				//{
+				//	pollLRF = returnGettingLRF(thrPar);
+				//	cout<<pollLRF<<endl;
+				//	sleep(1000);
+
+				//}
+
+				cout<<"OK"<<endl;
+				getOdometry( odo, odo_fd, thrPar );
+				thrPar.isMoving.set(false);
+				//printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
+				fixOdometry( odo, thrPar.odometryOffset.get() );
+				thrPar.currentOdo.set(odo);
+				//printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
+				cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
+				counter = 0;
+            // ==== End update odometry
+            if (show_menu)
+			{
+				show_menu=false;
+				cout << "Press the key for your option:" << endl << endl;
+				cout << " w/s   : +/- forward or back" << endl;
+				cout << " a/d   : +/- left or right" << endl;
+				cout << " space : stop" << endl;
+				cout << " o     : Query odometry" << endl;
+				cout << " n     : Query sonars" << endl;
+				cout << " b     : Query battery level" << endl;
+				cout << " p     : Query bumpers" << endl;
+				cout << " P		: Follow Path" << endl;
+				cout << " e		: Enter new current pose: " << endl;
+				cout << " t 	: Enter new target for path Planning: " << endl;
+				cout << " n     : Network communication mode" << endl;
+				cout << " m 	: Obstacle avoidance demo" << endl;
+				cout << " x     : Quit" << endl;
+				cout << " > ";
+			}
+			c = mrpt::system::os::getch();
+
+			cout << c << endl;
+
+			show_menu=true;
+
+			if (c=='x') run=false;	/* quit */
+
+			if (c=='w' || c=='s') /* increase or decrease current linear velocity */
+			{
+                		thrPar.goForward.set(true);
+				thrPar.goRight.set(false);
+                		initial_front_wall = thrPar.front_wall.get();
+                		sleep(1000);
+
+				if (c=='w') cur_v = 1;
+				if (c=='s') cur_v = -1;
+
+
+				setVelocities( cur_v, 0, thrPar);
+				sleep(1000);
+				//setVelocities( 0, 0, thrPar);
+
+			}
+
+			if (c=='a' || c=='d')  /* increase or decrease current angular velocity */
+			{
+				//if (c=='a') cur_w = 1;
+				//if (c=='d') cur_w = 1;
+				thrPar.goForward.set(false);
+				thrPar.goRight.set(true);
+				if (c=='a') cur_w = 1;
+				if (c=='d') cur_w = -1;
+
+				setVelocities( 0, cur_w, thrPar );
+				//setVelocities( cur_v, 0, thrPar);
+				sleep(1000);
+				//setVelocities( 0, 0, thrPar);
+			}
+
+			if (c=='A' || c=='D')
+			{
+			    CPose2D 	odo;
+			    thrPar.goForward.set(false);
+			    thrPar.goRight.set(true);
+			    if (c=='A') cur_w = -1;
+			    if (c=='D') cur_w = 1;
+
+			    setVelocities(0, cur_w, thrPar);
+			    int m = 0;
+			    while( m < 3 )
+			    {
+			        sleep(1000);
+			        /*getOdometry( odo, odo_fd, thrPar );
+			        fixOdometry( odo, thrPar.odometryOffset.get() );
+                    thrPar.currentOdo.set(odo);
+			        cout << "Odo: " << odo << endl;
+			        cout << "phi: " << odo.phi() << endl;
+			        sleep(1000);*/
+			        m += 1;
+			    }
+
+
+			    setVelocities( 0, 0, thrPar);
+			}
+
+			if (c==' ')  /* stop, set current linear and anhular velocities to 0 */
+			{
+				cur_v = 0;
+				cur_w = 0;
+				thrPar.goForward.set(false);
+				thrPar.goRight.set(false);
+				setVelocities( cur_v, cur_w, thrPar );
+			}
+
+
+			/*
+
+			if (counter >= 3) {
+			    c='o';
+			} else {
+			    counter += 1;
+			}*/
+
+			if (c=='o')  // get current odometry reading
+			{
+				CPose2D 	odo;
+				double 		v,w;
+				int64_t  	left_ticks, right_ticks;
+				bool 		pollLRF = true;
+				cout<<"getting odo"<<endl;
+				thrPar.isMoving.set(true);
+				while(thrPar.gettingLRF.get());
+				//{
+				//	pollLRF = returnGettingLRF(thrPar);
+				//	cout<<pollLRF<<endl;
+				//	sleep(1000);
+
+				//}
+
+				cout<<"OK"<<endl;
+				getOdometry( odo, odo_fd, thrPar );
+				thrPar.isMoving.set(false);
+				printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
+				fixOdometry( odo, thrPar.odometryOffset.get() );
+				thrPar.currentOdo.set(odo);
+				printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
+				cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
+				counter = 0;
+			}
+
+
+			if (c=='p')  /* get current bumper readings */
+			{
+				vector_bool bumps;
+				robot.getBumpers(bumps);
+				cout << "Bumpers: "<< bumps << endl;
+			}
+
+			if (c=='n' || c=='N') /* get current sonar readings */
+			{
+				CObservationRange obs;
+				bool thereis;
+				robot.getSonarsReadings(thereis,obs);
+
+				if (!thereis)
+				{
+					cout << "Sonars: NO" << endl;
+				}
+				else
+				{
+					adjustCObservationRangeSonarPose( obs );
+					displaySonars(thrPar, obs);
+ 					cout << "Sonars: ";
+					for (CObservationRange::const_iterator i=obs.sensedData.begin();i!=obs.sensedData.end();++i)
+						cout << i->sensedDistance << " ";
+					cout << endl;
+				}
+			}
+
+			if (c=='b') /* get current battery charge */
+			{
+				double bat;
+				robot.getBatteryCharge(bat);
+				cout << "Battery: " << bat << endl;
+			}
+
+			if (c=='e') /* enter current pose */
+			{
+				double newX, newY, newPhi;
+				cout << "Input the current x location: ";
+				cin >> newX;	cin.clear();
+				cout << "Input the current y location: ";
+				cin >> newY;	cin.clear();
+				cout << "Input the current phi: ";
+				cin >> newPhi;	cin.clear();
+
+				CPose2D startOdo;
+				getOdometry( startOdo, odo_fd, thrPar);
+				startOdo.x(0);
+				startOdo.y(0);
+				//CPose2D startOdo(newX,newY,DEG2RAD(newPhi));
+				CPose2D newOffset(newX,newY,DEG2RAD(newPhi) - startOdo.phi() );
+				thrPar.odometryOffset.set(newOffset);
+				robot.changeOdometry(startOdo);
+				CPose2D 	odo;
+				double 		v,w;
+				int64_t  	left_ticks, right_ticks;
+				double 		phi;
+				//getOdometryFull( odo, v, w, left_ticks, right_ticks );
+
+				fixOdometry( odo, thrPar.odometryOffset.get() );
+				thrPar.currentOdo.set(odo);
+				cout << " New odometry has been set! " << odo << endl;
+				thrPar.pdfResetDeterministic.set(true);
+
+			}
+
+			if (c=='T') // Turn to target pose
+			{
+				CPose2D 	odo;
+				/* calculate required phi to next point */
+				double phi = atan2 ( (thrPar.targetOdo.get().y() ) , (thrPar.targetOdo.get().x() ) );
+				turn(45.0*M_PI/180,thrPar);
+				cout << "phi: " << RAD2DEG(phi);
+				getOdometry( odo, odo_fd, thrPar );
+				fixOdometry( odo, thrPar.odometryOffset.get() );
+				thrPar.currentOdo.set(odo);
+			}
+
+			if (c=='t') /* enter target pose */
+			{
+				double newX, newY;
+				cout << "Input the target x location: ";
+				cin >> newX;	cin.clear();
+				cout << "Input the target y location: ";
+				cin >> newY;	cin.clear();
+
+				target.x(newX);
+				target.y(newY);
+				thrPar.targetOdo.set(target);
+				thrPar.targetOdo.set(target);
+
+				cout << " New target has been set! " << target << endl;
+			}
+
+			if (c=='P') /* calculate a path and travel there using the smoothDrive function */
+			{
+				std::deque<poses::TPoint2D>		thePath;
+				CPose2D 	odo;
+				double 		v,w;
+				int64_t  	left_ticks, right_ticks;
+				double 		phi;
+				getOdometry( odo, odo_fd, thrPar );
+				fixOdometry( odo, thrPar.odometryOffset.get() );
+
+				CPoint2D origin( odo.x(), odo.y() );
+
+				if (PathPlanning( thePath, origin, target ) == 1)
+				{
+					thrPar.pdfResetDeterministic.set(true);
+					thrPar.thePath.set(thePath);
+					thrPar.displayNewPath.set(true);
+					cout << "found a Path..." << endl;
+					smoothDrive(robot, thePath, thrPar );
+					cout << "at target..." << endl;
+				} /* end path following */
+
+			}
+
+			if (c=='n')
+			{
+
+				clientCommunication();
+
+			}
+
+			if (c=='m')
+			{
+			    cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< SEQUENCE FOLLOWING >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
+
+			    parsesequence(thrPar);
+			}
+
+
+
+		}
+
+	/*join threads */
+		cout << "Waiting for grabbing thread to exit...\n";
+		thrPar.quit = true;
+		mrpt::system::joinThread(pdfHandle);
+		mrpt::system::joinThread(thHandle);
+		//mrpt::system::joinThread(wallDetectHandle);
+		mrpt::system::joinThread(displayHandle);
+		cout << "threads ended!\n";
 	}
-
- protected:
-
-	float m_obsBearing,m_obsRange;
-	float m_deltaTime;
-	float m_sonar12;    // latest sonar reading
-	float m_sonar10;
-	float m_dy; // current positon - previous position
-	float m_dx;
-
-	/** @name Virtual methods for Kalman Filter implementation
-		@{
-	 */
-
-	/** Must return the action vector u.
-	  * \param out_u The action vector which will be passed to OnTransitionModel
-	  */
-	void OnGetAction( KFArray_ACT &out_u ) const;
-
-	/** Implements the transition model \f$ \hat{x}_{k|k-1} = f( \hat{x}_{k-1|k-1}, u_k ) \f$
-	  * \param in_u The vector returned by OnGetAction.
-	  * \param inout_x At input has \f$ \hat{x}_{k-1|k-1} \f$, at output must have \f$ \hat{x}_{k|k-1} \f$.
-	  * \param out_skip Set this to true if for some reason you want to skip the prediction step (to do not modify either the vector or the covariance). Default:false
-	  */
-	void OnTransitionModel(
-		const KFArray_ACT &in_u,
-		KFArray_VEH       &inout_x,
-		bool &out_skipPrediction
-		 ) const;
-
-	/** Implements the transition Jacobian \f$ \frac{\partial f}{\partial x} \f$
-	  * \param out_F Must return the Jacobian.
-	  *  The returned matrix must be \f$N \times N\f$ with N being either the size of the whole state vector or get_vehicle_size().
-	  */
-	void OnTransitionJacobian(KFMatrix_VxV  &out_F ) const;
-
-	/** Implements the transition noise covariance \f$ Q_k \f$
-	  * \param out_Q Must return the covariance matrix.
-	  *  The returned matrix must be of the same size than the jacobian from OnTransitionJacobian
-	  */
-	void OnTransitionNoise(KFMatrix_VxV &out_Q ) const;
-
-	/** Return the observation NOISE covariance matrix, that is, the model of the Gaussian additive noise of the sensor.
-	  * \param out_R The noise covariance matrix. It might be non diagonal, but it'll usually be.
-	  * \note Upon call, it can be assumed that the previous contents of out_R are all zeros.
-	  */
-	void OnGetObservationNoise(KFMatrix_OxO &out_R) const;
-
-	/** This is called between the KF prediction step and the update step, and the application must return the observations and, when applicable, the data association between these observations and the current map.
-	  *
-	  * \param out_z N vectors, each for one "observation" of length OBS_SIZE, N being the number of "observations": how many observed landmarks for a map, or just one if not applicable.
-	  * \param out_data_association An empty vector or, where applicable, a vector where the i'th element corresponds to the position of the observation in the i'th row of out_z within the system state vector (in the range [0,getNumberOfLandmarksInTheMap()-1]), or -1 if it is a new map element and we want to insert it at the end of this KF iteration.
-	  * \param in_all_predictions A vector with the prediction of ALL the landmarks in the map. Note that, in contrast, in_S only comprises a subset of all the landmarks.
-	  * \param in_S The full covariance matrix of the observation predictions (i.e. the "innovation covariance matrix"). This is a M·O x M·O matrix with M=length of "in_lm_indices_in_S".
-	  * \param in_lm_indices_in_S The indices of the map landmarks (range [0,getNumberOfLandmarksInTheMap()-1]) that can be found in the matrix in_S.
-	  *
-	  *  This method will be called just once for each complete KF iteration.
-	  * \note It is assumed that the observations are independent, i.e. there are NO cross-covariances between them.
-	  */
-	void OnGetObservationsAndDataAssociation(
-		vector_KFArray_OBS			&out_z,
-		mrpt::vector_int            &out_data_association,
-		const vector_KFArray_OBS	&in_all_predictions,
-		const KFMatrix              &in_S,
-		const vector_size_t         &in_lm_indices_in_S,
-		const KFMatrix_OxO          &in_R
-		);
-
-		/** Implements the observation prediction \f$ h_i(x) \f$.
-		  * \param idx_landmark_to_predict The indices of the landmarks in the map whose predictions are expected as output. For non SLAM-like problems, this input value is undefined and the application should just generate one observation for the given problem.
-		  * \param out_predictions The predicted observations.
-		  */
-		void OnObservationModel(
-			const vector_size_t &idx_landmarks_to_predict,
-			vector_KFArray_OBS  &out_predictions
-			) const;
-
-		/** Implements the observation Jacobians \f$ \frac{\partial h_i}{\partial x} \f$ and (when applicable) \f$ \frac{\partial h_i}{\partial y_i} \f$.
-		  * \param idx_landmark_to_predict The index of the landmark in the map whose prediction is expected as output. For non SLAM-like problems, this will be zero and the expected output is for the whole state vector.
-		  * \param Hx  The output Jacobian \f$ \frac{\partial h_i}{\partial x} \f$.
-		  * \param Hy  The output Jacobian \f$ \frac{\partial h_i}{\partial y_i} \f$.
-		  */
-		void OnObservationJacobians(
-			const size_t &idx_landmark_to_predict,
-			KFMatrix_OxV &Hx,
-			KFMatrix_OxF &Hy
-			) const;
-
-		/** Computes A=A-B, which may need to be re-implemented depending on the topology of the individual scalar components (eg, angles).
-		  */
-		void OnSubstractObservationVectors(KFArray_OBS &A, const KFArray_OBS &B) const;
-
-	/** @}
-	 */
-};
+	catch(std::exception &e)
+	{
+		cerr << e.what() << endl;
+		return -1;
+	}
+	return 0;
+}
 
 /**************************************************************************************************/
 /*                                         FUNCTION IMPLEMENTATIONS                               */
 /**************************************************************************************************/
+
 
 /*
  * @Description
@@ -588,6 +775,7 @@ void thread_LRF(TThreadRobotParam &p)
 			//	p.new_obs_imu.set(obs_imu);
 			}
 			sleep(2500);
+			//cout << "While !hard_error && !p.quit.get\n";
 		}/* end while*/
 	}
 	catch(std::exception &e)
@@ -613,13 +801,13 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 	unsigned char buf[256];
 	char getCommand[1];
 	int n;
-	cout<<"lrf_odo "<<fd<<endl;
-	cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;
+	//cout<<"lrf_odo "<<fd<<endl;
+	//cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;
 
 	thrPar.gettingLRF.set(true);
 	getCommand[0]='l';
 	 /* Flush anything already in the serial buffer */
-	cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;
+	//cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;
 	 tcflush(fd, TCIFLUSH);
 	 /* read up to 128 bytes from the fd */
 	write(fd,getCommand,1);
@@ -629,19 +817,19 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 	 	n = read(fd, buf, 7);
 
 		sleep(100);
-	 	printf("%i sonar bytes got read...\n", n);
-		printf("Buffer has \n%s\n",buf);
+	 	//printf("%i sonar bytes got read...\n", n);
+		//printf("Buffer has \n%s\n",buf);
  	}
 
 	sleep(150);
-
+/*jkw
 	 printf("%i bytes got read...\n", n);
 	 printf("Buffer 1 contains...\n%d (%.03f)\n", buf[1], buf[1]/38.4);
 	 printf("Buffer 2 contains...\n%d (%.03f)\n", buf[2], buf[2]/38.4);
 	 printf("Buffer 3 contains...\n%d (%.03f)\n", buf[3], buf[3]/38.4);
 	 printf("Buffer 4 contains...\n%d (%.03f)\n", buf[4], buf[4]/38.4);
 	 printf("Buffer 5 contains...\n%d (%.03f)\n", buf[5], buf[5]/38.4);
-
+*/
 
     /*
                 CPose2D 	odo;
@@ -684,24 +872,25 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 		if (i > 0)
 		{
 			//out_obs.scan.push_back(float(buf[i])/100);
-			out_obs.scan.push_back(float(buf[i])/38.4); // inches converted into metric / map unit
+			out_obs.scan.push_back(float(buf[i])/INCH_TO_METER_RATIO); // inches converted into metric / map unit
 			out_obs.validRange.push_back(1);
 			//cout << "yak!";
 		}
 	}
 
 	if (initialize_walls) {
-	    initial_front_wall = float(buf[2])/38.4;    // Set initial front wall only the first time the program run
-	    initial_right_wall = float(buf[5])/38.4;
+	    initial_front_wall = float(buf[2])/INCH_TO_METER_RATIO;    // Set initial front wall only the first time the program run
+	    initial_right_wall = float(buf[5])/INCH_TO_METER_RATIO;
 	    initialize_walls = 0;
 	}
 
-	thrPar.front_wall.set(float(buf[2])/38.4);  // Save the front sonar reading
-	thrPar.right_wall.set(float(buf[5])/38.4);  // Save the right sonar reading
-	thrPar.left_wall.set(float(buf[1])/38.4);   // Save the left sonar reading
-
+	thrPar.front_wall.set(float(buf[2])/INCH_TO_METER_RATIO);  // Save the front sonar reading
+	thrPar.right_wall.set(float(buf[5])/INCH_TO_METER_RATIO);  // Save the right sonar reading
+	thrPar.left_wall.set(float(buf[1])/INCH_TO_METER_RATIO);   // Save the left sonar reading
+	thrPar.front_left.set(float(buf[2])/INCH_TO_METER_RATIO);
+	thrPar.front_right.set(float(buf[4])/INCH_TO_METER_RATIO);
 	thrPar.gettingLRF.set(false);
-	cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;
+	//cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;
 
 	return 0;
 }
@@ -723,20 +912,23 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	getCommand[0]='e';
 	cout<<"In getting ODO"<<endl;
 	/* Flush anything already in the serial buffer */
+	sleep(2);
 	tcflush(odo_fd, TCIFLUSH);
 	/* read up to 128 bytes from the fd */
 	write(odo_fd,getCommand,1);
 	cout<<"written"<<endl;
 	cout<<"odo_fd "<<odo_fd<<endl;
 	buf[0] = 0;
-	while(buf[0] != '*')
+	int count = 0;
+	while(buf[0] != '*' && count < 5)
 	{
 		cout<<"reading"<<endl;
 	 	n = read(odo_fd, buf, 7);
 
 		sleep(100);
-	 	printf("%i odometry bytes got read...\n", n);
-		printf("Buffer has \n%s\n",buf);
+		count++;
+	 	//printf("%i odometry bytes got read...\n", n);
+		//printf("Buffer has \n%s\n",buf);
  	}
 
 	sleep(150);
@@ -763,7 +955,7 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 //	{
 //		phi = 360 - phi;
 //	}
-	printf("x = %d, y = %d, phi = %d\n",x,y,phi);
+	//printf("x = %d, y = %d, phi = %d\n",x,y,phi);
 	tempPose = thrPar.currentOdo.get();
 
 	thrPar.D1.set(float(x)/100.0);
@@ -1395,7 +1587,7 @@ void thread_display(TThreadRobotParam &p)
 		theScene->insert( obj );
 	}
 
-	{	/* display sonar readings */
+	{	// display sonar readings
 		opengl::CSetOfLinesPtr obj = opengl::CSetOfLines::Create();
 		obj->setPose(p.currentOdo.get() );
 		obj->setName( "sonars" );
@@ -1454,9 +1646,9 @@ void thread_display(TThreadRobotParam &p)
     EKFEstimate.open ("ekf.csv");
     EKFEstimate << "y, x, front_sonar, right wall, dy, dx, initial_front_wall_distance, initial_right_wall_distance, EKF_X, EKF_Y" << endl;
 
-	while (!end && win.isOpen() )
+	while (!end && win.isOpen() && !p.quit.get())
 	{
-		const double t = timer.Tac();
+        const double t = timer.Tac();
 
 		// Move the scene:
 		COpenGLScenePtr &theScene = win.get3DSceneAndLock();
@@ -1515,7 +1707,7 @@ void thread_display(TThreadRobotParam &p)
 		sonar12 = p.front_wall.get();
 		sonar10 = p.right_wall.get();
 
-		EKF.doProcess(sonar12, sonar10, dy, dx);
+//jkw		EKF.doProcess(sonar12, sonar10, dy, dx);
 
 		/*EKF.getProfiler().enter("PF:complete_step");
 		PF.executeOn(particles, NULL,&SF);  // Process in the PF
@@ -1525,14 +1717,14 @@ void thread_display(TThreadRobotParam &p)
 		CRangeBearing::KFVector EKF_xkk;
 		CRangeBearing::KFMatrix EKF_pkk;
 
-		EKF.getState( EKF_xkk, EKF_pkk ); //**Should be editted?*/
+		EKF.getState( EKF_xkk, EKF_pkk ); //Should be editted?
 
 		//printf("Real: x:%.03f  y=%.03f heading=%.03f v=%.03f w=%.03f\n",x,y,phi,v,w);
 		//cout << format("KF parameters: x=%.03f, y=%.03f, phi=%.03f, v=%.03f, w=%.03f, t=%.03f", x,y,phi,v,w, t) << endl;
 		//cout << format("y=%.03f, front_sonar=%.03f, dy=%.03f, initial front wall distance=%.03f", y, p.front_wall.get(), dy, initial_front_wall) << endl;
-		cout << format("y=%.03f, x=%.03f, front_sonar=%.03f, right_sonar=%.03f, dy=%.03f, dx=%.03f, initial front wall distance=%.03f, initial right wall distance=%.03f", y, x, p.front_wall.get(), p.right_wall.get(), dy, dx, initial_front_wall, initial_right_wall) << endl;
-		//cout << "EKF: " << EKF_xkk << endl; /** and this I think this should be for x and y */
-		cout << "EKF_Y: " << EKF_xkk[0]<<",   EKF_X: "<<EKF_xkk[1] << endl; //** and this I think this should be for x and y. I editted them though!*/
+		//cout << format("y=%.03f, x=%.03f, front_sonar=%.03f, right_sonar=%.03f, dy=%.03f, dx=%.03f, initial front wall distance=%.03f, initial right wall distance=%.03f", y, x, p.front_wall.get(), p.right_wall.get(), dy, dx, initial_front_wall, initial_right_wall) << endl;
+		//cout << "EKF: " << EKF_xkk << endl; // and this I think this should be for x and y
+		//cout << "EKF_Y: " << EKF_xkk[0]<<",   EKF_X: "<<EKF_xkk[1] << endl; //and this I think this should be for x and y. I editted them though!
 		EKFEstimate << format("%.03f, %.03f, %.03f, %.03f, %.03f, %.03f, %.03f, %.03f", y, x, p.front_wall.get(), p.right_wall.get(), dy, dx, initial_front_wall, initial_right_wall) << EKF_xkk[0]<< EKF_xkk[1] << endl;
 
 
@@ -1595,21 +1787,21 @@ void thread_display(TThreadRobotParam &p)
         sonarpos_.phi(p.currentOdo.get().phi());
 		p.currentSonar.set(sonarpos_);
 
-		/* Change pose of robot in display */
+		// Change pose of robot in display
 		opengl::CRenderizablePtr obj1 = theScene->getByName("robot");
 		obj1->setPose( p.currentKF.get() ); //.x() , p.currentOdo.get().y() , 0 );
 
-		/* Change pose of robot based on encoder in display */
+		// Change pose of robot based on encoder in display
 		opengl::CRenderizablePtr obj2 = theScene->getByName("encoder");
 		obj2->setPose( p.currentOdo.get() ); //.x() , p.currentOdo.get().y() , 0 );
 		//cout << format("x=%.03f, y=%.03f, phi=%.03f", p.currentOdo.get().x(), p.currentOdo.get().y(), p.currentOdo.get().phi()) << endl;
 
-		/* Change pose of robot based on sonar in display */
+		// Change pose of robot based on sonar in display
 		opengl::CRenderizablePtr obj3 = theScene->getByName("sonarpos");
 
 		obj3->setPose( p.currentSonar.get() ); //.x() , p.currentOdo.get().y() , 0 );
 
-		/* Change location of target marker */
+		// Change location of target marker
 		opengl::CRenderizablePtr obj4 = theScene->getByName("target");
 		obj4->setLocation(p.targetOdo.get().x() , p.targetOdo.get().y() , 0 );
 
@@ -1653,7 +1845,7 @@ void thread_display(TThreadRobotParam &p)
 			p.displayNewPdf.set(false);
 		}
 
-		/* Put new sonars in the display */
+		// Put new sonars in the display
 		if(p.displayNewSonars.get() )
 		{
 			if ( p.displayClearOldSonar.get() )
@@ -1676,13 +1868,13 @@ void thread_display(TThreadRobotParam &p)
 			theScene->insert( sonar_object );
 		}
 
-		/* Put new kinect ranges in the display */
+		// Put new kinect ranges in the display
 		{
-			/* make sure that we have new kinect reading */
+			// make sure that we have new kinect reading
 			CObservation2DRangeScanPtr obs_Ptr = p.new_obs.get();
 			CObservation2DRangeScan* obs_2d = obs_Ptr.pointer();
 
-			/* make sure that we have new kinect reading */
+			// make sure that we have new kinect reading
 			if (obs_2d != NULL)
 			{
 			    //cout << "obs_2d IS NOT NULL!\n";
@@ -1722,7 +1914,7 @@ void thread_display(TThreadRobotParam &p)
 		//}
 		*/
 
-		/* Get key press events while 3D window is active. */
+		// Get key press events while 3D window is active.
 		if (win.keyHit())
 		{
 
@@ -1756,8 +1948,8 @@ void thread_display(TThreadRobotParam &p)
 					win.setCameraElevationDeg( win.getCameraElevationDeg() - 5 );
 					break;
 
-				/* Note: changing camera pointing to point is temporary because the
-				   pointing to point is changed to current robot odometry each loop. */
+				// Note: changing camera pointing to point is temporary because the
+                // pointing to point is changed to current robot odometry each loop.
 				case 'w':
 				case 'W':
 					{
@@ -1794,7 +1986,7 @@ void thread_display(TThreadRobotParam &p)
 					break;
 					}
 
-				/* clear  / do not clear previous pdf before adding new pdf to display */
+				// clear  / do not clear previous pdf before adding new pdf to display
 				case 'p':
 					p.displayClearOldPdf.set(true);
 					break;
@@ -1803,7 +1995,7 @@ void thread_display(TThreadRobotParam &p)
 					p.displayClearOldPdf.set(false);
 					break;
 
-				/* clear  / do not clear previous sonar readings before adding new pdf to display */
+				// clear  / do not clear previous sonar readings before adding new pdf to display
 				case 's':
 					p.displayClearOldSonar.set(true);
 					break;
@@ -1812,15 +2004,13 @@ void thread_display(TThreadRobotParam &p)
 					p.displayClearOldSonar.set(false);
 					break;
 
-				/* stops current path finding navigation */
+				// stops current path finding navigation
 				case ' ':
 					p.stop.set(true);
 					break;
 			}		// end case
 
 		}
-
-
 
 	}
 
@@ -2559,13 +2749,18 @@ void CRangeBearing::OnSubstractObservationVectors(KFArray_OBS &A, const KFArray_
 }
 
 
+
+int leftCount = 0;
+int rightCount = 0;
+
 //Based on sensor readings determines the appropriate file to parse for appropriate sequences
 //Parses first line of base movements of the file
 //Commands robot to execute a certain base movement based on chars found in sequence line
 int parsesequence(TThreadRobotParam &thrPar)
 {
  	float sensed_distance [] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	char const* const fileName = "seq_1obj(5-7_0-2)_strt(0_0)_end(10_0)_20x20grid.txt";
+	//char const* const fileName = "seq_1obj(5-7_0-2)_strt(0_0)_end(10_0)_20x20grid.txt";
+	const char * fileName = NULL;
 
 	//Get latest ultrasonic sensor values and save them in sensed_distance array
 	/*for (CObservationRange::const_iterator i=obs.sensedData.begin();i!=obs.sensedData.end();++i)
@@ -2578,29 +2773,61 @@ int parsesequence(TThreadRobotParam &thrPar)
 	//i and j particular sonars
 	// x, y are the values read by the sonars i and j respectively
 
-	float front, left, right;
+	float front, left, right, front_left, front_right;
 	front = thrPar.front_wall.get();
 	left = thrPar.left_wall.get();
 	right = thrPar.right_wall.get();
+	front_left = thrPar.front_left.get();
+	front_right = thrPar.front_right.get();
+
+	float front_threshold = 0.7;
+	float left_threshold = 1.5;
+	float right_threshold = 1.5;
+	float limit = 0.7;
 
     cout << "****************************** IN PARSESEQUENCE ************************\n";
 
 	//if(front <= 26)
         //fileName = "seq_1obj(5-7_0-2)_strt(0_0)_end(10_0)_20x20grid.txt";
-	/*if(sensed_distance[i] == x && sensed_distance[j] = y)
-			fileName = "seq_1obj(5-7_0-2)_strt(0_0)_end(10_0)_20x20grid.txt";
-	else if(sensed_distance[i] == x && sensed_distance[j] = y)
-			fileName = "seq_1obj(5-7_10-12)_strt(0_11)_end(10_11)_20x20grid.txt";
-	else if(sensed_distance[i] == x && sensed_distance[j] = y)
-			fileName = "seq_obj1(4-5_2-4)_obj2(5-6_6-8))strt(0_11)_end(10_11)_20x20grid.txt";
-	else if(sensed_distance[i] == x && sensed_distance[j] = y)
-			fileName = "seq_obj1(5-6_2-4)_obj2(5-6_6-8))strt(0_11)_end(10_11)_20x20grid.txt";
-	else if(sensed_distance[i] == x && sensed_distance[j] = y)
-			fileName = "seq_obj1(5-6_2-4)_obj2(6-7_6-8))strt(0_11)_end(10_11)_20x20grid.txt";
-	else if(sensed_distance[i] == x && sensed_distance[j] = y)
-			fileName = "seq_obj1(5-6_10-12)_obj2(10-12_10-12))strt(0_11)_end(10_11)_20x20grid.txt";
-	else if(sensed_distance[i] == x && sensed_distance[j] = y)
-			fileName = "seq_obj1(6-7_2-4)_obj2(5-6_6-8))strt(0_11)_end(10_11)_20x20grid.txt";*/
+	if(front_left <= front_threshold && front_right < right_threshold) {
+	    cout << "CASE 1: ";
+	    // Straightahead
+        fileName = "straightahead.txt";
+        cout << "[front: " << front << ", left: " << left << ", right: " << right << "]\n";
+	}
+
+	else if(front_left > front_right){
+        cout << "CASE 2: ";
+        // Two objects, right closer
+        fileName = "2obj_rightcloser.txt";
+        cout << "[front: " << front << ", left: " << left << ", right: " << right << "]\n";
+	}
+    else if(front_right > front_left){
+        cout << "CASE 3: ";
+        // Two objects, left closer
+        fileName = "2obj_leftcloser.txt";
+        cout << "[front: " << front << ", left: " << left << ", right: " << right << "]\n";
+	}
+    else if(front_right > front_left && right>= right_threshold){
+        cout << "CASE 4: ";
+        // One object left side
+        fileName = "1obj_leftside.txt";
+        cout << "[front: " << front << ", left: " << left << ", right: " << right << "]\n";
+	}
+    else if(front_left > front_right && left >= left_threshold){
+        cout << "CASE 5: ";
+        // One object right side
+        fileName = "1obj_rightside.txt";
+        cout << "[front: " << front << ", left: " << left << ", right: " << right << "]\n";
+	}
+
+
+    else {
+        cout << "STOPPPPPP\n";
+        return 1;   // ERROR!
+    }
+
+    cout << "[front: " << front << ", left: " << left << ", right: " << right << "]\n";
 
 	//open the appropriate file for obstacle situation
     FILE* file = fopen(fileName, "r");
@@ -2610,26 +2837,44 @@ int parsesequence(TThreadRobotParam &thrPar)
         cout << "****************************** SUCCESS OPENING FILE ******************************\n";
         //read the very first line of sequences
         fgets(line, sizeof(line), file);
-        for ( int i = 1; i <= sizeof(line); ++i)
+
+        leftCount = 0;
+        rightCount = 0;
+        for ( int i = 0; i <= sizeof(line); ++i)
         {
             //if return character found break out of loop. you have parsed until the end of the line
             cout << "****************************** LOOP ******************************\n";
-            /*if(line[i]= '\n') {
+            if(line[i] == '\n') {
                     cout << "****************************** LINE BREAK ******************************\n";
                     break;
-            }*/
+            }
+            if (front < limit ) {
+                cout << "****************************** OBSTACLE!!! STOPPING ... ******************************\n";
+                sequence('s', thrPar);
+                break;
+            }
             //for each sequence execute a certain base movement command
             //sequence(line[i], thrPar, sonars);
+            //if(line[i] == 'l')
+            //    leftCount +=1;
+            //if(line[i] == 'r')
+            //   rightCount +=1;
+
             sequence(line[i], thrPar);
-            cout << "RUNNING SEQUENCE: " << line[i] << endl;
+            cout << "RUNNING SEQUENCE (" << fileName << "): "<< line[i] << endl;
+            cout << "x: " << thrPar.currentOdo.get().x() << ", y: " << thrPar.currentOdo.get().y() << ", phi: " << thrPar.currentOdo.get().phi() << endl;
+
         }
     }
     else {
         cout << "****************************** ERROR OPENING FILE ******************************\n";
     }
 
+    fclose(file);
+
     return 0;
 }
+
 
 //gets sequence character and executes appropriate action
 void sequence(char sequencechar, TThreadRobotParam &thrPar)
@@ -2639,38 +2884,66 @@ void sequence(char sequencechar, TThreadRobotParam &thrPar)
 	if( sequencechar == 'l')
 	{
 	    cout << "****************************** LEFT ******************************\n";
+    leftCount +=1;
 	//move left
 	setVelocities( 0, -1, thrPar );
 	//delay to turn 90 degrees
-	sleep(11000);
+	sleep(10500);
 	setVelocities( 1, 0, thrPar );
-	sleep(8000);
+	sleep(9000);
 	setVelocities( 0, 0, thrPar );
 	}
 	else if( sequencechar == 'r')
 	{
 	    cout << "****************************** RIGHT ******************************\n";
+	rightCount +=1;
 	//move right
 	setVelocities( 0, 1, thrPar );
-	sleep(11000);
+	sleep(9500);
 	setVelocities( 1, 0, thrPar );
-	sleep(8000);
+	sleep(7000);
 	setVelocities( 0, 0, thrPar );
 	}
 	else if( sequencechar == 'f')
 	{
 	    cout << "****************************** FORWARD ******************************\n";
-	//go forward
-	setVelocities( 1, 0, thrPar );
-	sleep(8000);
-	setVelocities( 0, 0, thrPar );
+        //go forward
+        int forwardCount = 0;
+        if(leftCount >= rightCount){
+            forwardCount = leftCount - rightCount;
+            //move right
+            setVelocities( 0, 1, thrPar );
+            sleep(forwardCount*10000);
+            setVelocities( 1, 0, thrPar );
+            sleep(9000);
+            setVelocities( 0, 0, thrPar );
+            leftCount = 0;
+            rightCount = 0;
+        }
+        else if(leftCount <= rightCount){
+            forwardCount = rightCount - leftCount;
+            //move left
+            setVelocities( 0, -1, thrPar );
+            //delay to turn 90 degrees
+            sleep(forwardCount*10000);
+            setVelocities( 1, 0, thrPar );
+            sleep(9000);
+            setVelocities( 0, 0, thrPar );
+            leftCount = 0;
+            rightCount = 0;
+        }
+        else { //if(leftCount == rightCount){
+            setVelocities( 1, 0, thrPar );
+            sleep(7000);
+            setVelocities( 0, 0, thrPar );
+        }
 	}
 	else if( sequencechar == 'b')
 	{
 	    cout << "****************************** BACKWARD ******************************\n";
 	//go backwards
 	setVelocities( -1, 0, thrPar );
-	sleep(8000);
+	sleep(15000);
 	setVelocities( 0, 0, thrPar );
 	}
 	//stop the robot
@@ -2683,464 +2956,3 @@ void sequence(char sequencechar, TThreadRobotParam &thrPar)
 
 }
 
-
-
-/**************************************************************************************************/
-/*                                            MAIN THREAD                                         */
-/**************************************************************************************************/
-/*
- * @Description
- * After starting the threads for kinect, pdf, display and collision avoidance,
- * loop while accepting manual commands.
- * command menu:
- * 	- 	a/d   : +/- angular speed
- * 	- 	space : stop current motion
- * 	- 	o     : Query odometry (display odometry is only updated here)
- * 	- 	n     : Query sonars
- * 	- 	b     : Query battery level
- * 	- 	p     : Query bumpers
- * 	- 	P	  : Follow Path (manual control is not available during navigation)
- * 	- 	e	  : Enter new current pose
- * 	- 	t 	  : Enter new target for path Planning
- * 	- 	x     : Quit
- *
- * @param	pose: 		the pose to be adjusted.
- * 			offset:		the pose containing the x,y, phi offset.
- * @return	none
- */
-int main(int argc, char **argv)
-{
-	try
-	{
-		/* read parametters from config file */
-		ASSERT_(fileExists(CONFIG_FILE_NAME))
-		CConfigFile guidebotConfFile(CONFIG_FILE_NAME);
-
-		TTY_PORT       =     guidebotConfFile.read_string("NavigationParams","TTY_PORT","/dev/ttyACM0", true);
-		COM_PORT       =     guidebotConfFile.read_string("NavigationParams","COM_PORT","COM4", true);
-		BAUD_RATE      =     guidebotConfFile.read_int("NavigationParams","BAUD_RATE",9600, true);
-		ROBOT_RADIUS   =     guidebotConfFile.read_float("NavigationParams","ROBOT_RADIUS",0.30f, true);
-		MIN_STEP       =     guidebotConfFile.read_float("NavigationParams","MIN_STEP",0.40f, true);
-		TURN_THRESHOLD     =  guidebotConfFile.read_double("NavigationParams","TURN_THRESHOLD",M_PI/90, true);
-		SHARP_TURN         =  guidebotConfFile.read_double("NavigationParams","SHARP_TURN",M_PI/5, true);
-		FORWARD_THRESHOLD  =  guidebotConfFile.read_double("NavigationParams","FORWARD_THRESHOLD",0.09, true);
-		POLL_INTERVAL      =  guidebotConfFile.read_int("NavigationParams","POLL_INTERVAL",100, true);
-		ANGULAR_SPEED      =  guidebotConfFile.read_double("NavigationParams","ANGULAR_SPEED",0.3, true);
-		LINEAR_SPEED       =  guidebotConfFile.read_double("NavigationParams","LINEAR_SPEED",0.2, true);
-		SMALL_NUMBER       =  guidebotConfFile.read_double("NavigationParams","SMALL_NUMBER",0.001, true);
-		ANGULAR_SPEED_DIV  =  guidebotConfFile.read_int("NavigationParams","ANGULAR_SPEED_DIV",5, true);
-		LINEAR_SPEED_DIV  =  guidebotConfFile.read_int("NavigationParams","LINEAR_SPEED_DIV",2, true);
-
-		MAP_FILE			=	guidebotConfFile.read_string("NavigationParams","MAP_FILE","MCECSbot_map.png",true);
-		MAP_RESOLUTION		= 	guidebotConfFile.read_float("NavigationParams","MAP_RESOLUTION",0.048768f, true);
-		X_CENTRAL_PIXEL		=	guidebotConfFile.read_int("NavigationParams","X_CENTRAL_PIXEL",-30, true);
-		Y_CENTRAL_PIXEL		=	guidebotConfFile.read_int("NavigationParams","Y_CENTRAL_PIXEL",6, true);
-
-		kinectMinTruncateDistance = guidebotConfFile.read_float("NavigationParams","kinectMinTruncateDistance", .5f , true);
-
-		TURN_THRESHOLD = DEG2RAD(TURN_THRESHOLD);
-		SHARP_TURN     = DEG2RAD(SHARP_TURN);
-
-		/* our robot base object REMOVED FOR MCECS*/
-		CActivMediaRobotBase	robot;
-/*
-#ifdef MRPT_OS_WINDOWS
-		string	port= COM_PORT;
-#else
-		string	port= TTY_PORT;
-#endif
-
-		int 	port_baud = BAUD_RATE;
-
-		cout << "Setting serial port to: " << port << " @ " << port_baud << endl;
-		robot.setSerialPortConfig( port, port_baud );
-
-		// -------------------------------------------
-		//  Init comms:
-		// -------------------------------------------
-		robot.enableSonars();
-		robot.initialize();
-*/
-		double cur_v = 0;
-		double cur_w = 0;
-
-		CActivMediaRobotBase::TRobotDescription  robInfo;
-		robot.getRobotInformation(robInfo);
-
-		CPoint2D  target( -29, 8);  // target for path planning.
-
-
-		//CPoint2D  origin( -29, 10 );  // origin for path planning.
-
-	//	cout << "Robot # front bumpers : " << robInfo.nFrontBumpers << endl;
-	//	cout << "Robot # rear bumpers  : " << robInfo.nRearBumpers << endl;
-	//	cout << "Robot # sonars        : " << robInfo.nSonars << endl;
-
-		/* --------------------------------------------------------
-		 * Launch threads
-		 * --------------------------------------------------------
-		 */
-		TThreadRobotParam thrPar;
-		mrpt::system::TThreadHandle pdfHandle;
-		mrpt::system::TThreadHandle displayHandle;
-		mrpt::system::TThreadHandle thHandle;
-		//mrpt::system::TThreadHandle wallDetectHandle;
-
-
-
-		//setup arduino for odo
-		cout<<"Initializing odometry arduino"<<endl;
-		int odo_fd = setupArduino(ODO_PORT_NAME,ODO_READ_MIN);
-		thrPar.odo_fd.set(odo_fd);
-		cout<<"odo_fd: "<<odo_fd<<endl;
-		//if lrf and odometry are on the same arduino port
-		if(strcmp(ODO_PORT_NAME,LRF_PORT_NAME) == 0)
-		{
-			cout<<"Initializing lrf arduino on the same port as odometry"<<endl;
-			thrPar.lrf_fd.set(odo_fd);
-
-		}
-		else
-		{
-			cout<<"Initializing lrf arduino on unique port"<<endl;
-			int lrf_fd = setupArduino(LRF_PORT_NAME,LRF_READ_MIN);
-			thrPar.lrf_fd.set(lrf_fd);
-		}
-
-		//if motor is also on the same port
-		if(strcmp(ODO_PORT_NAME,MOTOR_PORT_NAME) == 0)
-		{
-			cout<<"Initializing motor arduino on the same port as odometry"<<endl;
-			thrPar.vel_fd.set(odo_fd);
-		}
-		else
-		{
-			cout<<"Initializing vel arduino on unique port"<<endl;
-			int vel_fd = setupArduino(MOTOR_PORT_NAME,1);
-			thrPar.vel_fd.set(vel_fd);
-		}
-
-		//Robot is not in motion, or getting LRF value
-		thrPar.isMoving.set(false);
-		thrPar.isTurning.set(false);
-		thrPar.gettingLRF.set(false);
-
-		//pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
-		displayHandle = mrpt::system::createThreadRef(thread_display ,thrPar);
-		thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
-		//wallDetectHandle = mrpt::system::createThreadRef(thread_wall_detect, thrPar);
-		/* Wait until data stream starts so we can say for sure the sensor has been initialized OK: */
-		cout << "Waiting for sensor initialization...\n";
-		/* May need to do similar for LRF
-		do
-		{
-			CObservation3DRangeScanPtr possiblyNewObs = thrPar.new_obs.get();
-			if (possiblyNewObs && possiblyNewObs->timestamp!=INVALID_TIMESTAMP)
-				break;
-			else
-				mrpt::system::sleep(10);
-		} while (!thrPar.quit);
-		*/
-		/* Check error condition: */
-		if (thrPar.quit.get())
-			return 0;
-
-		bool show_menu = true;
-
-		int counter = 0;
-
-		while (1)
-		{
-			if (show_menu)
-			{
-				show_menu=false;
-				cout << "Press the key for your option:" << endl << endl;
-				cout << " w/s   : +/- forward or back" << endl;
-				cout << " a/d   : +/- left or right" << endl;
-				cout << " space : stop" << endl;
-				cout << " o     : Query odometry" << endl;
-				cout << " n     : Query sonars" << endl;
-				cout << " b     : Query battery level" << endl;
-				cout << " p     : Query bumpers" << endl;
-				cout << " P		: Follow Path" << endl;
-				cout << " e		: Enter new current pose: " << endl;
-				cout << " t 	: Enter new target for path Planning: " << endl;
-				cout << " n	: Network communication mode" << endl;
-				cout << " x     : Quit" << endl;
-			}
-
-			/*if (!mrpt::system::os::kbhit())
-			{
-				robot.doProcess();
-				CGenericSensor::TListObservations dummy;
-				robot.getObservations(dummy);  // Empty the list
-				mrpt::system::sleep(20);
-				continue;
-			}*/
-
-			char c;
-
-			// ==== Update odometry
-				CPose2D 	odo;
-				double 		v,w;
-				int64_t  	left_ticks, right_ticks;
-				bool 		pollLRF = true;
-				cout<<"getting odo"<<endl;
-				thrPar.isMoving.set(true);
-				while(thrPar.gettingLRF.get());
-				//{
-				//	pollLRF = returnGettingLRF(thrPar);
-				//	cout<<pollLRF<<endl;
-				//	sleep(1000);
-
-				//}
-
-				cout<<"OK"<<endl;
-				getOdometry( odo, odo_fd, thrPar );
-				thrPar.isMoving.set(false);
-				//printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
-				fixOdometry( odo, thrPar.odometryOffset.get() );
-				thrPar.currentOdo.set(odo);
-				//printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
-				cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
-				counter = 0;
-            // ==== End update odometry
-
-			c = mrpt::system::os::getch();
-
-			show_menu=true;
-
-			if (c=='x') break;	/* quit */
-
-			if (c=='w' || c=='s') /* increase or decrease current linear velocity */
-			{
-                		thrPar.goForward.set(true);
-				thrPar.goRight.set(false);
-                		initial_front_wall = thrPar.front_wall.get();
-                		sleep(1000);
-
-				if (c=='w') cur_v = 1;
-				if (c=='s') cur_v = -1;
-
-
-				setVelocities( cur_v, 0, thrPar);
-				sleep(1000);
-				//setVelocities( 0, 0, thrPar);
-
-			}
-
-			if (c=='a' || c=='d')  /* increase or decrease current angular velocity */
-			{
-				//if (c=='a') cur_w = 1;
-				//if (c=='d') cur_w = 1;
-				thrPar.goForward.set(false);
-				thrPar.goRight.set(true);
-				if (c=='a') cur_w = 1;
-				if (c=='d') cur_w = 1;
-
-				setVelocities( 0, cur_w, thrPar );
-				//setVelocities( cur_v, 0, thrPar);
-				sleep(1000);
-				//setVelocities( 0, 0, thrPar);
-			}
-
-			if (c==' ')  /* stop, set current linear and anhular velocities to 0 */
-			{
-				cur_v = 0;
-				cur_w = 0;
-				thrPar.goForward.set(false);
-				thrPar.goRight.set(false);
-				setVelocities( cur_v, cur_w, thrPar );
-			}
-
-
-			/*
-
-			if (counter >= 3) {
-			    c='o';
-			} else {
-			    counter += 1;
-			}
-
-			if (c=='o')  // get current odometry reading
-			{
-				CPose2D 	odo;
-				double 		v,w;
-				int64_t  	left_ticks, right_ticks;
-				bool 		pollLRF = true;
-				cout<<"getting odo"<<endl;
-				thrPar.isMoving.set(true);
-				while(thrPar.gettingLRF.get());
-				//{
-				//	pollLRF = returnGettingLRF(thrPar);
-				//	cout<<pollLRF<<endl;
-				//	sleep(1000);
-
-				//}
-
-				cout<<"OK"<<endl;
-				getOdometry( odo, odo_fd, thrPar );
-				thrPar.isMoving.set(false);
-				printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
-				fixOdometry( odo, thrPar.odometryOffset.get() );
-				thrPar.currentOdo.set(odo);
-				printf("***x = %d, y = %d, phi = %d\n",odo.x(),odo.y(),odo.phi());
-				cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
-				counter = 0;
-			}
-			*/
-
-			if (c=='p')  /* get current bumper readings */
-			{
-				vector_bool bumps;
-				robot.getBumpers(bumps);
-				cout << "Bumpers: "<< bumps << endl;
-			}
-
-			if (c=='n' || c=='N') /* get current sonar readings */
-			{
-				CObservationRange obs;
-				bool thereis;
-				robot.getSonarsReadings(thereis,obs);
-
-				if (!thereis)
-				{
-					cout << "Sonars: NO" << endl;
-				}
-				else
-				{
-					adjustCObservationRangeSonarPose( obs );
-					displaySonars(thrPar, obs);
- 					cout << "Sonars: ";
-					for (CObservationRange::const_iterator i=obs.sensedData.begin();i!=obs.sensedData.end();++i)
-						cout << i->sensedDistance << " ";
-					cout << endl;
-				}
-			}
-
-			if (c=='b') /* get current battery charge */
-			{
-				double bat;
-				robot.getBatteryCharge(bat);
-				cout << "Battery: " << bat << endl;
-			}
-
-			if (c=='e') /* enter current pose */
-			{
-				double newX, newY, newPhi;
-				cout << "Input the current x location: ";
-				cin >> newX;	cin.clear();
-				cout << "Input the current y location: ";
-				cin >> newY;	cin.clear();
-				cout << "Input the current phi: ";
-				cin >> newPhi;	cin.clear();
-
-				CPose2D startOdo;
-				getOdometry( startOdo, odo_fd, thrPar);
-				startOdo.x(0);
-				startOdo.y(0);
-				//CPose2D startOdo(newX,newY,DEG2RAD(newPhi));
-				CPose2D newOffset(newX,newY,DEG2RAD(newPhi) - startOdo.phi() );
-				thrPar.odometryOffset.set(newOffset);
-				robot.changeOdometry(startOdo);
-				CPose2D 	odo;
-				double 		v,w;
-				int64_t  	left_ticks, right_ticks;
-				double 		phi;
-				//getOdometryFull( odo, v, w, left_ticks, right_ticks );
-
-				fixOdometry( odo, thrPar.odometryOffset.get() );
-				thrPar.currentOdo.set(odo);
-				cout << " New odometry has been set! " << odo << endl;
-				thrPar.pdfResetDeterministic.set(true);
-
-			}
-
-			if (c=='T') // Turn to target pose
-			{
-				CPose2D 	odo;
-				/* calculate required phi to next point */
-				double phi = atan2 ( (thrPar.targetOdo.get().y() ) , (thrPar.targetOdo.get().x() ) );
-				turn(45.0*M_PI/180,thrPar);
-				cout << "phi: " << RAD2DEG(phi);
-				getOdometry( odo, odo_fd, thrPar );
-				fixOdometry( odo, thrPar.odometryOffset.get() );
-				thrPar.currentOdo.set(odo);
-			}
-
-			if (c=='t') /* enter target pose */
-			{
-				double newX, newY;
-				cout << "Input the target x location: ";
-				cin >> newX;	cin.clear();
-				cout << "Input the target y location: ";
-				cin >> newY;	cin.clear();
-
-				target.x(newX);
-				target.y(newY);
-				thrPar.targetOdo.set(target);
-				thrPar.targetOdo.set(target);
-
-				cout << " New target has been set! " << target << endl;
-			}
-
-			if (c=='P') /* calculate a path and travel there using the smoothDrive function */
-			{
-				std::deque<poses::TPoint2D>		thePath;
-				CPose2D 	odo;
-				double 		v,w;
-				int64_t  	left_ticks, right_ticks;
-				double 		phi;
-				getOdometry( odo, odo_fd, thrPar );
-				fixOdometry( odo, thrPar.odometryOffset.get() );
-
-				CPoint2D origin( odo.x(), odo.y() );
-
-				if (PathPlanning( thePath, origin, target ) == 1)
-				{
-					thrPar.pdfResetDeterministic.set(true);
-					thrPar.thePath.set(thePath);
-					thrPar.displayNewPath.set(true);
-					cout << "found a Path..." << endl;
-					smoothDrive(robot, thePath, thrPar );
-					cout << "at target..." << endl;
-				} /* end path following */
-
-			}
-
-			if (c=='n')
-			{
-
-				clientCommunication();
-
-			}
-
-			if (c=='m')
-			{
-			    cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< SEQUENCE FOLLOWING >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
-
-			    parsesequence(thrPar);
-			}
-
-
-
-
-
-		}
-
-	/*join threads */
-		cout << "Waiting for grabbing thread to exit...\n";
-		thrPar.quit = true;
-		//mrpt::system::joinThread(pdfHandle);
-		mrpt::system::joinThread(thHandle);
-		//mrpt::system::joinThread(wallDetectHandle);
-		mrpt::system::joinThread(displayHandle);
-		cout << "threads ended!\n";
-	}
-	catch(std::exception &e)
-	{
-		cerr << e.what() << endl;
-		return -1;
-	}
-	return 0;
-}
