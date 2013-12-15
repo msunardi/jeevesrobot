@@ -13,23 +13,23 @@ WirelessLocalizer::WirelessLocalizer()
   /*
    * TEST VECTOR DEMO
    */
-  WAP *node1 = new WAP("00:0F:34:C0:49:80", -75, -69.387, -133.741, -1);
-  testVector.push_back(*node1);
+  WAP node1("00:0F:34:C0:49:80", -75, -69.387, -133.741);
+  testVector.push_back(node1);
 
-  WAP *node2 = new WAP("68:BC:0C:2D:5A:A0", -85, -3.663, -125.584, -1);
-  testVector.push_back(*node2);
+  WAP node2("68:BC:0C:2D:5A:A0", -85, -3.663, -125.584);
+  testVector.push_back(node2);
 
-  WAP *node3 = new WAP("00:22:55:DF:B6:B0", -65, 41.845, -117.616, -1);
-  testVector.push_back(*node3);
+  WAP node3("00:22:55:DF:B6:B0", -65, 41.845, -117.616);
+  testVector.push_back(node3);
 
-  WAP *node4 = new WAP("C4:7D:4F:53:27:30", -70, -62.706, -172.783, -1);
-  testVector.push_back(*node4);
+  WAP node4("C4:7D:4F:53:27:30", -70, -62.706, -172.783);
+  testVector.push_back(node4);
 
-  WAP *node5 = new WAP("C4:7D:4F:53:16:C0", -85, 51.731, -196.874, -1);
-  testVector.push_back(*node5);
+  WAP node5("C4:7D:4F:53:16:C0", -85, 51.731, -196.874);
+  testVector.push_back(node5);
 
-  //WAP *node6 = new WAP("C4:7D:4F:53:1C:F0", -55, 14.866, -206.980, -1);
-  //testVector.push_back(*node6);
+  WAP node6("C4:7D:4F:53:1C:F0", -55, 14.866, -206.980);
+  testVector.push_back(node6);
 
   //WAP *node7 = new WAP();
   //testVector.push_back(*node7);
@@ -40,24 +40,19 @@ WirelessLocalizer::WirelessLocalizer()
   //WAP *node9 = new WAP();
   //testVector.push_back(*node9);
 
-
-  averageCenterPoints = new vector<Coordinates>;
-  skewedCenterPoints = new vector<Coordinates>;
+  // Instantiate the lists
   dbResults = new vector<WAP>;
   matchedNodes = new vector<WAP>;
-  rectangleLengths = new vector<Bounds>;
   scanResults = new vector<WAP>;
-  xOuterBoundsHistory = new vector<WAP>;
-  yOuterBoundsHistory = new vector<WAP>;
-  zOuterBoundsHistory = new vector<WAP>;
 
-  // Open the DB and parse the contents
+  // Necessary file parsing stuff
   size_t found;
   float coordinates[3];
   ifstream dbFile;
   dbFile.open("WAP.db");
   string buffer;
 
+  // Open the DB and parse the contents
   // Parse for MAC, X, Y format (Z not yet implemented)
   while (!dbFile.eof())
   {
@@ -112,10 +107,8 @@ WirelessLocalizer::WirelessLocalizer()
       }
 
       // Use the x,y version since z is not yet implemented
-      WAP *parsedNode = new WAP();
-      parsedNode->SetAddress(dbAddress);
-      parsedNode->SetXY(coordinates[0], coordinates[1]);
-      dbResults->push_back(*parsedNode);
+      WAP parsedNode(dbAddress, coordinates[0], coordinates[1]);
+      dbResults->push_back(parsedNode);
     }
   }
   dbFile.close();
@@ -123,82 +116,32 @@ WirelessLocalizer::WirelessLocalizer()
 
 WirelessLocalizer::~WirelessLocalizer()
 {
-  if (averageCenterPoints)
-    delete averageCenterPoints;
-
-  if (skewedCenterPoints)
-    delete skewedCenterPoints;
-
   if (dbResults)
     delete dbResults;
 
   if (matchedNodes)
     delete matchedNodes;
 
-  if (rectangleLengths)
-    delete rectangleLengths;
-
   if (scanResults)
     delete scanResults;
-
-  if (xOuterBoundsHistory)
-    delete xOuterBoundsHistory;
-
-  if (yOuterBoundsHistory)
-    delete yOuterBoundsHistory;
-
-  if (zOuterBoundsHistory)
-    delete zOuterBoundsHistory;
 }
 
-//float WirelessLocalizer::GetRectangleDepth()
-//{
-//return rectangleLengths->back().zLength;
-//}
-
-//float WirelessLocalizer::GetRectangleDepthMax()
-//{
-//return rectangleLengths->front().zLength;
-//}
-
-float WirelessLocalizer::GetRectangleWidth()
+float WirelessLocalizer::GetCoordinateX()
 {
-  if (rectangleLengths)
-    return rectangleLengths->back().xLength;
-
-  else
-    return -1;
+    return _x;
 }
 
-float WirelessLocalizer::GetRectangleWidthMax()
+float WirelessLocalizer::GetCoordinateY()
 {
-  if (rectangleLengths)
-    return rectangleLengths->front().xLength;
-
-  else
-    return -1;
-}
-
-float WirelessLocalizer::GetRectangleHeight()
-{
-  if (rectangleLengths)
-    return rectangleLengths->back().yLength;
-
-  else
-    return -1;
-}
-
-float WirelessLocalizer::GetRectangleHeightMax()
-{
-  if (rectangleLengths)
-    return rectangleLengths->front().yLength;
-
-  else
-    return -1;
+    return _y;
 }
 
 void WirelessLocalizer::Localize()
 {
+  // Buffers for storing RSSI calculation values
+  vector<Coordinates> averageCenterPoints;
+  vector<Coordinates> skewedCenterPoints;
+
   // Buffers for parsing streams
   FILE *filePointer;
   char buffer[1024];
@@ -213,12 +156,6 @@ void WirelessLocalizer::Localize()
 
   if (matchedNodes)
     matchedNodes->clear();
-
-  //if (centerPoints)
-  //centerPoints->clear();
-
-  //if (rectangleLengths)
-  //rectangleLengths->clear();
 
   /*
    * Determine the environment path variable of the OS.
@@ -289,8 +226,10 @@ void WirelessLocalizer::Localize()
       //cout << signal << endl;
 
       // Create the new node and add to the end of our vector
-      WAP *node = new WAP(address, signal);
-      scanResults->push_back(*node);
+      WAP node;
+      
+      node.SetSignalLevel(signal);
+      scanResults->push_back(node);
     }
   }
   // Close the stream
@@ -308,8 +247,11 @@ void WirelessLocalizer::Localize()
     {
       if (it->GetAddress() == it2->GetAddress())
       {
-        WAP *match = new WAP(it->GetAddress(), it->GetSignalLevel(), it2->GetX(), it2->GetY(), it2->GetZ());
-        matchedNodes->push_back(*match);
+        WAP match;
+        match.SetAddress(it->GetAddress());
+        match.SetSignalLevel(it->GetSignalLevel());
+        match.SetXY(it->GetX(), it->GetY());
+        matchedNodes->push_back(match);
       }
     }
   }
@@ -326,11 +268,10 @@ void WirelessLocalizer::Localize()
     //bounds->zLength = 0;
 
     // Set the center point to be the coordinates of the only perceived WAP
-    Coordinates *coordinates = new Coordinates();
-    coordinates->x = matchedNodes->begin()->GetX();
-    coordinates->y = matchedNodes->begin()->GetY();
-    //coordinates->z = matchedNodes->begin()->GetZ();
-    skewedCenterPoints->push_back(*coordinates);
+    Coordinates coordinates;
+    coordinates.x = matchedNodes->begin()->GetX();
+    coordinates.y = matchedNodes->begin()->GetY();
+    skewedCenterPoints.push_back(coordinates);
   }
 
   /*
@@ -369,11 +310,10 @@ void WirelessLocalizer::Localize()
       if (matchedNodes->size() == 1)
       {
         // Set the center point to be the coordinates of the only perceived WAP
-        Coordinates *coordinates = new Coordinates();
-        coordinates->x = matchedNodes->begin()->GetX();
-        coordinates->y = matchedNodes->begin()->GetY();
-        //coordinates->z = matchedNodes->begin()->GetZ();
-        skewedCenterPoints->push_back(*coordinates);
+        Coordinates coordinates;
+        coordinates.x = matchedNodes->begin()->GetX();
+        coordinates.y = matchedNodes->begin()->GetY();
+        skewedCenterPoints.push_back(coordinates);
 
         // Clear the list
         matchedNodes->clear();
@@ -381,7 +321,6 @@ void WirelessLocalizer::Localize()
 
       else
       {
-        cout << "Run RSSI scheme..." << endl;
         // Run RSSI scheme on current list of matched nodes and then remove nodes used in this iteration
         for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
         {
@@ -428,7 +367,7 @@ void WirelessLocalizer::Localize()
           // Run RSSI scheme using the 4 nodes
           averageCenter.x = (xMax - xMin) / 2;
           averageCenter.y = (yMax - yMin) / 2;
-          averageCenterPoints->push_back(averageCenter);
+          averageCenterPoints.push_back(averageCenter);
         }
 
         // Hypotenuse, theta, and ray lengths for the algorithm
@@ -498,7 +437,7 @@ void WirelessLocalizer::Localize()
         //cout << "Center point:" << endl;
         //cout << "X: " << skewedCenter.x << endl;
         //cout << "Y: " << skewedCenter.y << endl;
-        skewedCenterPoints->push_back(skewedCenter);
+        skewedCenterPoints.push_back(skewedCenter);
 
         // Remove the nodes from the matchedNodes vector
         for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
@@ -527,9 +466,23 @@ void WirelessLocalizer::Localize()
             --it;
           }
         }
-
-        // CALCULATE AVERAGE CENTER POINT HERE FROM THE CENTERPOINT LIST
       }
+
+      // CALCULATE AVERAGE CENTER POINT HERE FROM THE CENTERPOINT LIST
+      float x = 0;
+      float y = 0;
+      float size = skewedCenterPoints.size();
+
+      // Get the totals
+      for (vector<Coordinates>::iterator it = skewedCenterPoints.begin(); it != skewedCenterPoints.end(); ++it)
+      {
+        x = x + it->x;
+        y = y + it->y;
+      }
+
+      // Divide the totals to get the mean for each and save the result
+      _x = x / size;
+      _y = y / size;
     }
   }
 
@@ -587,21 +540,13 @@ void WirelessLocalizer::PrintMatches()
 }
 
 // View the centerpoint history
-void WirelessLocalizer::PrintCenterPoints()
+void WirelessLocalizer::PrintCenterPoint()
 {
-  if (skewedCenterPoints)
-  {
-    cout << endl << "List of skewed center points to be averaged:" << endl;
-
-    for (vector<Coordinates>::iterator it = skewedCenterPoints->begin(); it != skewedCenterPoints->end(); ++it)
-    {
       cout << "Center point:" << endl;
-      cout << "X:" << it->x << endl;
-      cout << "Y:" << it->y << endl;
-      //cout << "Z:" << it->z << endl;
+      cout << "X:" << this->GetCoordinateX() << endl;
+      cout << "Y:" << this->GetCoordinateY() << endl;
+      //cout << "Z:" << << endl;
       cout << endl;
-    }
-  }
 
   return;
 }

@@ -6,9 +6,16 @@ class WAP
 {
   public:
     WAP();
+
+    // Address, Signal level
     WAP(const string, const float);
+
+    // Address, x, y
+    WAP(const string, const float, const float);
+
+    // Address, signal level, x, y
     WAP(const string, const float, const float, const float);
-    WAP(const string, const float, const float, const float, const float);
+
     ~WAP();
     string GetAddress();
     float GetSignalLevel();
@@ -21,7 +28,6 @@ class WAP
     void SetY(const float);
     void SetZ(const float);
     void SetXY(const float, const float);
-    void SetXYZ(const float, const float, const float);
 
   private:
     string _address;

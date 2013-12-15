@@ -15,14 +15,7 @@ int main()
   //rssi->PrintScannedResults();
   //rssi->PrintDatabaseResults();
   //rssi->PrintMatches();
-  rssi->PrintCenterPoints();
-
-  //int height = rssi->GetRectangleHeight();
-  //int width = rssi->GetRectangleWidth();
-
-  //cout << endl << "Rectangle bounds:" << endl;
-  //cout << "Height: " << height << endl;
-  //cout << "Width: " << width << endl;
+  rssi->PrintCenterPoint();
 
   if (rssi)
     delete rssi;

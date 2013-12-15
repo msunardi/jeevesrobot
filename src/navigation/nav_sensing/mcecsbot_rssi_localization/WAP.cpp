@@ -21,6 +21,14 @@ WAP::WAP(const string address, const float signalLevel)
   _x = 0;
 }
 
+WAP::WAP(const string address, const float x, const float y)
+{
+  _address = address;
+  _x = x;
+  _y = y;
+  _z = 0;
+}
+
 WAP::WAP(const string address, const float signalLevel, const float x, const float y)
 {
   _address = address;
@@ -28,15 +36,6 @@ WAP::WAP(const string address, const float signalLevel, const float x, const flo
   _x = x;
   _y = y;
   _z = 0;
-}
-
-WAP::WAP(const string address, const float signalLevel, const float x, const float y, const float z)
-{
-  _address = address;
-  _signalLevel = signalLevel;
-  _x = x;
-  _y = y;
-  _z = z;
 }
 
 WAP::~WAP()
@@ -102,13 +101,5 @@ void WAP::SetXY(const float x, const float y)
 {
   _x = x;
   _y = y;
-  return;
-}
-
-void WAP::SetXYZ(const float x, const float y, const float z)
-{
-  _x = x;
-  _y = y;
-  _z = z;
   return;
 }

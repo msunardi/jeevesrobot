@@ -29,28 +29,20 @@ class WirelessLocalizer
   public:
     WirelessLocalizer();
     ~WirelessLocalizer();
-    //float GetRectangleDepth();
-    //float GetRectangleDepthMax();
-    float GetRectangleHeight();
-    float GetRectangleHeightMax();
-    float GetRectangleWidth();
-    float GetRectangleWidthMax();
+    float GetCoordinateX();
+    float GetCoordinateY();
     void Localize();
-    void PrintCenterPoints();
+    void PrintCenterPoint();
     void PrintDatabaseResults();
     void PrintMatches();
     void PrintScannedResults();
 
   private:
-    vector<Coordinates> *averageCenterPoints;         // Format of individual array is [x,y,z]
-    vector<Coordinates> *skewedCenterPoints;         // Format of individual array is [x,y,z]
-    vector<Bounds> *rectangleLengths;                 // Format of individual array is [x,y]
     vector<WAP> *dbResults;
     vector<WAP> *matchedNodes;                        // Matches between db and scan results
     vector<WAP> *scanResults;
-    vector<WAP> *xOuterBoundsHistory;
-    vector<WAP> *yOuterBoundsHistory;
-    vector<WAP> *zOuterBoundsHistory;
+    float _x;
+    float _y;
 
     vector<WAP> testVector;
 };
