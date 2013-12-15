@@ -6,17 +6,17 @@ class WAP
 {
   public:
     WAP();
-    WAP(const string, const string);
-    WAP(const string, const string, const float, const float);
-    WAP(const string, const string, const float, const float, const float);
+    WAP(const string, const float);
+    WAP(const string, const float, const float, const float);
+    WAP(const string, const float, const float, const float, const float);
     ~WAP();
     string GetAddress();
-    string GetSignalLevel();
+    float GetSignalLevel();
     float GetX();
     float GetY();
     float GetZ();
     void SetAddress(const string);
-    void SetSignalLevel(const string);
+    void SetSignalLevel(const float);
     void SetX(const float);
     void SetY(const float);
     void SetZ(const float);
@@ -25,7 +25,7 @@ class WAP
 
   private:
     string _address;
-    string _signalLevel;
+    float _signalLevel;
     float _x;
     float _y;
     float _z;

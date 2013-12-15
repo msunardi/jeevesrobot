@@ -1,3 +1,4 @@
+#include <string>
 #include "WAP.h"
 
 using namespace std;
@@ -5,13 +6,13 @@ using namespace std;
 WAP::WAP()
 {
   _address = "";
-  _signalLevel = "";
+  _signalLevel = 0;
   _x = 0;
   _y = 0;
   _x = 0;
 }
 
-WAP::WAP(const string address, const string signalLevel)
+WAP::WAP(const string address, const float signalLevel)
 {
   _address = address;
   _signalLevel = signalLevel;
@@ -20,7 +21,7 @@ WAP::WAP(const string address, const string signalLevel)
   _x = 0;
 }
 
-WAP::WAP(const string address, const string signalLevel, const float x, const float y)
+WAP::WAP(const string address, const float signalLevel, const float x, const float y)
 {
   _address = address;
   _signalLevel = signalLevel;
@@ -29,7 +30,7 @@ WAP::WAP(const string address, const string signalLevel, const float x, const fl
   _z = 0;
 }
 
-WAP::WAP(const string address, const string signalLevel, const float x, const float y, const float z)
+WAP::WAP(const string address, const float signalLevel, const float x, const float y, const float z)
 {
   _address = address;
   _signalLevel = signalLevel;
@@ -39,15 +40,15 @@ WAP::WAP(const string address, const string signalLevel, const float x, const fl
 }
 
 WAP::~WAP()
-  {
-  }
+{
+}
 
 string WAP::GetAddress()
 {
   return _address;
 }
 
-string WAP::GetSignalLevel()
+float WAP::GetSignalLevel()
 {
   return _signalLevel;
 }
@@ -73,7 +74,7 @@ void WAP::SetAddress(const string address)
   return;
 }
 
-void WAP::SetSignalLevel(const string signalLevel)
+void WAP::SetSignalLevel(const float signalLevel)
 {
   _signalLevel = signalLevel;
   return;

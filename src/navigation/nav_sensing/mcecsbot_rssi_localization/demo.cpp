@@ -14,15 +14,15 @@ int main()
   rssi->Localize();
   //rssi->PrintScannedResults();
   //rssi->PrintDatabaseResults();
-  rssi->PrintMatches();
+  //rssi->PrintMatches();
   rssi->PrintCenterPoints();
 
-  int height = rssi->GetRectangleHeight();
-  int width = rssi->GetRectangleWidth();
+  //int height = rssi->GetRectangleHeight();
+  //int width = rssi->GetRectangleWidth();
 
-  cout << endl << "Rectangle bounds:" << endl;
-  cout << "Height: " << height << endl;
-  cout << "Width: " << width << endl;
+  //cout << endl << "Rectangle bounds:" << endl;
+  //cout << "Height: " << height << endl;
+  //cout << "Width: " << width << endl;
 
   if (rssi)
     delete rssi;
