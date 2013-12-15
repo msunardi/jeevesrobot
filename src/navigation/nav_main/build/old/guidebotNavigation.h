@@ -119,7 +119,7 @@ static float kinectMinTruncateDistance = 0.5;
 
 static char* LRF_PORT_NAME		=	"/dev/ttyACM0";
 static char* ODO_PORT_NAME		=	"/dev/ttyACM0";
-static char* MOTOR_PORT_NAME	=	"/dev/ttyACM0";
+static char* MOTOR_PORT_NAME		=	"/dev/ttyACM0";
 static int   ODO_READ_MIN		=	7;
 static int   LRF_READ_MIN		=	6;
 #define PORT "80" // the port client will be connecting to
@@ -172,7 +172,6 @@ struct TThreadRobotParam
 	mrpt::synch::CThreadSafeVariable<bool>							centerObstacle;
 	mrpt::synch::CThreadSafeVariable<bool>							isMoving; //set when robot is moving, clear otherwise
 	mrpt::synch::CThreadSafeVariable<bool>							gettingLRF; //set when robot is using LRF, clear otherwise
-	mrpt::synch::CThreadSafeVariable<bool>							gettingOdometry;
 	mrpt::synch::CThreadSafeVariable<bool>							isTurning; //set when robot is using LRF, clear otherwise
 	mrpt::synch::CThreadSafeVariable<bool>							goForward;
 	mrpt::synch::CThreadSafeVariable<bool>							goRight;

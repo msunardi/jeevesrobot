@@ -48,7 +48,6 @@
  * 	- 	P	  : Follow Path (manual control is not available during navigation)
  * 	- 	e	  : Enter new current pose
  * 	- 	t 	  : Enter new target for path Planning
- * 	- 	m 	  : Obstacle avoidance demo
  * 	- 	x     : Quit
  *
  * @param	pose: 		the pose to be adjusted.
@@ -177,7 +176,7 @@ int main(int argc, char **argv)
 		thrPar.isTurning.set(false);
 		thrPar.gettingLRF.set(false);
 
-		pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
+		//pdfHandle = mrpt::system::createThreadRef(thread_update_pdf ,thrPar);
 		displayHandle = mrpt::system::createThreadRef(thread_display ,thrPar);
 		thHandle = mrpt::system::createThreadRef(thread_LRF ,thrPar);
 		//wallDetectHandle = mrpt::system::createThreadRef(thread_wall_detect, thrPar);
@@ -198,13 +197,31 @@ int main(int argc, char **argv)
 			return 0;
 
         bool show_menu = true;
-        char c;
+
 		int counter = 0;
 
         bool run = true;
 
 		while (run)
 		{
+        if (show_menu)
+			{
+				show_menu=false;
+				cout << "Press the key for your option:" << endl << endl;
+				cout << " w/s   : +/- forward or back" << endl;
+				cout << " a/d   : +/- left or right" << endl;
+				cout << " space : stop" << endl;
+				cout << " o     : Query odometry" << endl;
+				cout << " n     : Query sonars" << endl;
+				cout << " b     : Query battery level" << endl;
+				cout << " p     : Query bumpers" << endl;
+				cout << " P		: Follow Path" << endl;
+				cout << " e		: Enter new current pose: " << endl;
+				cout << " t 	: Enter new target for path Planning: " << endl;
+				cout << " n	: Network communication mode" << endl;
+				cout << " x     : Quit" << endl;
+			}
+
 			/*if (!mrpt::system::os::kbhit())
 			{
 				robot.doProcess();
@@ -214,6 +231,7 @@ int main(int argc, char **argv)
 				continue;
 			}*/
 
+			char c;
 
  			// ==== Update odometry
 				CPose2D 	odo;
@@ -241,28 +259,9 @@ int main(int argc, char **argv)
 				counter = 0;
             // ==== End update odometry
 
-            if (show_menu)
-			{
-				show_menu=false;
-				cout << "Press the key for your option:" << endl << endl;
-				cout << " w/s   : +/- forward or back" << endl;
-				cout << " a/d   : +/- left or right" << endl;
-				cout << " space : stop" << endl;
-				cout << " o     : Query odometry" << endl;
-				cout << " n     : Query sonars" << endl;
-				cout << " b     : Query battery level" << endl;
-				cout << " p     : Query bumpers" << endl;
-				cout << " P		: Follow Path" << endl;
-				cout << " e		: Enter new current pose: " << endl;
-				cout << " t 	: Enter new target for path Planning: " << endl;
-				cout << " n     : Network communication mode" << endl;
-				cout << " m 	: Obstacle avoidance demo" << endl;
-				cout << " x     : Quit" << endl;
-				cout << " > ";
-			}
 			c = mrpt::system::os::getch();
 
-			cout << c << endl;
+			cout << c;
 
 			show_menu=true;
 
@@ -270,10 +269,10 @@ int main(int argc, char **argv)
 
 			if (c=='w' || c=='s') /* increase or decrease current linear velocity */
 			{
-                thrPar.goForward.set(true);
+                		thrPar.goForward.set(true);
 				thrPar.goRight.set(false);
-                initial_front_wall = thrPar.front_wall.get();
-                sleep(1000);
+                		initial_front_wall = thrPar.front_wall.get();
+                		sleep(1000);
 
 				if (c=='w') cur_v = 1;
 				if (c=='s') cur_v = -1;
@@ -292,45 +291,12 @@ int main(int argc, char **argv)
 				thrPar.goForward.set(false);
 				thrPar.goRight.set(true);
 				if (c=='a') cur_w = 1;
-				if (c=='d') cur_w = -1;
+				if (c=='d') cur_w = 1;
 
 				setVelocities( 0, cur_w, thrPar );
 				//setVelocities( cur_v, 0, thrPar);
 				sleep(1000);
 				//setVelocities( 0, 0, thrPar);
-			}
-
-			if (c=='A' || c=='D')
-			{
-			    CPose2D 	odo;
-			    thrPar.goForward.set(false);
-			    thrPar.goRight.set(true);
-			    if (c=='A') cur_w = -1;
-			    if (c=='D') cur_w = 1;
-
-			    setVelocities(0, cur_w, thrPar);
-			    int m = 0;
-			    float old_phi = 0.0;
-			    getOdometry( odo, odo_fd, thrPar );
-                fixOdometry( odo, thrPar.odometryOffset.get() );
-                thrPar.currentOdo.set(odo);
-                old_phi = odo.phi();
-			    while( m < 3 )
-			    {
-			        sleep(1000);
-			        //if ()
-			        getOdometry( odo, odo_fd, thrPar );
-			        fixOdometry( odo, thrPar.odometryOffset.get() );
-                    thrPar.currentOdo.set(odo);
-			        cout << "Odo: " << odo << endl;
-			        cout << "phi: " << odo.phi() << endl;
-			        old_phi = odo.phi();
-			        sleep(1000);
-			        m += 1;
-			    }
-
-
-			    setVelocities( 0, 0, thrPar);
 			}
 
 			if (c==' ')  /* stop, set current linear and anhular velocities to 0 */
@@ -349,7 +315,7 @@ int main(int argc, char **argv)
 			    c='o';
 			} else {
 			    counter += 1;
-			}*/
+			}
 
 			if (c=='o')  // get current odometry reading
 			{
@@ -377,7 +343,7 @@ int main(int argc, char **argv)
 				cout << "Odometry: " << odo << " v: " << v << " w: " << RAD2DEG(w) << " left: " << left_ticks << " right: " << right_ticks << endl;
 				counter = 0;
 			}
-
+			*/
 
 			if (c=='p')  /* get current bumper readings */
 			{
@@ -568,7 +534,7 @@ void thread_update_pdf(TThreadRobotParam &p)
 
 	printf("Loading gridmap...");
 	gridmap.loadFromBitmapFile(MAP_FILE,resolution ,xCentralPixel,yCentralPixel);
-	//printf("Done! %f x %f m\n", gridmap.getXMax()-gridmap.getXMin(), gridmap.getYMax()-gridmap.getYMin());
+	printf("Done! %f x %f m\n", gridmap.getXMax()-gridmap.getXMin(), gridmap.getYMax()-gridmap.getYMin());
 
 	/* insert and likelihood observation options for gridmap */
 	COccupancyGridMap2D::TInsertionOptions gridmapOption;
@@ -717,6 +683,7 @@ void thread_update_pdf(TThreadRobotParam &p)
 			pdf.getMean( pdfEstimation );
 			//cout << "pdfEstimation : " << pdfEstimation << endl;
 			//cout << "mostlikelyParticle: " << pdf.getMostLikelyParticle() << endl;
+
 			p.pdf.set( pdf.duplicateGetSmartPtr() );
 			p.displayNewPdf.set(true);
 
@@ -807,16 +774,7 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 
 	unsigned char buf[256];
 	char getCommand[1];
-	int n = 0;
-	fd_set read_fds, write_fds, except_fds;
-	FD_ZERO(&read_fds);
-	FD_ZERO(&write_fds);
-	FD_ZERO(&except_fds);
-	FD_SET(fd, &read_fds);
-
-	struct timeval timeout;
-	timeout.tv_sec = 1;
-	timeout.tv_usec = 0;
+	int n;
 	//cout<<"lrf_odo "<<fd<<endl;
 	//cout<<thrPar.gettingLRF.get()<<"LRF VALUE"<<endl;
 
@@ -828,24 +786,17 @@ int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool ha
 	 /* read up to 128 bytes from the fd */
 	write(fd,getCommand,1);
 	buf[0] = 0;
-	while(thrPar.gettingOdometry.get()) {}
-	while(buf[0] != '!' && n < 3)
+	while(buf[0] != '!')
 	{
-	    if (select(fd + 1, &read_fds, &write_fds, &except_fds, &timeout) == 1) {
-	        //n = read(fd, buf, 7);
-	        read(fd, buf, 7);
-	        sleep(100);
-	    } else {
-	        cout << "GetNextObservation: Timeout error reading from device: " << fd <<endl;
-	        n++;
-            break;
-        }
+	 	n = read(fd, buf, 7);
+
+		sleep(100);
 	 	//printf("%i sonar bytes got read...\n", n);
 		//printf("Buffer has \n%s\n",buf);
  	}
 
 	sleep(150);
-/*
+/*jkw
 	 printf("%i bytes got read...\n", n);
 	 printf("Buffer 1 contains...\n%d (%.03f)\n", buf[1], buf[1]/38.4);
 	 printf("Buffer 2 contains...\n%d (%.03f)\n", buf[2], buf[2]/38.4);
@@ -932,48 +883,21 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	int n;
 	CPose2D tempPose;
 	short x,y,phi;
-
-    // Timout method ref: stackoverflow.com/questions/10522277/how-can-i-implement-timout-for-read-when-reading-from-a-serial-port-c-c
-	fd_set read_fds, write_fds, except_fds;
-	FD_ZERO(&read_fds);
-	FD_ZERO(&write_fds);
-	FD_ZERO(&except_fds);
-	FD_SET(odo_fd, &read_fds);
-
-	struct timeval timeout;
-	timeout.tv_sec = 1;
-	timeout.tv_usec = 0;
-
-    thrPar.gettingOdometry.set(true);
 	getCommand[0]='e';
 	cout<<"In getting ODO"<<endl;
 	/* Flush anything already in the serial buffer */
-	sleep(2);
 	tcflush(odo_fd, TCIFLUSH);
 	/* read up to 128 bytes from the fd */
 	write(odo_fd,getCommand,1);
 	cout<<"written"<<endl;
 	cout<<"odo_fd "<<odo_fd<<endl;
 	buf[0] = 0;
-	int count = 0;
-	while(thrPar.gettingLRF.get()) {}
-	while(buf[0] != '*' && count < 3)
+	while(buf[0] != '*')
 	{
-		/*cout<<"reading"<<endl;
+		cout<<"reading"<<endl;
 	 	n = read(odo_fd, buf, 7);
-	 	cout<< "n = "<<n<<endl;
 
 		sleep(100);
-		count++;*/
-		if (select(odo_fd + 1, &read_fds, &write_fds, &except_fds, &timeout) == 1) {
-	        //n = read(fd, buf, 7);
-	        read(odo_fd, buf, 7);
-	        sleep(100);
-	    } else {
-	        cout << "GetOdometry: Timeout error reading from device: " << odo_fd <<endl;
-	        count++;
-            break;
-        }
 	 	//printf("%i odometry bytes got read...\n", n);
 		//printf("Buffer has \n%s\n",buf);
  	}
@@ -1013,7 +937,6 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
 	out_odom.x(float(x)*0.707/100.0);
 	out_odom.y(float(y)*0.707/100.0);
 	//out_odom.phi((float(phi)+90)*M_PI/180.0);
-	out_odom.phi(float(phi)*M_PI/180.0);
 
 	/*if (thrPar.goRight.get() && !thrPar.goForward.get()) {
             cout << "UPDATING X*****\n";
@@ -1032,9 +955,9 @@ void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar)
             out_odom.phi(thrPar.currentOdo.get().phi());
         }*/
 	//out_odom.phi((float(phi)+90)*M_PI/180.0);
-	//out_odom.phi(90*M_PI/180.0);
+	out_odom.phi(90*M_PI/180.0);
 	cout << format("Odometry: x=%.03f, y=%.03f, phi=%.03f",(float)out_odom.x(), (float)out_odom.y(), (float)out_odom.phi()) << endl;
-    thrPar.gettingOdometry.set(false);
+
 
 	sleep(1000);
 
@@ -1755,7 +1678,7 @@ void thread_display(TThreadRobotParam &p)
 		sonar12 = p.front_wall.get();
 		sonar10 = p.right_wall.get();
 
-//JKW		EKF.doProcess(sonar12, sonar10, dy, dx);
+//jkw		EKF.doProcess(sonar12, sonar10, dy, dx);
 
 		/*EKF.getProfiler().enter("PF:complete_step");
 		PF.executeOn(particles, NULL,&SF);  // Process in the PF
@@ -1874,7 +1797,7 @@ void thread_display(TThreadRobotParam &p)
 		}
 
 		/* Put new pdf in the display */
-		if(p.displayNewPdf.get())
+		if(p.displayNewPdf.get() )
 		{
 			if (!gl_pdf) {
 				gl_pdf = CSetOfObjects::Create();
@@ -1888,7 +1811,7 @@ void thread_display(TThreadRobotParam &p)
 			opengl::CRenderizablePtr obj4 = theScene->getByName("mostlikelyParticle");
 			CPose2D tempPose;
 			tempPdf->getMean( tempPose );
-			//obj4->setPose( tempPose );	//tempPdf->getMostLikelyParticle() );  JKW 12/14 THIS IS THE PROBLEM
+			obj4->setPose( tempPose );	//tempPdf->getMostLikelyParticle() );
 
 			p.displayNewPdf.set(false);
 		}
@@ -2797,10 +2720,6 @@ void CRangeBearing::OnSubstractObservationVectors(KFArray_OBS &A, const KFArray_
 }
 
 
-
-int leftCount = 0;
-int rightCount = 0;
-
 //Based on sensor readings determines the appropriate file to parse for appropriate sequences
 //Parses first line of base movements of the file
 //Commands robot to execute a certain base movement based on chars found in sequence line
@@ -2828,10 +2747,10 @@ int parsesequence(TThreadRobotParam &thrPar)
 	front_left = thrPar.front_left.get();
 	front_right = thrPar.front_right.get();
 
-	float front_threshold = 0.7;
+	float front_threshold = 1.5;
 	float left_threshold = 1.5;
 	float right_threshold = 1.5;
-	float limit = 0.7;
+	float limit = 1.0;
 
     cout << "****************************** IN PARSESEQUENCE ************************\n";
 
@@ -2885,33 +2804,23 @@ int parsesequence(TThreadRobotParam &thrPar)
         cout << "****************************** SUCCESS OPENING FILE ******************************\n";
         //read the very first line of sequences
         fgets(line, sizeof(line), file);
-
-        leftCount = 0;
-        rightCount = 0;
-        for ( int i = 0; i <= sizeof(line); ++i)
+        for ( int i = 1; i <= sizeof(line); ++i)
         {
             //if return character found break out of loop. you have parsed until the end of the line
             cout << "****************************** LOOP ******************************\n";
-            if(line[i] == '\n') {
+            /*if(line[i]= '\n') {
                     cout << "****************************** LINE BREAK ******************************\n";
                     break;
-            }
+            }*/
             if (front < limit ) {
-                cout << "****************************** OBSTACLE!!! STOPPING ... ******************************\n";
+                cout << "****************************** OBSTACLE!!! STOPPNIG ... ******************************\n";
                 sequence('s', thrPar);
                 break;
             }
             //for each sequence execute a certain base movement command
             //sequence(line[i], thrPar, sonars);
-            //if(line[i] == 'l')
-            //    leftCount +=1;
-            //if(line[i] == 'r')
-            //   rightCount +=1;
-
             sequence(line[i], thrPar);
-            cout << "RUNNING SEQUENCE (" << fileName << "): "<< line[i] << endl;
-            cout << "x: " << thrPar.currentOdo.get().x() << ", y: " << thrPar.currentOdo.get().y() << ", phi: " << thrPar.currentOdo.get().phi() << endl;
-
+            cout << "RUNNING SEQUENCE: " << line[i] << endl;
         }
     }
     else {
@@ -2923,7 +2832,6 @@ int parsesequence(TThreadRobotParam &thrPar)
     return 0;
 }
 
-
 //gets sequence character and executes appropriate action
 void sequence(char sequencechar, TThreadRobotParam &thrPar)
 {
@@ -2932,66 +2840,38 @@ void sequence(char sequencechar, TThreadRobotParam &thrPar)
 	if( sequencechar == 'l')
 	{
 	    cout << "****************************** LEFT ******************************\n";
-    leftCount +=1;
 	//move left
 	setVelocities( 0, -1, thrPar );
 	//delay to turn 90 degrees
-	sleep(10500);
+	sleep(11000);
 	setVelocities( 1, 0, thrPar );
-	sleep(9000);
+	sleep(8000);
 	setVelocities( 0, 0, thrPar );
 	}
 	else if( sequencechar == 'r')
 	{
 	    cout << "****************************** RIGHT ******************************\n";
-	rightCount +=1;
 	//move right
 	setVelocities( 0, 1, thrPar );
-	sleep(9500);
+	sleep(11000);
 	setVelocities( 1, 0, thrPar );
-	sleep(7000);
+	sleep(8000);
 	setVelocities( 0, 0, thrPar );
 	}
 	else if( sequencechar == 'f')
 	{
 	    cout << "****************************** FORWARD ******************************\n";
-        //go forward
-        int forwardCount = 0;
-        if(leftCount >= rightCount){
-            forwardCount = leftCount - rightCount;
-            //move right
-            setVelocities( 0, 1, thrPar );
-            sleep(forwardCount*10000);
-            setVelocities( 1, 0, thrPar );
-            sleep(9000);
-            setVelocities( 0, 0, thrPar );
-            leftCount = 0;
-            rightCount = 0;
-        }
-        else if(leftCount <= rightCount){
-            forwardCount = rightCount - leftCount;
-            //move left
-            setVelocities( 0, -1, thrPar );
-            //delay to turn 90 degrees
-            sleep(forwardCount*10000);
-            setVelocities( 1, 0, thrPar );
-            sleep(9000);
-            setVelocities( 0, 0, thrPar );
-            leftCount = 0;
-            rightCount = 0;
-        }
-        else { //if(leftCount == rightCount){
-            setVelocities( 1, 0, thrPar );
-            sleep(7000);
-            setVelocities( 0, 0, thrPar );
-        }
+	//go forward
+	setVelocities( 1, 0, thrPar );
+	sleep(8000);
+	setVelocities( 0, 0, thrPar );
 	}
 	else if( sequencechar == 'b')
 	{
 	    cout << "****************************** BACKWARD ******************************\n";
 	//go backwards
 	setVelocities( -1, 0, thrPar );
-	sleep(15000);
+	sleep(8000);
 	setVelocities( 0, 0, thrPar );
 	}
 	//stop the robot
