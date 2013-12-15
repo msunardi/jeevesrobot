@@ -53,7 +53,7 @@ WirelessLocalizer::WirelessLocalizer()
   string buffer;
 
   // Open the DB and parse the contents
-  // Parse for MAC, X, Y format (Z not yet implemented)
+  // Parse for MAC, X, Y format
   while (!dbFile.eof())
   {
     getline(dbFile, buffer);
@@ -331,7 +331,6 @@ void WirelessLocalizer::Localize()
             xMinNode.SetSignalLevel(it->GetSignalLevel());
             xMinNode.SetX(it->GetX());
             xMinNode.SetY(it->GetY());
-            xMinNode.SetZ(it->GetZ());
           }
 
           else if (xMax >= it->GetX())
@@ -341,7 +340,6 @@ void WirelessLocalizer::Localize()
             xMaxNode.SetSignalLevel(it->GetSignalLevel());
             xMaxNode.SetX(it->GetX());
             xMaxNode.SetY(it->GetY());
-            xMaxNode.SetZ(it->GetZ());
           }
 
           else if (yMin <= it->GetY())
@@ -351,7 +349,6 @@ void WirelessLocalizer::Localize()
             yMinNode.SetSignalLevel(it->GetSignalLevel());
             yMinNode.SetX(it->GetX());
             yMinNode.SetY(it->GetY());
-            yMinNode.SetZ(it->GetZ());
           }
 
           else if (yMax >= it->GetY())
@@ -361,7 +358,6 @@ void WirelessLocalizer::Localize()
             yMaxNode.SetSignalLevel(it->GetSignalLevel());
             yMaxNode.SetX(it->GetX());
             yMaxNode.SetY(it->GetY());
-            yMaxNode.SetZ(it->GetZ());
           }
 
           // Run RSSI scheme using the 4 nodes
@@ -545,7 +541,6 @@ void WirelessLocalizer::PrintCenterPoint()
       cout << "Center point:" << endl;
       cout << "X:" << this->GetCoordinateX() << endl;
       cout << "Y:" << this->GetCoordinateY() << endl;
-      //cout << "Z:" << << endl;
       cout << endl;
 
   return;

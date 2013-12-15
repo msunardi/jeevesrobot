@@ -21,12 +21,10 @@ class WAP
     float GetSignalLevel();
     float GetX();
     float GetY();
-    float GetZ();
     void SetAddress(const string);
     void SetSignalLevel(const float);
     void SetX(const float);
     void SetY(const float);
-    void SetZ(const float);
     void SetXY(const float, const float);
 
   private:
@@ -34,5 +32,4 @@ class WAP
     float _signalLevel;
     float _x;
     float _y;
-    float _z;
 };
