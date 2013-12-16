@@ -44,7 +44,7 @@ byte lrf_data_buf[5];
 
 // positions for this particular servo with this particular mounting 
 // based on center
-int center = 100;              
+int center = 100;                
 int pos1 = center + 20;
 int pos2 = center + 10;
 int pos3 = center - 10;
@@ -1733,6 +1733,7 @@ void returnAllData() {
     stoppedmoving = 0;
   }
   getSonarData();
+  
   // byte 33 = '!'
   byte dataArray[22] = { 35, interrupted, stoppedmoving, (byte)new_movement, 
                         lrf_data_buf[0], lrf_data_buf[1], lrf_data_buf[2], 

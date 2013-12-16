@@ -1,5 +1,6 @@
 /*
  * guidebot Navigation, spring 2012
+ * edited: Fall 2013
  * =============================================================================
  * Tested platform: Linux + mrpt lib, guidebbot (ActivMediaRobot) base + Kinect
  * For initial MRPT library and Kinect setup please see our project report.
@@ -27,6 +28,8 @@
  *   issue with the changeOdometry() function from MRPT. A temporary fix for this
  *   (odometryOffset) is implemented, but not thoroughly tested.
  */
+
+//MRPT Libraries
 #include <mrpt/hwdrivers.h>
 #include <mrpt/maps.h>
 #include <mrpt/system/filesystem.h>
@@ -38,7 +41,6 @@
 #include <mrpt/utils/CImage.h>
 #include <mrpt/slam/COccupancyGridMap2D.h>
 #include <mrpt/hwdrivers/CActivMediaRobotBase.h>
-#include <iostream>
 
 //Includes for arduino serial communication
 #include <stdio.h>
@@ -55,7 +57,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-//#include "robotcode.c"
+//Includes for localization
+
 
 using namespace mrpt;
 using namespace mrpt::hwdrivers;
@@ -79,17 +82,16 @@ using namespace std;
 #define VEHICLE_INITIAL_V           1.0f
 #define VEHICLE_INITIAL_W           DEG2RAD(20.0f)
 
-
 #define TRANSITION_MODEL_STD_XY 	0.03f
 #define TRANSITION_MODEL_STD_VXY 	0.20f
 
 #define INCH_TO_METER_RATIO         38.4f
 
 
-/**************************************************************************************************/
-/*                                            NAVIGATION PARAMS                                   */
-/**************************************************************************************************/
-/* DEFAULT PARAM, SEE "guidebotNavConf.ini" */
+//************************************************************************************************
+//                                            NAVIGATION PARAMS
+//************************************************************************************************
+//DEFAULT PARAM, SEE "guidebotNavConf.ini"
 static string TTY_PORT       =     "/dev/ttyACM0";
 static string COM_PORT       =     "COM4";
 static int BAUD_RATE         =     9600;
@@ -97,38 +99,38 @@ static int BAUD_RATE         =     9600;
 static float ROBOT_RADIUS    =     0.30f;
 static float MIN_STEP        =     0.40f;
 
-static double TURN_THRESHOLD     =  M_PI/90;  /* stop condition while turning */
-static double FORWARD_THRESHOLD  =  0.09f;    /* stop condition while forward */
-static double SHARP_TURN         =  M_PI/5;   /* when robot should stop and turn */
-static int POLL_INTERVAL         =  100;	  /* delay interval between sensor readings */
+static double TURN_THRESHOLD     =  M_PI/90;  // stop condition while turning
+static double FORWARD_THRESHOLD  =  0.09f;    // stop condition while forward
+static double SHARP_TURN         =  M_PI/5;   // when robot should stop and turn
+static int POLL_INTERVAL         =  100;	  // delay interval between sensor readings
 static int POLL_INTERVAL_DIV     =  5;
 
-static double ANGULAR_SPEED      =  0.3;      /* angular velocity */
-static double LINEAR_SPEED       =  0.2;      /* linear velocity */
-static double SMALL_NUMBER       =  0.001;    /* a useful number for comparing purpose */
+static double ANGULAR_SPEED      =  0.3;      // angular velocity
+static double LINEAR_SPEED       =  0.2;      // linear velocity
+static double SMALL_NUMBER       =  0.001;    // a useful number for comparing purpose
 static int ANGULAR_SPEED_DIV     =  5;
 static int LINEAR_SPEED_DIV      =  2;
 
 static string MAP_FILE			=	"MCECSbot_map.png";
 static float MAP_RESOLUTION		= 	0.048768f;
-static int X_CENTRAL_PIXEL		=	-1; /* start location, ()-1,-1) means center of map */
+static int X_CENTRAL_PIXEL		=	-1; 		// start location, ()-1,-1) means center of map
 static int Y_CENTRAL_PIXEL		=	-1;
 
 static CMonteCarloLocalization2D pdf;
 static float kinectMinTruncateDistance = 0.5;
 
-static char* LRF_PORT_NAME		=	"/dev/ttyACM0";
-static char* ODO_PORT_NAME		=	"/dev/ttyACM0";
-static char* MOTOR_PORT_NAME	=	"/dev/ttyACM0";
+static char *LRF_PORT_NAME		=	"/dev/ttyACM0";
+static char *ODO_PORT_NAME		=	"/dev/ttyACM0";
+static char *MOTOR_PORT_NAME  	=	"/dev/ttyACM0";
 static int   ODO_READ_MIN		=	7;
 static int   LRF_READ_MIN		=	6;
+
+
 #define PORT "80" // the port client will be connecting to
-
 #define MAXDATASIZE 100 // max number of bytes we can get at once
-
 #define LOCAL_HOST "127.0.0.1"
 
-/* our threads 's sharing resources */
+// our threads 's sharing resources
 struct TThreadRobotParam
 {
 	TThreadRobotParam() : quit(false), pushed_key(0), Hz(0) { }
@@ -171,8 +173,8 @@ struct TThreadRobotParam
 	mrpt::synch::CThreadSafeVariable<bool>							rightObstacle;
 	mrpt::synch::CThreadSafeVariable<bool>							centerObstacle;
 	mrpt::synch::CThreadSafeVariable<bool>							isMoving; //set when robot is moving, clear otherwise
-	mrpt::synch::CThreadSafeVariable<bool>							gettingLRF; //set when robot is using LRF, clear otherwise
-	mrpt::synch::CThreadSafeVariable<bool>							gettingOdometry;
+	mrpt::synch::CThreadSafeVariable<bool>							gettingLRF; //set when robot is gathering LRF, clear otherwise
+	mrpt::synch::CThreadSafeVariable<bool>							usingLRF; //set when robot is using LRF, clear otherwise
 	mrpt::synch::CThreadSafeVariable<bool>							isTurning; //set when robot is using LRF, clear otherwise
 	mrpt::synch::CThreadSafeVariable<bool>							goForward;
 	mrpt::synch::CThreadSafeVariable<bool>							goRight;
@@ -193,38 +195,43 @@ struct TThreadRobotParam
 	//mrpt::synch::CThreadSafeVariable<CPose2D>						pdfMostLikely;
 };
 
+/* jkw wipe*/
 float initial_front_wall = 0.0f;
 float initial_right_wall = 0.0f;
 bool initialize_walls = 1;
 
-int scanTest = 0;  //Testing global variable. Delete After test
-/* prototypes */
-double turnAngle(CActivMediaRobotBase & aRobot, double phi, TThreadRobotParam thrPar);
-double turnAngle(double current_phi, double phi);
-static void turn( double phi, TThreadRobotParam &p);
-static int PathPlanning(std::deque<poses::TPoint2D> &thePath, CPoint2D  origin, CPoint2D  target);
-static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar);
-static CObservation2DRangeScan* getKinect2DScan(const TThreadRobotParam & TP, CObservation3DRangeScanPtr & lastObs);
-void thread_LRF(TThreadRobotParam &p);
+
+// prototypes
+int setupArduino(char * port, int readBytes);
+
 void thread_update_pdf(TThreadRobotParam &p);
+void thread_LRF(TThreadRobotParam &p);
 void thread_display(TThreadRobotParam &p);
-void createCObservationRange( CObservationRange	&obs );
-void displaySonars(TThreadRobotParam &p, CObservationRange &sonars);
-static void displayFollowPath(TThreadRobotParam &p, deque<poses::TPoint2D> thePath);
-double CObservationRangeLikelihood(COccupancyGridMap2D & map, CPose2D & pose, CObservationRange & obs);
-void computePdfLikelihoodValues(COccupancyGridMap2D & map, CMonteCarloLocalization2D & pdf, CObservationRange & obs);
-void adjustCObservationRangeSonarPose( CObservationRange &obs );
 void thread_wall_detect(TThreadRobotParam &p);
+
+static int PathPlanning(std::deque<poses::TPoint2D> &thePath, CPoint2D  origin, CPoint2D  target);
+void displaySonars(TThreadRobotParam &p, CObservationRange &sonars);
+
+void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar);
 void fixOdometry(CPose2D & pose, CPose2D offset);
 int getNextObservation(CObservation2DRangeScan & out_obs, bool there_is, bool hard_error, int fd,TThreadRobotParam &thrPar);
-void getOdometry(CPose2D &out_odom, int odo_fd,TThreadRobotParam &thrPar);
-int setupArduino(char * port, int readBytes);
+void adjustCObservationRangeSonarPose( CObservationRange &obs );
+
 int clientCommunication();
 int parseServerReply(char * server_reply);
-void setVelocities(int linear, int angular, TThreadRobotParam &thrPar);
 
 int parsesequence(TThreadRobotParam &thrPar);
 void sequence(char sequencechar, TThreadRobotParam &thrPar);
+
+void move(char direction, TThreadRobotParam &thrPar);
+void setVelocities(int linear, int angular, TThreadRobotParam &thrPar);
+static void turn( double phi, TThreadRobotParam &p);
+
+static void smoothDrive(CActivMediaRobotBase & aRobot, deque<poses::TPoint2D> aPath, TThreadRobotParam & thrPar);
+double turnAngle(CActivMediaRobotBase & aRobot, double phi, TThreadRobotParam thrPar);
+double turnAngle(double current_phi, double phi);
+
+void WIFILocalize(CActivMediaRobotBase &robot, TThreadRobotParam &thrPar);
 
 // ------------------------------------------------------
 //		Implementation of the system models as a

@@ -149,7 +149,7 @@ PFont droidmono_bold;
 //============== setup function =========//
 void setup()
 {
-  String portName ="/dev/ttyACM3"; // "/dev/tty.usbmodemfa131";//
+  String portName ="/dev/ttyACM0"; // "/dev/tty.usbmodemfa131";//
   port = new Serial(this, portName, 9600); // initialize the serial object, selected port and buad rate
   send = STOP;
   writeport(send);
@@ -185,8 +185,8 @@ void setup()
   sender.start(); 
   frameTime = millis() + 5000;
   
-  statusThread = new StatusThread();
-  statusThread.start();
+  //statusThread = new StatusThread();
+  //statusThread.start();
 }
 //======================== Main Function=============//
 void draw()
@@ -949,16 +949,23 @@ void draw()
      //sendStatus();
      //getDataFlag = true;
      // try to get data from Arduino Mega/base
-   //if (getDataFlag) {
+     int ctime = millis();
+     send = GETDATA; 
+     port.write('y');
+   while (getDataFlag && (millis() - ctime < 5000)) {
      // We may have to do this multiple times since the Arduino will send out other bytes/characters
      // that are not the data we want.
-     send = GETDATA; 
-     writeport(send);
+     //if (millis() - ctime > 8000) {
+       //send = GETDATA; 
+       //writeport('y');
+       
+     //}
      //getDataFlag = false;
      int sdata = 0;
      
      //int datasize = 22;
-     if (port.available() > 0 && port.available() == 22) {
+     printlnDebug("Port available: " + port.available());
+     if (port.available() > 0) { // && port.available() == 22) {
        printlnDebug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
        while (port.available() > 0 && getDataFlag) {
          sdata = port.read();
@@ -996,9 +1003,11 @@ void draw()
         printlnDebug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DATA NOT AVAILABLE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
        
       } // else if port.available = 0, do nothing
+   }
       getDataFlag = false;
       frameTime = millis();
-     } 
+     }
+ 
    // else getDataFlag = false;
    updateScreen();
    sendStatus();
