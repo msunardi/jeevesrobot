@@ -2,7 +2,7 @@
 #define WIRELESS_LOCALIZER
 
 #define SIGNAL_CUTOFF_LOW   -90
-#define SIGNAL_CUTOFF_HIGH  -40
+#define SIGNAL_CUTOFF_HIGH  -20
 
 #include <vector>
 #include "WAP.h"
@@ -43,8 +43,7 @@ class WirelessLocalizer
     float GetTheta(float, float);   // Uses given x & y to return Θ
     float _x;
     float _y;
-
-    vector<WAP> testVector;
+    //vector<WAP> testVector;
 };
 
 #endif

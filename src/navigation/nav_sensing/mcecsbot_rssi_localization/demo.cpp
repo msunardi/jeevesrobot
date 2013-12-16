@@ -14,7 +14,7 @@ int main()
   rssi->Localize();
   //rssi->PrintScannedResults();
   //rssi->PrintDatabaseResults();
-  //rssi->PrintMatches();
+  rssi->PrintMatches();
   rssi->PrintCenterPoint();
 
   if (rssi)

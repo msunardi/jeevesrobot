@@ -15,26 +15,26 @@ WirelessLocalizer::WirelessLocalizer()
   /*
    * TEST VECTOR DEMO
    */
-  WAP node1("00:0F:34:C0:49:80", -75, -69.387, -133.741);
-  testVector.push_back(node1);
+  //WAP node1("00:0F:34:C0:49:80", -75, -69.387, -133.741);
+  //testVector.push_back(node1);
 
-  WAP node2("68:BC:0C:2D:5A:A0", -85, -3.663, -125.584);
-  testVector.push_back(node2);
+  //WAP node2("68:BC:0C:2D:5A:A0", -85, -3.663, -125.584);
+  //testVector.push_back(node2);
 
-  WAP node3("7C:95:F3:CC:6E:A0", -65, 41.845, -117.616);
-  testVector.push_back(node3);
+  //WAP node3("7C:95:F3:CC:6E:A0", -65, 41.845, -117.616);
+  //testVector.push_back(node3);
 
-  WAP node4("C4:7D:4F:53:27:30", -70, -62.706, -172.783);
-  testVector.push_back(node4);
+  //WAP node4("C4:7D:4F:53:27:30", -70, -62.706, -172.783);
+  //testVector.push_back(node4);
 
-  WAP node5("C4:7D:4F:53:16:C0", -85, 51.731, -196.874);
-  testVector.push_back(node5);
+  //WAP node5("C4:7D:4F:53:16:C0", -85, 51.731, -196.874);
+  //testVector.push_back(node5);
 
-  WAP node6("C4:7D:4F:53:1C:F0", -55, 14.866, -206.980);
-  testVector.push_back(node6);
+  //WAP node6("C4:7D:4F:53:1C:F0", -55, 14.866, -206.980);
+  //testVector.push_back(node6);
 
-  WAP node7("00:0F:34:8A:68:C0", -70, 64.422, -87.125);
-  testVector.push_back(node7);
+  //WAP node7("00:0F:34:8A:68:C0", -70, 64.422, -87.125);
+  //testVector.push_back(node7);
 
   // Instantiate the lists
   dbResults = new vector<WAP>;
@@ -58,7 +58,7 @@ WirelessLocalizer::WirelessLocalizer()
     if (buffer[0] != '#' && buffer != "")
     {
       // Store the MAC address
-      string dbAddress = buffer.substr(0, 17);  //Currently whole MAC, only need MAC - 3 chars.
+      string dbAddress = buffer.substr(0, 14);  //Currently whole MAC, only need MAC - 3 chars.
       //cout << dbAddress << endl;
 
       /*
@@ -242,7 +242,7 @@ void WirelessLocalizer::Localize()
     if (found < 1024 && found != string::npos)
     {
       line.erase(line.begin(), line.begin() + (found - 1));
-      address = line.substr(10, 17);
+      address = line.substr(10, 14);
     }
 
     found = line.find("dBm");
@@ -258,9 +258,7 @@ void WirelessLocalizer::Localize()
       //cout << signal << endl;
 
       // Create the new node and add to the end of our vector
-      WAP node;
-
-      node.SetSignalLevel(signal);
+      WAP node(address, signal);
       scanResults->push_back(node);
     }
   }
@@ -272,8 +270,8 @@ void WirelessLocalizer::Localize()
    * If there is a match then store it in a vector of matches
    */
   // Use the test vector for now
-  //for (vector<WAP>::iterator it = scanResults->begin(); it != scanResults->end(); ++it)
-  for (vector<WAP>::iterator it = testVector.begin(); it != testVector.end(); ++it)
+  //for (vector<WAP>::iterator it = testVector.begin(); it != testVector.end(); ++it)
+  for (vector<WAP>::iterator it = scanResults->begin(); it != scanResults->end(); ++it)
   {
     for (vector<WAP>::iterator it2 = dbResults->begin(); it2 != dbResults->end(); ++it2)
     {
@@ -282,7 +280,7 @@ void WirelessLocalizer::Localize()
         WAP match;
         match.SetAddress(it->GetAddress());
         match.SetSignalLevel(it->GetSignalLevel());
-        match.SetXY(it->GetX(), it->GetY());
+        match.SetXY(it2->GetX(), it2->GetY());
         matchedNodes->push_back(match);
       }
     }
@@ -299,20 +297,18 @@ void WirelessLocalizer::Localize()
   float xMax = 0;
   float yMin = 0;
   float yMax = 0;
-
-  // Store the first point in the list arbitrarily for comparison
-  xMin = xMax = matchedNodes->front().GetX();
-  yMin = yMax = matchedNodes->front().GetY();
-
   Coordinates averageCenter;
   Coordinates skewedCenter;
 
   while (!matchedNodes->empty())
   {
+    // Store the first point in the list arbitrarily for comparison
     WAP xMinNode = matchedNodes->front();
     WAP xMaxNode = matchedNodes->front();
     WAP yMinNode = matchedNodes->front();
     WAP yMaxNode = matchedNodes->front();
+    xMin = xMax = matchedNodes->front().GetX();
+    yMin = yMax = matchedNodes->front().GetY();
 
     // Set the center point to be the coordinates of the only perceived WAP
     if (matchedNodes->size() == 1)
@@ -423,7 +419,7 @@ void WirelessLocalizer::Localize()
       skewedCenter.x = (leftQ.x + rightQ.x) / 2;
       skewedCenter.y = (leftQ.y + rightQ.y) / 2;
       skewedCenterPoints.push_back(skewedCenter);
-      
+
       // Clear the list
       matchedNodes->clear();
     }
@@ -591,43 +587,43 @@ void WirelessLocalizer::Localize()
 
       //// Compare xMaxNode to deleteQueue nodes and add to the list if no matches are found
       //for (vector<WAP>::iterator it = deleteQueue.begin(); it != deleteQueue.end(); ++it)
-        //if (xMaxNode.GetAddress() == it->GetAddress())
-          //matchFound = true;
+      //if (xMaxNode.GetAddress() == it->GetAddress())
+      //matchFound = true;
 
       //if (!matchFound)
-        //deleteQueue.push_back(xMaxNode);
+      //deleteQueue.push_back(xMaxNode);
 
       //// Compare yMinNode to deleteQueue nodes and add to the list if no matches are found
       //matchFound = false;
       //for (vector<WAP>::iterator it = deleteQueue.begin(); it != deleteQueue.end(); ++it)
-        //if (yMinNode.GetAddress() == it->GetAddress())
-          //matchFound = true;
+      //if (yMinNode.GetAddress() == it->GetAddress())
+      //matchFound = true;
 
       //if (!matchFound)
-        //deleteQueue.push_back(yMinNode);
+      //deleteQueue.push_back(yMinNode);
 
       //// Compare yMaxNode to deleteQueue nodes and add to the list if no matches are found
       //matchFound = false;
       //for (vector<WAP>::iterator it = deleteQueue.begin(); it != deleteQueue.end(); ++it)
-        //if (yMaxNode.GetAddress() == it->GetAddress())
-          //matchFound = true;
+      //if (yMaxNode.GetAddress() == it->GetAddress())
+      //matchFound = true;
 
       //if (!matchFound)
-        //deleteQueue.push_back(yMaxNode);
+      //deleteQueue.push_back(yMaxNode);
 
       //// Now that we have the deleteQueue we will remove matches in the matchedNodes vector
       //// until the deleteQueue is empty
       //while (!deleteQueue.empty())
       //{
-        //for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
-        //{
-          //if (deleteQueue.back().GetAddress() == it->GetAddress())
-          //{
-            //matchedNodes->erase(it);
-            //deleteQueue.pop_back();
-            //break;
-          //}
-        //}
+      //for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
+      //{
+      //if (deleteQueue.back().GetAddress() == it->GetAddress())
+      //{
+      //matchedNodes->erase(it);
+      //deleteQueue.pop_back();
+      //break;
+      //}
+      //}
       //}
 
       // While rssi buffer is not empty
