@@ -13,10 +13,12 @@ SRCS   = demo.cpp WirelessLocalizer.cpp WAP.cpp
 OBJS   = demo.o WirelessLocalizer.o WAP.o
 
 
-all: $(TARGET)
+all:	$(TARGET)
+
 
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SRCS) -o $(TARGET)
+	@echo MAKE SURE THE WIRELESS-TOOLS PACKAGE IS INSTALLED ON THE SYSTEM RUNNING THIS LIBRARY
 
 
 clean:

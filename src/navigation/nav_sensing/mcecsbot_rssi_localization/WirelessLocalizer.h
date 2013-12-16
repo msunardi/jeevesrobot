@@ -1,9 +1,8 @@
 #ifndef WIRELESS_LOCALIZER
 #define WIRELESS_LOCALIZER
 
-#define SIGNAL_CUTOFF_LOW   -100
+#define SIGNAL_CUTOFF_LOW   -90
 #define SIGNAL_CUTOFF_HIGH  -20
-#define SIGNAL_CUTOFF_STEP  5
 
 #include <vector>
 #include "WAP.h"
@@ -29,34 +28,22 @@ class WirelessLocalizer
   public:
     WirelessLocalizer();
     ~WirelessLocalizer();
-    //float GetRectangleDepth();
-    //float GetRectangleDepthMax();
-    float GetRectangleHeight();
-    float GetRectangleHeightMax();
-    float GetRectangleWidth();
-    float GetRectangleWidthMax();
+    float GetCoordinateX();
+    float GetCoordinateY();
     void Localize();
-    void PrintCenterPoints();
+    void PrintCenterPoint();
     void PrintDatabaseResults();
     void PrintMatches();
     void PrintScannedResults();
 
   private:
-    vector<Coordinates> *centerPoints;          // Format of individual array is [x,y,z]
-    vector<Bounds> *rectangleLengths;      // Format of individual array is [x,y]
     vector<WAP> *dbResults;
-    vector<WAP> *matchedNodes;             // Matches between db and scan results
+    vector<WAP> *matchedNodes;      // Matches between db and scan results
     vector<WAP> *scanResults;
-
-    /*
-     * Each node chosen for the outer bound for the respective axis gets
-     * stored in these vectors. The first node in the vector will always be
-     * that of the largest area, and the most narrowed down boundary is
-     * at the end of the vector.
-     */
-    vector<WAP> *xOuterBoundsHistory;
-    vector<WAP> *yOuterBoundsHistory;
-    vector<WAP> *zOuterBoundsHistory;
+    float GetTheta(float, float);   // Uses given x & y to return Θ
+    float _x;
+    float _y;
+    //vector<WAP> testVector;
 };
 
 #endif
