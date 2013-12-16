@@ -1,9 +1,8 @@
 #ifndef WIRELESS_LOCALIZER
 #define WIRELESS_LOCALIZER
 
-#define SIGNAL_CUTOFF_LOW   -100
-#define SIGNAL_CUTOFF_HIGH  -20
-#define SIGNAL_CUTOFF_STEP  5
+#define SIGNAL_CUTOFF_LOW   -90
+#define SIGNAL_CUTOFF_HIGH  -40
 
 #include <vector>
 #include "WAP.h"
@@ -39,8 +38,9 @@ class WirelessLocalizer
 
   private:
     vector<WAP> *dbResults;
-    vector<WAP> *matchedNodes;                        // Matches between db and scan results
+    vector<WAP> *matchedNodes;      // Matches between db and scan results
     vector<WAP> *scanResults;
+    float GetTheta(float, float);   // Uses given x & y to return Θ
     float _x;
     float _y;
 

@@ -4,10 +4,12 @@
 #include <sstream>
 #include <cmath>
 #include "WirelessLocalizer.h"
-//#include "TestVector.h"
 
 using namespace std;
 
+/**********************************************************************
+ * CONSTRUCTOR
+ **********************************************************************/
 WirelessLocalizer::WirelessLocalizer()
 {
   /*
@@ -19,7 +21,7 @@ WirelessLocalizer::WirelessLocalizer()
   WAP node2("68:BC:0C:2D:5A:A0", -85, -3.663, -125.584);
   testVector.push_back(node2);
 
-  WAP node3("00:22:55:DF:B6:B0", -65, 41.845, -117.616);
+  WAP node3("7C:95:F3:CC:6E:A0", -65, 41.845, -117.616);
   testVector.push_back(node3);
 
   WAP node4("C4:7D:4F:53:27:30", -70, -62.706, -172.783);
@@ -31,14 +33,8 @@ WirelessLocalizer::WirelessLocalizer()
   WAP node6("C4:7D:4F:53:1C:F0", -55, 14.866, -206.980);
   testVector.push_back(node6);
 
-  //WAP *node7 = new WAP();
-  //testVector.push_back(*node7);
-
-  //WAP *node8 = new WAP();
-  //testVector.push_back(*node8);
-
-  //WAP *node9 = new WAP();
-  //testVector.push_back(*node9);
+  WAP node7("00:0F:34:8A:68:C0", -70, 64.422, -87.125);
+  testVector.push_back(node7);
 
   // Instantiate the lists
   dbResults = new vector<WAP>;
@@ -114,6 +110,9 @@ WirelessLocalizer::WirelessLocalizer()
   dbFile.close();
 }
 
+/**********************************************************************
+ * DECONSTRUCTOR
+ **********************************************************************/
 WirelessLocalizer::~WirelessLocalizer()
 {
   if (dbResults)
@@ -126,16 +125,49 @@ WirelessLocalizer::~WirelessLocalizer()
     delete scanResults;
 }
 
+/**********************************************************************
+ * GET COORDINATE X
+ **********************************************************************/
 float WirelessLocalizer::GetCoordinateX()
 {
-    return _x;
+  return _x;
 }
 
+/**********************************************************************
+ * GET COORDINATE Y
+ **********************************************************************/
 float WirelessLocalizer::GetCoordinateY()
 {
-    return _y;
+  return _y;
 }
 
+/**********************************************************************
+ * GET Θ (in radians)
+ **********************************************************************/
+float WirelessLocalizer::GetTheta(float x, float y)
+{
+  // Cases for each quadrant:
+
+  // Quadrant I
+  if (x > 0 && y > 0)
+    return atan(y/x);
+
+  // Quadrant II
+  else if (x < 0 && y > 0)
+    return M_PI + atan(y/x);
+
+  // Quadrant III
+  else if (x < 0 && y < 0)
+    return M_PI + atan(y/x);
+
+  // Quadrant IV
+  else
+    return 2 * M_PI + atan(y/x);
+}
+
+/**********************************************************************
+ * LOCALIZE
+ **********************************************************************/
 void WirelessLocalizer::Localize()
 {
   // Buffers for storing RSSI calculation values
@@ -227,7 +259,7 @@ void WirelessLocalizer::Localize()
 
       // Create the new node and add to the end of our vector
       WAP node;
-      
+
       node.SetSignalLevel(signal);
       scanResults->push_back(node);
     }
@@ -256,236 +288,404 @@ void WirelessLocalizer::Localize()
     }
   }
 
-  if (matchedNodes->size() <= 0)
-    return;
+  /*
+   * Begin RSSI localization scheme:
+   * Use outerbounds of perceived WAPs to find approximated center.
+   * The find the hypotenuse of each WAP with respect to the center.
+   * Using the signal strengths of each node adjust the ray of the
+   * hypotenuse, and store the generated rays to get an average skewed center.
+   */
+  float xMin = 0;
+  float xMax = 0;
+  float yMin = 0;
+  float yMax = 0;
 
-  else if (matchedNodes->size() == 1)
+  // Store the first point in the list arbitrarily for comparison
+  xMin = xMax = matchedNodes->front().GetX();
+  yMin = yMax = matchedNodes->front().GetY();
+
+  Coordinates averageCenter;
+  Coordinates skewedCenter;
+
+  while (!matchedNodes->empty())
   {
-    // Set the bounds to the perceived signal strength
-    //Bounds *bounds = new Bounds();
-    //bounds->xLength = 0;
-    //bounds->yLength = 0;
-    //bounds->zLength = 0;
+    WAP xMinNode = matchedNodes->front();
+    WAP xMaxNode = matchedNodes->front();
+    WAP yMinNode = matchedNodes->front();
+    WAP yMaxNode = matchedNodes->front();
 
     // Set the center point to be the coordinates of the only perceived WAP
-    Coordinates coordinates;
-    coordinates.x = matchedNodes->begin()->GetX();
-    coordinates.y = matchedNodes->begin()->GetY();
-    skewedCenterPoints.push_back(coordinates);
-  }
-
-  /*
-   * Localize iteratively through increasing signal cutoffs to create vectors of
-   * approximated center points and probable areas of our location.
-   */
-  else
-  {
-    /*
-     * Begin RSSI localization scheme:
-     * Use outerbounds of perceived WAPs to find approximated center.
-     * The find the hypotenuse of each WAP with respect to the center.
-     * Using the signal strengths of each node adjust the ray of the
-     * hypotenuse, and store the generated rays to get an average skewed center.
-     */
-
-    float xMin = 0;
-    float xMax = 0;
-    float yMin = 0;
-    float yMax = 0;
-
-    // Store the first point in the list arbitrarily for comparison
-    xMin = xMax = matchedNodes->front().GetX();
-    yMin = yMax = matchedNodes->front().GetY();
-
-    Coordinates averageCenter;
-    Coordinates skewedCenter;
-
-    while (!matchedNodes->empty())
+    if (matchedNodes->size() == 1)
     {
-      WAP xMinNode = matchedNodes->front();
-      WAP xMaxNode = matchedNodes->front();
-      WAP yMinNode = matchedNodes->front();
-      WAP yMaxNode = matchedNodes->front();
+      // Set the bounds to the perceived signal strength
+      //Bounds *bounds = new Bounds();
+      //bounds->xLength = 0;
+      //bounds->yLength = 0;
+      //bounds->zLength = 0;
 
-      if (matchedNodes->size() == 1)
+      Coordinates coordinates;
+      coordinates.x = matchedNodes->begin()->GetX();
+      coordinates.y = matchedNodes->begin()->GetY();
+      skewedCenterPoints.push_back(coordinates);
+
+      // Clear the list
+      matchedNodes->clear();
+    }
+
+    else if (matchedNodes->size() == 2)
+    {
+      Coordinates averageCenter;
+      Coordinates skewedCenter;
+
+      // Set corner 1 and corner 2
+      WAP leftCorner, rightCorner;
+
+      if (matchedNodes->front().GetX() < matchedNodes->back().GetX())
       {
-        // Set the center point to be the coordinates of the only perceived WAP
-        Coordinates coordinates;
-        coordinates.x = matchedNodes->begin()->GetX();
-        coordinates.y = matchedNodes->begin()->GetY();
-        skewedCenterPoints.push_back(coordinates);
-
-        // Clear the list
-        matchedNodes->clear();
+        leftCorner = matchedNodes->front();
+        rightCorner = matchedNodes->back();
       }
 
       else
       {
-        // Run RSSI scheme on current list of matched nodes and then remove nodes used in this iteration
-        for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
-        {
-          if (xMin <= it->GetX())
-          {
-            xMin = it->GetX();
-            xMinNode.SetAddress(it->GetAddress());
-            xMinNode.SetSignalLevel(it->GetSignalLevel());
-            xMinNode.SetX(it->GetX());
-            xMinNode.SetY(it->GetY());
-          }
-
-          else if (xMax >= it->GetX())
-          {
-            xMax = it->GetX();
-            xMaxNode.SetAddress(it->GetAddress());
-            xMaxNode.SetSignalLevel(it->GetSignalLevel());
-            xMaxNode.SetX(it->GetX());
-            xMaxNode.SetY(it->GetY());
-          }
-
-          else if (yMin <= it->GetY())
-          {
-            yMin = it->GetY();
-            yMinNode.SetAddress(it->GetAddress());
-            yMinNode.SetSignalLevel(it->GetSignalLevel());
-            yMinNode.SetX(it->GetX());
-            yMinNode.SetY(it->GetY());
-          }
-
-          else if (yMax >= it->GetY())
-          {
-            yMax = it->GetY();
-            yMaxNode.SetAddress(it->GetAddress());
-            yMaxNode.SetSignalLevel(it->GetSignalLevel());
-            yMaxNode.SetX(it->GetX());
-            yMaxNode.SetY(it->GetY());
-          }
-
-          // Run RSSI scheme using the 4 nodes
-          averageCenter.x = (xMax - xMin) / 2;
-          averageCenter.y = (yMax - yMin) / 2;
-          averageCenterPoints.push_back(averageCenter);
-        }
-
-        // Hypotenuse, theta, and ray lengths for the algorithm
-        float xMinHypotenuse, xMaxHypotenuse;
-        float yMinHypotenuse, yMaxHypotenuse;
-        float xMinTheta, xMaxTheta;
-        float yMinTheta, yMaxTheta;
-        float xMinShift, xMaxShift;
-        float yMinShift, yMaxShift;
-
-        // Convert the signal level fields in the 4 nodes from string to integer
-        //stringstream sstream;
-        //float xMinSignal, xMaxSignal;
-        //float yMinSignal, yMaxSignal;
-        //sstream << xMinNode.GetSignalLevel();
-        //sstream >> xMinSignal;
-        //sstream << xMaxNode.GetSignalLevel();
-        //sstream >> xMaxSignal;
-        //sstream << yMinNode.GetSignalLevel();
-        //sstream >> yMinSignal;
-        //sstream << yMaxNode.GetSignalLevel();
-        //sstream >> yMaxSignal;
-
-        stringstream xMinStream;
-        stringstream xMaxStream;
-        stringstream yMinStream;
-        stringstream yMaxStream;
-        float xMinSignal, xMaxSignal;
-        float yMinSignal, yMaxSignal;
-
-        xMinStream << xMinNode.GetSignalLevel();
-        xMinStream >> xMinSignal;
-        xMaxStream << xMaxNode.GetSignalLevel();
-        xMaxStream >> xMaxSignal;
-        yMinStream << yMinNode.GetSignalLevel();
-        yMinStream >> yMinSignal;
-        yMaxStream << yMaxNode.GetSignalLevel();
-        yMaxStream >> yMaxSignal;
-
-        // Calculate hypotenuse for all 4 points
-        xMinHypotenuse = sqrt(pow(xMinNode.GetX(), 2) + pow(xMinNode.GetY(), 2));
-        xMaxHypotenuse = sqrt(pow(xMaxNode.GetX(), 2) + pow(xMaxNode.GetY(), 2));
-        yMinHypotenuse = sqrt(pow(yMinNode.GetX(), 2) + pow(yMinNode.GetY(), 2));
-        yMaxHypotenuse = sqrt(pow(yMaxNode.GetX(), 2) + pow(yMaxNode.GetY(), 2));
-
-        // Generate hypotenuse rays to each node from the average center point
-        xMinTheta = asin(xMinNode.GetY() / xMinHypotenuse);
-        xMaxTheta = asin(xMaxNode.GetY() / xMaxHypotenuse);
-        yMinTheta = asin(yMinNode.GetY() / yMinHypotenuse);
-        yMaxTheta = asin(yMaxNode.GetY() / yMaxHypotenuse);
-
-        // Create ray lengths for all 4 positions and weight the ray length proportionally to perceived signal strengths
-        // ray length = hypotenuse * ((|min signal cutoff| - |node signal level|) / (|min signal cutoff| - |max signal cutoff|))
-        xMinShift = xMinHypotenuse * ((abs(SIGNAL_CUTOFF_LOW) - abs(xMinSignal))/ (abs(SIGNAL_CUTOFF_LOW) - abs(SIGNAL_CUTOFF_HIGH)));
-        xMaxShift = xMaxHypotenuse * ((abs(SIGNAL_CUTOFF_LOW) - abs(xMaxSignal))/ (abs(SIGNAL_CUTOFF_LOW) - abs(SIGNAL_CUTOFF_HIGH)));
-        yMinShift = yMinHypotenuse * ((abs(SIGNAL_CUTOFF_LOW) - abs(yMinSignal))/ (abs(SIGNAL_CUTOFF_LOW) - abs(SIGNAL_CUTOFF_HIGH)));
-        yMaxShift = yMaxHypotenuse * ((abs(SIGNAL_CUTOFF_LOW) - abs(yMaxSignal))/ (abs(SIGNAL_CUTOFF_LOW) - abs(SIGNAL_CUTOFF_HIGH)));
-
-        // Save the ray lengths and thetas as the new min and max points
-        // Convert polar coordinates to cartesian coordinates
-        // Given ray r and theta: point Q = (rcos(theta), rsin(theta))
-        skewedCenter.x = (xMinShift * cos(xMinTheta)) + (xMaxShift * cos(xMaxTheta)) + (yMinShift * cos(yMinTheta)) + (yMinShift * cos(yMaxTheta));
-        skewedCenter.x = skewedCenter.x / 4;
-        skewedCenter.y = (xMinShift * sin(xMinTheta)) + (xMaxShift * sin(xMaxTheta)) + (yMinShift * sin(yMinTheta)) + (yMaxShift * sin(yMaxTheta));
-        skewedCenter.y = skewedCenter.y / 4;
-
-        //cout << "Center point:" << endl;
-        //cout << "X: " << skewedCenter.x << endl;
-        //cout << "Y: " << skewedCenter.y << endl;
-        skewedCenterPoints.push_back(skewedCenter);
-
-        // Remove the nodes from the matchedNodes vector
-        for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
-        {
-          if (xMinNode.GetAddress() == it->GetAddress())
-          {
-            matchedNodes->erase(it);
-            --it;
-          }
-
-          else if (xMaxNode.GetAddress() == it->GetAddress())
-          {
-            matchedNodes->erase(it);
-            --it;
-          }
-
-          else if (yMinNode.GetAddress() == it->GetAddress())
-          {
-            matchedNodes->erase(it);
-            --it;
-          }
-
-          else if (yMaxNode.GetAddress() == it->GetAddress())
-          {
-            matchedNodes->erase(it);
-            --it;
-          }
-        }
+        leftCorner = matchedNodes->back();
+        rightCorner = matchedNodes->front();
       }
 
-      // CALCULATE AVERAGE CENTER POINT HERE FROM THE CENTERPOINT LIST
-      float x = 0;
-      float y = 0;
-      float size = skewedCenterPoints.size();
+      // Get average center
+      averageCenter.x = (leftCorner.GetX() + rightCorner.GetX()) / 2;
+      averageCenter.y = (leftCorner.GetY() + rightCorner.GetY()) / 2;
+      averageCenterPoints.push_back(averageCenter);
 
-      // Get the totals
-      for (vector<Coordinates>::iterator it = skewedCenterPoints.begin(); it != skewedCenterPoints.end(); ++it)
+      // Push center towards strongest signal
+      // Shift min/max values according to center for each node
+      // This is so the system is aligned to (0,0) as the center
+      leftCorner.SetX(leftCorner.GetX() - averageCenter.x);
+      leftCorner.SetY(leftCorner.GetY() - averageCenter.y);
+      rightCorner.SetX(rightCorner.GetX() - averageCenter.x);
+      rightCorner.SetY(rightCorner.GetY() - averageCenter.y);
+
+      /*
+       * Convert to polar form since we will be scaling
+       * the coordinates according to signal strengths
+       */
+      // Hypotenuse, theta, and ray length buffers for the algorithm
+      float leftHypotenuse;
+      float rightHypotenuse;
+      float leftTheta;
+      float rightTheta;
+      float leftShift;
+      float rightShift;
+
+      // Convert the signal level fields in the 4 nodes from string to integer
+      stringstream leftStream;
+      stringstream rightStream;
+      float leftSignal;
+      float rightSignal;
+
+      leftStream << leftCorner.GetSignalLevel();
+      leftStream >> leftSignal;
+      rightStream << rightCorner.GetSignalLevel();
+      rightStream >> rightSignal;
+
+      // Calculate the hypotenuse lengths in order to find r
+      leftHypotenuse = sqrt(pow(leftCorner.GetX(), 2) + pow(leftCorner.GetY(), 2));
+      rightHypotenuse = sqrt(pow(rightCorner.GetX(), 2) + pow(rightCorner.GetY(), 2));
+
+      // Generate hypotenuse rays to each node from the average center point
+      leftTheta = GetTheta(leftCorner.GetX(), leftCorner.GetY());
+      rightTheta = GetTheta(rightCorner.GetX(), rightCorner.GetY());
+
+      // Create ray lengths for all 4 positions and weight the ray length proportionally to perceived signal strengths
+      // ray length = hypotenuse * ((min signal cutoff - node signal level) / (min signal cutoff - max signal cutoff))
+      leftShift = leftHypotenuse * ((SIGNAL_CUTOFF_LOW - leftSignal)/ (SIGNAL_CUTOFF_LOW - SIGNAL_CUTOFF_HIGH));
+      rightShift = rightHypotenuse * ((SIGNAL_CUTOFF_LOW - rightSignal)/ (SIGNAL_CUTOFF_LOW - SIGNAL_CUTOFF_HIGH));
+
+      // Given theta and r convert polar coordinates to cartesian coordinates
+      // These will need to be unshifted afterwards
+      // Q = (rcos(Θ). rsin(Θ))
+      Coordinates leftQ;
+      Coordinates rightQ;
+
+      // Convert each node to cartesian
+      leftQ.x = leftShift * cos(leftTheta);
+      leftQ.y = leftShift * sin(leftTheta);
+      rightQ.x = rightShift * cos(rightTheta);
+      rightQ.y = rightShift * sin(rightTheta);
+
+      // Unshift each point back to the original frame of reference
+      leftQ.x = leftQ.x + averageCenter.x;
+      leftQ.y = leftQ.y + averageCenter.y;
+      rightQ.x  = rightQ.x + averageCenter.x;
+      rightQ.y  = rightQ.y + averageCenter.y;
+
+      // Return center point
+      skewedCenter.x = (leftQ.x + rightQ.x) / 2;
+      skewedCenter.y = (leftQ.y + rightQ.y) / 2;
+      skewedCenterPoints.push_back(skewedCenter);
+      
+      // Clear the list
+      matchedNodes->clear();
+    }
+
+    /*
+     * REWRITE SO THAT WE CREATE A LIST OF MAXIMUMS TO USE FOR CALCULATING A CENTER
+     * POINT AS WELL AS FINDING MATCHES TO DELETE FROM THE MATCHED NODES LIST
+     */
+    else if (matchedNodes->size() > 2)
+    {
+      // Run RSSI scheme on current list of matched nodes and then remove nodes used in this iteration
+      // Get the minimum X node
+      for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
       {
-        x = x + it->x;
-        y = y + it->y;
+        if (xMin > it->GetX())
+        {
+          xMin = it->GetX();
+          xMinNode.SetAddress(it->GetAddress());
+          xMinNode.SetSignalLevel(it->GetSignalLevel());
+          xMinNode.SetX(it->GetX());
+          xMinNode.SetY(it->GetY());
+        }
       }
 
-      // Divide the totals to get the mean for each and save the result
-      _x = x / size;
-      _y = y / size;
+      // Get the maximum X node
+      for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
+      {
+        if (xMax < it->GetX())
+        {
+          xMax = it->GetX();
+          xMaxNode.SetAddress(it->GetAddress());
+          xMaxNode.SetSignalLevel(it->GetSignalLevel());
+          xMaxNode.SetX(it->GetX());
+          xMaxNode.SetY(it->GetY());
+        }
+      }
+
+      // Get the minimum Y node
+      for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
+      {
+        if (yMin > it->GetY())
+        {
+          yMin = it->GetY();
+          yMinNode.SetAddress(it->GetAddress());
+          yMinNode.SetSignalLevel(it->GetSignalLevel());
+          yMinNode.SetX(it->GetX());
+          yMinNode.SetY(it->GetY());
+        }
+      }
+
+      // Get the maximum Y node
+      for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
+      {
+        if (yMax < it->GetY())
+        {
+          yMax = it->GetY();
+          yMaxNode.SetAddress(it->GetAddress());
+          yMaxNode.SetSignalLevel(it->GetSignalLevel());
+          yMaxNode.SetX(it->GetX());
+          yMaxNode.SetY(it->GetY());
+        }
+      }
+
+      averageCenter.x = (xMax + xMin) / 2;
+      averageCenter.y = (yMax + yMin) / 2;
+      averageCenterPoints.push_back(averageCenter);
+
+      // Shift min/max values according to center for each node
+      // This is so the system is aligned to (0,0) as the center
+      xMinNode.SetX(xMinNode.GetX() - averageCenter.x);
+      xMinNode.SetY(xMinNode.GetY() - averageCenter.y);
+      xMaxNode.SetX(xMaxNode.GetX() - averageCenter.x);
+      xMaxNode.SetY(xMaxNode.GetY() - averageCenter.y);
+      yMinNode.SetX(yMinNode.GetX() - averageCenter.x);
+      yMinNode.SetY(yMinNode.GetY() - averageCenter.y);
+      yMaxNode.SetX(yMaxNode.GetX() - averageCenter.x);
+      yMaxNode.SetY(yMaxNode.GetY() - averageCenter.y);
+
+      /*
+       * Convert to polar form since we will be scaling
+       * the coordinates according to signal strengths
+       */
+      // Hypotenuse, theta, and ray length buffers for the algorithm
+      float xMinHypotenuse, xMaxHypotenuse;
+      float yMinHypotenuse, yMaxHypotenuse;
+      float xMinTheta, xMaxTheta;
+      float yMinTheta, yMaxTheta;
+      float xMinShift, xMaxShift;
+      float yMinShift, yMaxShift;
+
+      // Convert the signal level fields in the 4 nodes from string to integer
+      stringstream xMinStream;
+      stringstream xMaxStream;
+      stringstream yMinStream;
+      stringstream yMaxStream;
+      float xMinSignal, xMaxSignal;
+      float yMinSignal, yMaxSignal;
+
+      xMinStream << xMinNode.GetSignalLevel();
+      xMinStream >> xMinSignal;
+      xMaxStream << xMaxNode.GetSignalLevel();
+      xMaxStream >> xMaxSignal;
+      yMinStream << yMinNode.GetSignalLevel();
+      yMinStream >> yMinSignal;
+      yMaxStream << yMaxNode.GetSignalLevel();
+      yMaxStream >> yMaxSignal;
+
+      // Calculate the hypotenuse lengths in order to find r
+      xMinHypotenuse = sqrt(pow(xMinNode.GetX(), 2) + pow(xMinNode.GetY(), 2));
+      xMaxHypotenuse = sqrt(pow(xMaxNode.GetX(), 2) + pow(xMaxNode.GetY(), 2));
+      yMinHypotenuse = sqrt(pow(yMinNode.GetX(), 2) + pow(yMinNode.GetY(), 2));
+      yMaxHypotenuse = sqrt(pow(yMaxNode.GetX(), 2) + pow(yMaxNode.GetY(), 2));
+
+      // Generate hypotenuse rays to each node from the average center point
+      xMinTheta = GetTheta(xMinNode.GetX(), xMinNode.GetY());
+      xMaxTheta = GetTheta(xMaxNode.GetX(), xMaxNode.GetY());
+      yMinTheta = GetTheta(yMinNode.GetX(), yMinNode.GetY());
+      yMaxTheta = GetTheta(yMaxNode.GetX(), yMaxNode.GetY());
+
+      // Create ray lengths for all 4 positions and weight the ray length proportionally to perceived signal strengths
+      // ray length = hypotenuse * ((min signal cutoff - node signal level) / (min signal cutoff - max signal cutoff))
+      xMinShift = xMinHypotenuse * ((SIGNAL_CUTOFF_LOW - xMinSignal)/ (SIGNAL_CUTOFF_LOW - SIGNAL_CUTOFF_HIGH));
+      xMaxShift = xMaxHypotenuse * ((SIGNAL_CUTOFF_LOW - xMaxSignal)/ (SIGNAL_CUTOFF_LOW - SIGNAL_CUTOFF_HIGH));
+      yMinShift = yMinHypotenuse * ((SIGNAL_CUTOFF_LOW - yMinSignal)/ (SIGNAL_CUTOFF_LOW - SIGNAL_CUTOFF_HIGH));
+      yMaxShift = yMaxHypotenuse * ((SIGNAL_CUTOFF_LOW - yMaxSignal)/ (SIGNAL_CUTOFF_LOW - SIGNAL_CUTOFF_HIGH));
+
+      // Given theta and r convert polar coordinates to cartesian coordinates
+      // These will need to be unshifted afterwards
+      // Q = (rcos(Θ). rsin(Θ))
+      Coordinates xMinQ, xMaxQ;
+      Coordinates yMinQ, yMaxQ;
+
+      // Convert each node to cartesian
+      xMinQ.x = xMinShift * cos(xMinTheta);
+      xMinQ.y = xMinShift * sin(xMinTheta);
+      xMaxQ.x = xMaxShift * cos(xMaxTheta);
+      xMaxQ.y = xMaxShift * sin(xMaxTheta);
+      yMinQ.x = yMinShift * cos(yMinTheta);
+      yMinQ.y = yMinShift * sin(yMinTheta);
+      yMaxQ.x = yMaxShift * cos(yMaxTheta);
+      yMaxQ.y = yMaxShift * sin(yMaxTheta);
+
+      // Unshift each point back to the original frame of reference
+      xMinQ.x = xMinQ.x + averageCenter.x;
+      xMinQ.y = xMinQ.y + averageCenter.y;
+      xMaxQ.x = xMaxQ.x + averageCenter.x;
+      xMaxQ.y = xMaxQ.y + averageCenter.y;
+      yMinQ.x = yMinQ.x + averageCenter.x;
+      yMinQ.y = yMinQ.y + averageCenter.y;
+      yMaxQ.x = yMaxQ.x + averageCenter.x;
+      yMaxQ.y = yMaxQ.y + averageCenter.y;
+
+      skewedCenter.x = (xMaxQ.x + xMinQ.x) / 2;
+      skewedCenter.y = (yMaxQ.y + yMinQ.y) / 2;
+      skewedCenterPoints.push_back(skewedCenter);
+
+      /*
+       * The vector erase-remove idiom is the proper way to do this, but I did
+       * not have time to implement it for the demonstration, so this is a todo.
+       */
+      // Push xMinNode in to RSSI delete queue
+      //vector<WAP> deleteQueue;
+      //bool matchFound = false;
+      //deleteQueue.push_back(xMinNode);
+
+      //// Compare xMaxNode to deleteQueue nodes and add to the list if no matches are found
+      //for (vector<WAP>::iterator it = deleteQueue.begin(); it != deleteQueue.end(); ++it)
+        //if (xMaxNode.GetAddress() == it->GetAddress())
+          //matchFound = true;
+
+      //if (!matchFound)
+        //deleteQueue.push_back(xMaxNode);
+
+      //// Compare yMinNode to deleteQueue nodes and add to the list if no matches are found
+      //matchFound = false;
+      //for (vector<WAP>::iterator it = deleteQueue.begin(); it != deleteQueue.end(); ++it)
+        //if (yMinNode.GetAddress() == it->GetAddress())
+          //matchFound = true;
+
+      //if (!matchFound)
+        //deleteQueue.push_back(yMinNode);
+
+      //// Compare yMaxNode to deleteQueue nodes and add to the list if no matches are found
+      //matchFound = false;
+      //for (vector<WAP>::iterator it = deleteQueue.begin(); it != deleteQueue.end(); ++it)
+        //if (yMaxNode.GetAddress() == it->GetAddress())
+          //matchFound = true;
+
+      //if (!matchFound)
+        //deleteQueue.push_back(yMaxNode);
+
+      //// Now that we have the deleteQueue we will remove matches in the matchedNodes vector
+      //// until the deleteQueue is empty
+      //while (!deleteQueue.empty())
+      //{
+        //for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
+        //{
+          //if (deleteQueue.back().GetAddress() == it->GetAddress())
+          //{
+            //matchedNodes->erase(it);
+            //deleteQueue.pop_back();
+            //break;
+          //}
+        //}
+      //}
+
+      // While rssi buffer is not empty
+      // remove nodes from matched node list
+
+      //Remove the nodes from the matchedNodes vector
+      for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
+        if (xMinNode.GetAddress() == it->GetAddress())
+        {
+          matchedNodes->erase(it);
+          --it;
+        }
+
+      for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
+        if (xMaxNode.GetAddress() == it->GetAddress())
+        {
+          matchedNodes->erase(it);
+          --it;
+        }
+
+      for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
+        if (yMinNode.GetAddress() == it->GetAddress())
+        {
+          matchedNodes->erase(it);
+          --it;
+        }
+
+      for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
+        if (yMaxNode.GetAddress() == it->GetAddress())
+        {
+          matchedNodes->erase(it);
+          --it;
+        }
     }
   }
 
+  // CALCULATE AVERAGE CENTER POINT HERE FROM THE CENTERPOINT LIST
+  float x = 0;
+  float y = 0;
+  float size = skewedCenterPoints.size();
+
+  // Get the totals
+  for (vector<Coordinates>::iterator it = skewedCenterPoints.begin(); it != skewedCenterPoints.end(); ++it)
+  {
+    x = x + it->x;
+    y = y + it->y;
+  }
+
+
+  // Divide the totals to get the mean for each and save the result
+  _x = x / size;
+  _y = y / size;
   return;
 }
 
-// View the perceived wireless networks
+/**********************************************************************
+ * PRINT SCANNED RESULTS
+ **********************************************************************/
 void WirelessLocalizer::PrintScannedResults()
 {
   if (scanResults)
@@ -502,7 +702,9 @@ void WirelessLocalizer::PrintScannedResults()
   return;
 }
 
-// View the database results
+/**********************************************************************
+ * PRINT DATABASE RESULTS
+ **********************************************************************/
 void WirelessLocalizer::PrintDatabaseResults()
 {
   if (dbResults)
@@ -519,6 +721,9 @@ void WirelessLocalizer::PrintDatabaseResults()
   return;
 }
 
+/**********************************************************************
+ * PRINT MATCHED NODES
+ **********************************************************************/
 void WirelessLocalizer::PrintMatches()
 {
   if (matchedNodes)
@@ -535,13 +740,15 @@ void WirelessLocalizer::PrintMatches()
   return;
 }
 
-// View the centerpoint history
+/**********************************************************************
+ * PRINT CALCULATED CENTER POINT
+ **********************************************************************/
 void WirelessLocalizer::PrintCenterPoint()
 {
-      cout << "Center point:" << endl;
-      cout << "X:" << this->GetCoordinateX() << endl;
-      cout << "Y:" << this->GetCoordinateY() << endl;
-      cout << endl;
+  cout << "Center point:" << endl;
+  cout << "X:" << this->GetCoordinateX() << endl;
+  cout << "Y:" << this->GetCoordinateY() << endl;
+  cout << endl;
 
   return;
 }
