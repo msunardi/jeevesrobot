@@ -213,20 +213,45 @@ void WirelessLocalizer::Localize()
   /*
    * Pipe the stream from (read mode) the system call "iwlist scan"
    * to parse out the MAC address and signal level fields.
+   * Checks for device busy as well.
    * Redirect stderr to stdout to include in piped stream using 2>&1
    */
-  filePointer = popen("iwlist wlan0 scan 2>&1 | grep -e Address -e Signal 2>&1", "r");
+  filePointer = popen("iwlist wlan0 scan 2>&1 | grep -e busy -e Address -e Signal 2>&1", "r");
 
-  /*
-   * TODO:
-   * Don't read in the two least significant characters from either the scan
-   * or the database parsing routines since the last two characters can be
-   * the same in a single wireless access node. This is because the last two
-   * characters in the MAC address only determine whether the broadcasted
-   * network is a PSU Guest, PSU, or PSU Secured ESSID; the network will still
-   * be coming from the same physical node.
-   */
-  // Read in the stream
+  //cout << fgets(buffer, 1024, filePointer) << endl;
+
+  fgets(buffer, 1024, filePointer);
+  string busyCheck;
+
+  // Append the characters in the array to a string
+  for (size_t i = 0; i < strlen(buffer); ++i)
+    busyCheck += buffer[i];
+  
+  found = busyCheck.find("Device or resource busy");
+  if (found != string::npos)
+  {
+    cout << "Device busy!" << endl;
+    pclose(filePointer);
+    _x = -1;
+    _y = -1;
+
+    // Retry scan (NEED TO IMPLEMENT)
+    //filePointer = popen("iwlist wlan0 scan 2>&1 | grep -e busy -e Address -e Signal 2>&1", "r");
+    //fgets(buffer, 1024, filePointer);
+    return;
+  }
+
+  // Parse the first line
+  else
+  {
+    found = busyCheck.find("Address:");
+    if (found < 1024 && found != string::npos)
+    {
+      busyCheck.erase(busyCheck.begin(), busyCheck.begin() + (found - 1));
+      address = busyCheck.substr(10, 14);
+    }
+  }
+
   while(fgets(buffer, 1024, filePointer))
   {
     string line;
@@ -580,52 +605,6 @@ void WirelessLocalizer::Localize()
        * The vector erase-remove idiom is the proper way to do this, but I did
        * not have time to implement it for the demonstration, so this is a todo.
        */
-      // Push xMinNode in to RSSI delete queue
-      //vector<WAP> deleteQueue;
-      //bool matchFound = false;
-      //deleteQueue.push_back(xMinNode);
-
-      //// Compare xMaxNode to deleteQueue nodes and add to the list if no matches are found
-      //for (vector<WAP>::iterator it = deleteQueue.begin(); it != deleteQueue.end(); ++it)
-      //if (xMaxNode.GetAddress() == it->GetAddress())
-      //matchFound = true;
-
-      //if (!matchFound)
-      //deleteQueue.push_back(xMaxNode);
-
-      //// Compare yMinNode to deleteQueue nodes and add to the list if no matches are found
-      //matchFound = false;
-      //for (vector<WAP>::iterator it = deleteQueue.begin(); it != deleteQueue.end(); ++it)
-      //if (yMinNode.GetAddress() == it->GetAddress())
-      //matchFound = true;
-
-      //if (!matchFound)
-      //deleteQueue.push_back(yMinNode);
-
-      //// Compare yMaxNode to deleteQueue nodes and add to the list if no matches are found
-      //matchFound = false;
-      //for (vector<WAP>::iterator it = deleteQueue.begin(); it != deleteQueue.end(); ++it)
-      //if (yMaxNode.GetAddress() == it->GetAddress())
-      //matchFound = true;
-
-      //if (!matchFound)
-      //deleteQueue.push_back(yMaxNode);
-
-      //// Now that we have the deleteQueue we will remove matches in the matchedNodes vector
-      //// until the deleteQueue is empty
-      //while (!deleteQueue.empty())
-      //{
-      //for (vector<WAP>::iterator it = matchedNodes->begin(); it != matchedNodes->end(); ++it)
-      //{
-      //if (deleteQueue.back().GetAddress() == it->GetAddress())
-      //{
-      //matchedNodes->erase(it);
-      //deleteQueue.pop_back();
-      //break;
-      //}
-      //}
-      //}
-
       // While rssi buffer is not empty
       // remove nodes from matched node list
 
