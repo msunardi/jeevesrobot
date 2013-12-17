@@ -1,2 +1,6 @@
 The WirelessLocalizer library implements an RSSI localization algorithm
 that can be used to localize within a certain probability.
+
+The user running this software needs permissions to perform scans on the
+wireless (wlan0) interface, otherwise scan results will only consist of
+the last scan performed by the operating system.
