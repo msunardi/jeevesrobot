@@ -1,0 +1,15 @@
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/CMakeFiles/clean_test_results.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/CMakeFiles/doxygen.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/gtest/CMakeFiles/gtest.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/gtest/CMakeFiles/gtest_main.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/base_control/CMakeFiles/roscpp_generate_messages_cpp.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/base_control/CMakeFiles/roscpp_generate_messages_lisp.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/base_control/CMakeFiles/roscpp_generate_messages_py.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/base_control/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/base_control/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/base_control/CMakeFiles/rosgraph_msgs_generate_messages_py.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/CMakeFiles/run_tests.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/base_control/CMakeFiles/std_msgs_generate_messages_cpp.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/base_control/CMakeFiles/std_msgs_generate_messages_lisp.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/base_control/CMakeFiles/std_msgs_generate_messages_py.dir
+/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/build/CMakeFiles/tests.dir
