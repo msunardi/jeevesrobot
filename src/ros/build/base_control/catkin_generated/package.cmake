@@ -1,7 +1,0 @@
-set(_CATKIN_CURRENT_PACKAGE "base_control")
-set(base_control_MAINTAINER "rick <rick@todo.todo>")
-set(base_control_DEPRECATED "")
-set(base_control_VERSION "0.0.0")
-set(base_control_BUILD_DEPENDS "roscpp" "rospy" "std_msgs")
-set(base_control_RUN_DEPENDS "roscpp" "rospy" "std_msgs")
-set(base_control_BUILDTOOL_DEPENDS "catkin")

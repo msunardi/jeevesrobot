@@ -1,8 +1,0 @@
-prefix=/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/devel
-
-Name: base_control
-Description: Description of base_control
-Version: 0.0.0
-Cflags: 
-Libs: -L/home/rick/code/mcecs_bot/roboticsclub-mcecsbot/src/ros/devel/lib 
-Requires: 
