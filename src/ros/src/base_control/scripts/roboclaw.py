@@ -4,11 +4,10 @@ import time
 
 checksum = 0
 port = ""
-#port = serial.Serial("/dev/ttyUSB0", baudrate=2400, timeout=0.5)
 
 def init_port(device_name):
 	global port
-	port = serial.Serial("/dev/ttyUSB0", baudrate=2400, timeout=0.5)
+	port = serial.Serial(device_name, baudrate=2400, timeout=0.5)
 	
 def sendcommand(address,command):
 	global checksum
