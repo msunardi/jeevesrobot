@@ -19,6 +19,7 @@ class RoboClaw(object):
 		"""
 		self.checksum = 0
 		self.port = serial.Serial(port, baudrate, timeout=0.5)
+
 			
 	def __del__(self):
 		self.port.close()
