@@ -1,7 +1,8 @@
 """Factory demo code from Orion Robotics, wrapped into classes."""
-
+import logging
 import serial
 import struct
+import threading
 import time
 
 
@@ -647,6 +648,26 @@ class RoboClawSim(RoboClawBase):
     """
     def __init__(self, port, baudrate, max_ticks_per_second):
         super(RoboClawSim, self).__init__(port, baudrate, max_ticks_per_second)
+
+class RoboClawManager(threading.Thread):
+    """Manages one or more Roboclaw controllers, continuously polling them for
+    instantaneous speed. Readings are pushed into an output queue. Meanwhile,
+    RoboClawManager watched a command queue for incoming motor control
+    commands (wheel angular velocities). When a wheel velocity command arrives,
+    it is converted to four wheel speed commands in encoder ticks per second.
+    """
+    def __init__(self, ports, baudrate, max_ticks_per_second, poll_interval_s,
+                 cmd_input_queue, output_queue):
+        self.cmd_queue = cmd_input_queue
+        self.publish_queue = output_queue
+        self.quit = False
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while((self.quit == False)):
+            time.sleep(0.5)
+        logging.info("RoboClawManager: exiting.")
+
 
 if __name__ == '__main__':
     pass
