@@ -1,27 +1,68 @@
+"""Factory demo code from Orion Robotics, wrapped into classes."""
+
 import serial
 import struct
 import time
 
 
-class RoboClaw(object):
+class RoboClawBase(object):
+    """Defines the common interface for RoboClaw controllers.
+    Do not instantiate this class, use a subclass instead.
+    """
+    def __init__(self, port, baudrate, max_ticks_per_second):
+        self.port = port
+        self.baudrate = baudrate
+        self.max_ticks_per_second = max_ticks_per_second
+
+    def ResetEncoderCnts(self):
+        pass
+
+    def readM1instspeed(self):
+        pass
+
+    def readM2instspeed(self):
+        pass
+
+    def SetM1pidq(self, p, i, d, qpps):
+        pass
+
+    def SetM2pidq(self, p, i, d, qpps):
+        pass
+
+    def readM1pidq(self):
+        pass
+
+    def readM2pidq(self):
+        pass
+
+class RoboClaw(RoboClawBase):
     """Convenience class for talking to an Orion Robotics RoboClaw
         motor controller. Note: this code is just the factory demo
         code, rearranged and put into a class."""
 
-    def __init__(self, port, baudrate=2400):
+    def __init__(self, port, baudrate, max_ticks_per_second):
         """Open a serial port for talking to the RoboClaw.
 
         Args:
-            port: the name of a device entry like '/dev/ttyACM0' or '/dev/ttyUSB0'.
-            baudrate: for V4 (USB) Roboclaws, this value is ignored. For earlier models,
-                this value should correspond to the switch settings on the board.
+            port (string): the name of a device entry like '/dev/ttyACM0' or
+            '/dev/ttyUSB0'.
+
+            baudrate (int): for V4 (USB) Roboclaws, this value is ignored. For
+            earlier models,this value should correspond to the switch settings
+            on the board.
+
+            max_ticks_per_second (int): ticks per second from the encoders when
+            the motors are running at max duty cycle. This is empirically
+            determined. Roboclaw needs this at start to report correct "QPPS".
+            See the Roboclaw manual. The default value is correct for
+            jeeves as of 2/18/2014.
 
         Raises:
             IOError, if we can't open the indicated port for some reason.
         """
+        super(RoboClaw, self).__init__(port, baudrate, max_ticks_per_second)
         self.checksum = 0
         self.port = serial.Serial(port, baudrate, timeout=0.5)
-
 
     def __del__(self):
         self.port.close()
@@ -600,64 +641,13 @@ class RoboClaw(object):
             return val
         return -1
 
+class RoboClawSim(RoboClawBase):
+    """
+     Simulator class that fakes minimal RoboClaw functionality
+    """
+    def __init__(self, port, baudrate, max_ticks_per_second):
+        super(RoboClawSim, self).__init__(port, baudrate, max_ticks_per_second)
 
 if __name__ == '__main__':
-    print
-    "Roboclaw Example 1\r\n"
-
-#Rasberry Pi/Linux Serial instance example
-#port = serial.Serial("/dev/ttyACM0", baudrate=115200, timeout=0.1)
-#	port = serial.Serial("/dev/ttyUSB1", baudrate=2400, timeout=0.5)
-
-#Windows Serial instance example
-#port = serial.Serial("COM253", baudrate=38400, timeout=1)
-
-#Get version string
-#	sendcommand(128,21)
-#	rcv = port.read(32)
-#	print repr(rcv)
-
-
-
-#cnt = 0
-#while True:
-#	cnt=cnt+1
-#	print "Count = ",cnt
-#
-#	print "Error State:",repr(readerrorstate())
-#
-#	print "Temperature:",readtemperature()/10.0
-#
-#	print "Main Battery:",readmainbattery()/10.0
-#
-#	print "Logic Battery:",readlogicbattery()/10.0
-#
-#	m1cur, m2cur = readcurrents()
-#	print "Current M1: ",m1cur/10.0," M2: ",m2cur/10.0
-#
-#	min, max = readlogicbatterysettings()
-#	print "Logic Battery Min:",min/10.0," Max:",max/10.0
-#
-#	min, max = readmainbatterysettings()
-#	print "Main Battery Min:",min/10.0," Max:",max/10.0
-#
-#	p,i,d,qpps = readM1pidq()
-#	print "M1 P=%.2f" % (p/65536.0)
-#	print "M1 I=%.2f" % (i/65536.0)
-#	print "M1 D=%.2f" % (d/65536.0)
-#	print "M1 QPPS=",qpps
-#
-#	p,i,d,qpps = readM2pidq()
-#	print "M2 P=%.2f" % (p/65536.0)
-#	print "M2 I=%.2f" % (i/65536.0)
-#	print "M2 D=%.2f" % (d/65536.0)
-#	print "M2 QPPS=",qpps
-#
-#	SetM1DutyAccel(1500,1500)
-#	SetM2DutyAccel(1500,-1500)
-#	time.sleep(2)
-#	SetM1DutyAccel(1500,-1500)
-#	SetM2DutyAccel(1500,1500)
-#	time.sleep(2)
-
+    pass
 
