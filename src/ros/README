@@ -1,0 +1,6 @@
+This is the top-level ROS workspace for building all of the packages for the MCECS Bot. 
+To build everything, run the following command:
+
+catkin_make
+
+from this directory. See www.ros.org for information about ROS.
