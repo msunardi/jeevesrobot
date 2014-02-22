@@ -756,7 +756,3 @@ class RoboClawManager(threading.Thread):
         n = theta * TICKS_PER_REV / (2.0 * numpy.pi)
         return n
 
-
-if __name__ == '__main__':
-    pass
-

@@ -10,8 +10,8 @@ import roboclaw
 class BaseController(object):
     
     def __init__(self):
-        self.front_drive = roboclaw.RoboClaw("/dev/ttyUSB0")
-        self.rear_drive = roboclaw.RoboClaw("/dev/ttyACM0")
+        self.front_drive = roboclaw.RoboClawSim('/dev/ttyUSB0', 2400, 250, 3336)
+        self.rear_drive = roboclaw.RoboClawSim('/dev/ttyACM0', 2400, 250, 3336)
         self.subscriber = rospy.Subscriber("/cmd_vel", Twist, self.callback)
         self.x_prev = 0.0
         

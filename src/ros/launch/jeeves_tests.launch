@@ -1,0 +1,5 @@
+<launch>
+  <node name="joystick_node" pkg="joy" type="joy_node" />
+  <node name="joy_controller_node" pkg="base_control" type="joy_controller_node.py" />
+  <node name="base_control_node" pkg="base_control" type="base_control_node.py" />
+</launch>
