@@ -1,48 +1,25 @@
 """Factory demo code from Orion Robotics, wrapped into classes."""
 import logging
+import numpy
 import serial
 import struct
 import threading
 import time
 
+import roboclaw as rc
 
-class RoboClawBase(object):
-    """Defines the common interface for RoboClaw controllers.
-    Do not instantiate this class, use a subclass instead.
-    """
-    def __init__(self, port, baudrate, max_ticks_per_second):
-        self.port = port
-        self.baudrate = baudrate
-        self.max_ticks_per_second = max_ticks_per_second
+# empirically measured
+TICKS_PER_REV = 253
+MAX_TICKS_PER_SECOND = 3336
 
-    def ResetEncoderCnts(self):
-        pass
-
-    def readM1instspeed(self):
-        pass
-
-    def readM2instspeed(self):
-        pass
-
-    def SetM1pidq(self, p, i, d, qpps):
-        pass
-
-    def SetM2pidq(self, p, i, d, qpps):
-        pass
-
-    def readM1pidq(self):
-        pass
-
-    def readM2pidq(self):
-        pass
-
-class RoboClaw(RoboClawBase):
+class RoboClaw(object):
     """Convenience class for talking to an Orion Robotics RoboClaw
         motor controller. Note: this code is just the factory demo
         code, rearranged and put into a class."""
 
-    def __init__(self, port, baudrate, max_ticks_per_second):
-        """Open a serial port for talking to the RoboClaw.
+    def __init__(self, port, baudrate, accel, max_ticks_per_second):
+        """Open a serial port for talking to the RoboClaw motor controller,
+        and initialize the controller.
 
         Args:
             port (string): the name of a device entry like '/dev/ttyACM0' or
@@ -53,17 +30,20 @@ class RoboClaw(RoboClawBase):
             on the board.
 
             max_ticks_per_second (int): ticks per second from the encoders when
-            the motors are running at max duty cycle. This is empirically
+            the motors are running at 100% duty cycle. This is empirically
             determined. Roboclaw needs this at start to report correct "QPPS".
-            See the Roboclaw manual. The default value is correct for
-            jeeves as of 2/18/2014.
+            See the Roboclaw manual.
 
         Raises:
             IOError, if we can't open the indicated port for some reason.
         """
-        super(RoboClaw, self).__init__(port, baudrate, max_ticks_per_second)
         self.checksum = 0
         self.port = serial.Serial(port, baudrate, timeout=0.5)
+        self.accel = accel
+        (p, i, d, q) = self.readM1pidq()
+        self.SetM1pidq(p, i, d, max_ticks_per_second)
+        (p, i, d, q) = self.readM2pidq()
+        self.SetM2pidq(p, i, d, max_ticks_per_second)
 
     def __del__(self):
         self.port.close()
@@ -642,31 +622,139 @@ class RoboClaw(RoboClawBase):
             return val
         return -1
 
-class RoboClawSim(RoboClawBase):
+class RoboClawSim(object):
     """
      Simulator class that fakes minimal RoboClaw functionality
     """
-    def __init__(self, port, baudrate, max_ticks_per_second):
-        super(RoboClawSim, self).__init__(port, baudrate, max_ticks_per_second)
+    def __init__(self, port, baudrate, accel, max_ticks_per_second):
+        self.M1Speed = 0
+        self.M2Speed = 0
+        self.M1EncoderCnts = 0
+        self.M2EncoderCnts = 0
+
+    def SetMixedSpeedAccel(self, accel, speed1, speed2):
+        self.M1Speed = speed1
+        self.M2Speed = speed2
+
+    def readM1instspeed(self):
+        return self.M1Speed / 125.0
+
+    def readM2instspeed(self):
+        return self.M2Speed / 125.0
+
+    def SetM1pidq(self, p, i, d, qpps):
+        pass
+
+    def SetM2pidq(self, p, i, d, qpps):
+        pass
+
+    def readM1pidq(self):
+        return (-1, -1, -1, -1)
+
+    def readM2pidq(self):
+        return (-1, -1, -1, -1)
+
+    def readversion(self):
+        return "RoboClawSim version x.x"
+
+    def ResetEncoderCnts(self):
+        self.M1EncoderCnts = 0
+        self.M2EncoderCnts = 0
 
 class RoboClawManager(threading.Thread):
     """Manages one or more Roboclaw controllers, continuously polling them for
     instantaneous speed. Readings are pushed into an output queue. Meanwhile,
-    RoboClawManager watched a command queue for incoming motor control
+    RoboClawManager watches a command queue for incoming motor control
     commands (wheel angular velocities). When a wheel velocity command arrives,
     it is converted to four wheel speed commands in encoder ticks per second.
     """
-    def __init__(self, ports, baudrate, max_ticks_per_second, poll_interval_s,
-                 cmd_input_queue, output_queue):
+    def __init__(self, ports, baudrate, accel, max_ticks_per_second,
+                 ticks_per_rev, poll_interval_s, cmd_input_queue, output_queue,
+                 simulate=False):
+        """
+        Initialize the RoboClawManager.
+        :param ports: a tuple of serial port init strings. ports[0] is the
+            front two wheels, ports[1] is the rear.
+        :param baudrate: for V4 (USB) Roboclaws, this value is ignored. For
+            earlier models,this value should correspond to the switch settings
+            on the board.
+        :param max_ticks_per_second: ticks per second from the encoders when
+            the motors are running at 100% duty cycle. This is empirically
+            determined. Roboclaw needs this at start to report correct "QPPS".
+            See the Roboclaw manual.
+        :param poll_interval_s: 1/rate at which the work thread runs.
+            RoboClawManager will periocially poll the RoboClaws for wheel
+            speeds, and look for and dispatch incoming speed change commands.
+        :param accel: the rate at which the Roboclaw controllers will
+            accelerate the wheels to a commanded speed, in counts/s/s.
+        :param cmd_input_queue: this queue will be checked every
+            poll_interval_s seconds for incoming speed change commands.
+        :param output_queue: every poll_interval_s seconds, RoboClawManager
+            polls the Roboclaw controllers for the current wheel speeds, pack
+            the speeds into a tuple, and put them into the output_queue.
+        """
+        self.ports = ports
+        self.baudrate = baudrate
+        self.accel = accel
+        self.max_ticks_per_second = max_ticks_per_second
+        self.ticks_per_rev = ticks_per_rev
+        self.poll_interval_s = poll_interval_s
         self.cmd_queue = cmd_input_queue
-        self.publish_queue = output_queue
+        self.output_queue = output_queue
+        self.simulate = simulate
         self.quit = False
+        if simulate:
+            self.front = rc.RoboClawSim(ports[0], baudrate, accel,
+                                        max_ticks_per_second)
+            self.rear = rc.RoboClawSim(ports[1], baudrate, accel,
+                                       max_ticks_per_second)
+        else:
+            self.front = rc.RoboClaw(ports[0], baudrate, accel,
+                                        max_ticks_per_second)
+            self.rear = rc.RoboClaw(ports[1], baudrate, accel,
+                                       max_ticks_per_second)
+        self.front.SetMixedSpeedAccel(0, 0, 0)
+        self.rear.SetMixedSpeedAccel(0, 0, 0)
         threading.Thread.__init__(self)
 
     def run(self):
         while((self.quit == False)):
-            time.sleep(0.5)
+            if 0 != len(self.cmd_queue):
+                w = self.cmd_queue.popleft()
+                self.set_wheel_velocities(w)
+            w = self.get_wheel_velocities()
+            self.output_queue.append(w)
+            time.sleep(self.poll_interval_s)
         logging.info("RoboClawManager: exiting.")
+
+    def set_wheel_velocities(self, w):
+        n0 = self.radians_to_ticks(w[0])
+        n1 = self.radians_to_ticks(w[1])
+        n2 = self.radians_to_ticks(w[2])
+        n3 = self.radians_to_ticks(w[3])
+
+        self.front.SetMixedSpeedAccel(self.accel, n0, n1)
+        self.rear.SetMixedSpeedAccel(self.accel, n2, n3)
+
+    def get_wheel_velocities(self):
+        """ Ask the Roboclaw controller for the current instantaneous speeds,
+         in ticks/second. The speeds returned from the Roboclaws are in units
+         of 'ticks per 1/125 seconds'.
+        """
+        w = [0.0, 0.0, 0.0, 0.0]
+        w[0] = self.ticks_to_radians(125.0 * self.front.readM1instspeed())
+        w[1] = self.ticks_to_radians(125.0 * self.front.readM2instspeed())
+        w[2] = self.ticks_to_radians(125.0 * self.rear.readM1instspeed())
+        w[3] = self.ticks_to_radians(125.0 * self.rear.readM2instspeed())
+        return tuple(w)
+
+    def ticks_to_radians(self, n):
+        theta = n * (2.0 * numpy.pi) / TICKS_PER_REV
+        return theta
+
+    def radians_to_ticks(self, theta):
+        n = theta * TICKS_PER_REV / (2.0 * numpy.pi)
+        return n
 
 
 if __name__ == '__main__':
