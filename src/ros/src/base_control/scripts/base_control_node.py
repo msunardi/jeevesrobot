@@ -1,67 +1,60 @@
 #!/usr/bin/env python
+from collections import deque
+import numpy
 import sys
+import threading
 import time
+
 import roslib
 import rospy
 from geometry_msgs.msg import Twist
 
-import roboclaw
+import roboclaw as rc
 
-class BaseController(object):
+SIMULATE_ROBOCLAWS = True
+
+class BaseController(threading.Thread):
     
     def __init__(self):
-        self.front_drive = roboclaw.RoboClawSim('/dev/ttyUSB0', 2400, 250, 3336)
-        self.rear_drive = roboclaw.RoboClawSim('/dev/ttyACM0', 2400, 250, 3336)
-        self.subscriber = rospy.Subscriber("/cmd_vel", Twist, self.callback)
-        self.x_prev = 0.0
+        #start a RoboClawManager
+        ports = ('/dev/ttyUSB0', '/dev/ttyACM0')
+        baudrate = 2400
+        accel = 250
+        max_ticks_per_second = 3336
+        poll_interval_s = 0.1
+        self.motor_mgr_cmd_queue = deque()
+        self.motor_mgr_output_queue = deque()
+        self.motor_mgr = rc.RoboClawManager(ports, baudrate, accel,
+                                max_ticks_per_second,
+                                rc.TICKS_PER_REV,
+                                poll_interval_s,
+                                self.motor_mgr_cmd_queue,
+                                self.motor_mgr_output_queue,
+                                SIMULATE_ROBOCLAWS)
+        self.subscriber = rospy.Subscriber("/cmd_vel", Twist, self.cmd_vel_callback)
+        self.cmd_vel_incoming = deque()
+        self.lock = threading.Lock()
+        threading.Thread.__init__(self)    
+
+    def run(self):
+        while not rospy.is_shutdown():
+            with self.lock:
+                if len(self.cmd_vel_incoming) != 0:
+                    twist = self.cmd_vel_incoming.popleft()
+                    rospy.logdebug("Twist message received: " + str(twist))
+            time.sleep(0.1)
+        rospy.loginfo("BaseController.run(): exiting.")
         
-    def callback(self, data):
-        x = data.linear.x
-        theta = data.angular.z
-        rospy.loginfo("linear.x: " + str(x) + " angular.z: " + str(theta))
-
-        if 0.0 != theta:
-            cmd = theta * 10.0
-            if 0.0 < theta:
-                rospy.loginfo("Sending roboclaw.M2Forward(" + str(cmd) + ")")
-                rospy.loginfo("Sending roboclaw.M1Backward(" + str(cmd) + ")")
-                roboclaw.M1Forward(int(cmd))
-                time.sleep(0.1)
-                roboclaw.M2Backward(int(cmd))
-            else:
-                rospy.loginfo("Sending roboclaw.M1Forward(" + str(cmd) + ")")
-                rospy.loginfo("Sending roboclaw.M2Backward(" + str(cmd) + ")")
-                roboclaw.M2Forward(int(-cmd))
-                time.sleep(0.1)
-                roboclaw.M1Backward(int(-cmd))
-
-        else:
-            if 0.0 == x:
-                rospy.loginfo("Sending roboclaw.MxForward(0)")
-                roboclaw.M1Forward(0)
-                time.sleep(0.1)
-                roboclaw.M2Forward(0)
-            else:
-                cmd = x * 10.0
-                if 0.0 < x:
-                    rospy.loginfo("Sending roboclaw.MxForward(" + str(cmd) + ")")
-                    roboclaw.M1Forward(int(cmd))
-                    time.sleep(0.1)
-                    roboclaw.M2Forward(int(cmd))
-                else:
-                    rospy.loginfo("Sending roboclaw.MxBackward(" + str(cmd) + ")")
-                    roboclaw.M1Backward(int(-cmd))
-                    time.sleep(0.1)
-                    roboclaw.M2Backward(int(-cmd))
+    def cmd_vel_callback(self, twist_msg):
+        with self.lock:
+            self.cmd_vel_incoming.append(twist_msg)
 
 def main(args):
     controller = BaseController()
+    controller.start()
     rospy.init_node('base_controller_node', anonymous=True)
-    try:
-        rospy.spin()
-    except KeyboardInterrupt:
-        print "Shutting down base_controller."
-        roboclaw.port.close()
+    rospy.spin()
+    
 
 if __name__ == '__main__':
     main(sys.argv)
