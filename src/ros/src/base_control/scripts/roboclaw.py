@@ -6,8 +6,6 @@ import struct
 import threading
 import time
 
-import rospy
-
 import roboclaw as rc
 
 # empirically measured
@@ -631,6 +629,7 @@ class RoboClawSim(object):
     def __init__(self, port, baudrate, accel, max_ticks_per_second):
         self.M1Speed = 0
         self.M2Speed = 0
+
         self.M1EncoderCnts = 0
         self.M2EncoderCnts = 0
 
@@ -700,7 +699,7 @@ class RoboClawManager(threading.Thread):
         self.accel = accel
         self.max_ticks_per_second = max_ticks_per_second
         self.ticks_per_rev = ticks_per_rev
-        self.sleeper = rospy.Rate(poll_rate_hz)
+        self.poll_rate_hz = poll_rate_hz
         self.cmd_queue = cmd_input_queue
         self.output_queue = output_queue
         self.simulate = simulate
@@ -726,7 +725,7 @@ class RoboClawManager(threading.Thread):
                 self.set_wheel_velocities(w)
             w = self.get_wheel_velocities()
             self.output_queue.append(w)
-            self.sleeper.sleep()
+            time.sleep(1.0 / self.poll_rate_hz)
         logging.info("RoboClawManager: exiting.")
 
     def set_wheel_velocities(self, w):

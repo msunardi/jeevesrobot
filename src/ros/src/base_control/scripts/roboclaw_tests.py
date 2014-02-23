@@ -51,13 +51,13 @@ class RoboClawManagerTests(unittest.TestCase):
         baudrate = 2400
         accel = 250
         max_ticks_per_second = 3336
-        poll_interval_s = 0.1
+        poll_rate_hz = 10
         self.cmd_queue = deque()
         self.output_queue = deque()
         self.mgr = rc.RoboClawManager(ports, baudrate, accel,
                                 max_ticks_per_second,
                                 rc.TICKS_PER_REV,
-                                poll_interval_s,
+                                poll_rate_hz,
                                 self.cmd_queue,
                                 self.output_queue,
                                 True)
@@ -65,7 +65,8 @@ class RoboClawManagerTests(unittest.TestCase):
         self.mgr.start()
 
     def tearDown(self):
-        logging.info("Waiting for RoboClawManager to stop...")
+        logging.info("RoboClawManagerTests.tearDown():"
+                     " waiting for RoboClawManager to stop...")
         self.mgr.quit = True
         self.mgr.join()
 

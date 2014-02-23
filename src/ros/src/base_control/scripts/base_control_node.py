@@ -58,17 +58,28 @@ class BaseController(threading.Thread):
         threading.Thread.__init__(self)    
 
     def run(self):
+        """Pull a cmd_vel (Twist) message from the incoming queue, covert it
+          to a tuple of motor speeds, and put them into the motor manager's
+          work queue, ad infinitum"""
         while not rospy.is_shutdown():
             twist = Twist()
+
+            # get a new command
             with self.lock:
                 if len(self.cmd_vel_incoming) != 0:
                     twist = self.cmd_vel_incoming.popleft()
+
+            # if it's a new command, convert it into motor speeds, else discard.
             if not (self.cmd_vel_last == twist):
                 rospy.logdebug("cmd_vel message received: " + str(twist))
                 w = self.bth.twist_to_wheel_velocities(twist)
                 self.motor_mgr_cmd_queue.append(w)
             self.cmd_vel_last = twist                    
             self.sleeper.sleep()
+
+        rospy.loginfo("BaseController.run(): waiting for motor_mgr to stop...")
+        self.motor_mgr.quit = True
+        self.motor_mgr.join()
         rospy.loginfo("BaseController.run(): exiting.")
         
     def cmd_vel_callback(self, twist_msg):
@@ -85,9 +96,13 @@ class BaseTransformHandler(object):
         self.R = R
         self.w4_to_v3 =  np.array([
             [1.0, 1.0, 1.0, 1.0],
-            [-1.0, 1.0, 1.0, -1.0],
-            [1.0 / L, -1.0 / L, 1.0 / L, -1.0 / L]])
-        self.v3_to_w4 = np.transpose(self.w4_to_v3)
+            [-1.0, 1.0, -1.0, 1.0],
+            [-1.0/L, -1.0/L, 1.0/L, 1.0/L]])
+        self.v3_to_w4 = np.array([
+            [1.0, -1.0, -L],
+            [1.0, 1.0, -L],
+            [1.0, -1.0, -L],
+            [1.0, 1.0, -L]])
 
     def wheel_velocities_to_twist(self, w):
         w = np.array([w[0], w[1], w[2], w[3]])

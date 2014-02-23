@@ -39,7 +39,7 @@ class JoyController(threading.Thread):
             msg = Twist()
             #rospy.logdebug("got a callback from Joy: \n" + "axes: " + str(axes) + '\n' + "buttons: " + str(buttons))            
             msg.linear.x = axes[1] * self.linear_rate
-            msg.linear.y = axes[0] * -self.linear_rate
+            msg.linear.y = axes[0] * self.linear_rate
             
             if 1 == buttons[1]:
                 msg.angular.z = -1.0 * self.angular_rate
