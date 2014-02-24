@@ -9,6 +9,9 @@ import rospy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 
+UPDATE_RATE_Hz = 5
+
+
 class JoyController(threading.Thread):
     
     def __init__(self):
@@ -23,8 +26,9 @@ class JoyController(threading.Thread):
         threading.Thread.__init__(self)    
     
     def run(self):
+        sleeper = rospy.Rate(UPDATE_RATE_Hz)
         while not rospy.is_shutdown():
-            time.sleep(0.1)
+            sleeper.sleep()
             with self.lock:
                 axes = copy.copy(self.axes)
                 buttons = copy.copy(self.buttons)
@@ -33,9 +37,10 @@ class JoyController(threading.Thread):
             
             # populate a Twist message from the joystick state
             msg = Twist()
-            rospy.logdebug("got a callback from Joy: \n" + "axes: " + str(axes) + '\n' + "buttons: " + str(buttons))            
+            #rospy.logdebug("got a callback from Joy: \n" + "axes: " + str(axes) + '\n' + "buttons: " + str(buttons))            
             msg.linear.x = axes[1] * self.linear_rate
-    
+            msg.linear.y = axes[0] * -self.linear_rate
+            
             if 1 == buttons[1]:
                 msg.angular.z = -1.0 * self.angular_rate
                             
@@ -76,9 +81,9 @@ class JoyController(threading.Thread):
 
 
 def main(args):
+    rospy.init_node('joy_controller_node', anonymous=True, log_level=rospy.DEBUG)
     controller = JoyController()
     controller.start()
-    rospy.init_node('joy_controller_node', anonymous=True)
     rospy.spin()
         
 if __name__ == '__main__':

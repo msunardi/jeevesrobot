@@ -6,6 +6,8 @@ import struct
 import threading
 import time
 
+import rospy
+
 import roboclaw as rc
 
 # empirically measured
@@ -669,7 +671,7 @@ class RoboClawManager(threading.Thread):
     it is converted to four wheel speed commands in encoder ticks per second.
     """
     def __init__(self, ports, baudrate, accel, max_ticks_per_second,
-                 ticks_per_rev, poll_interval_s, cmd_input_queue, output_queue,
+                 ticks_per_rev, poll_rate_hz, cmd_input_queue, output_queue,
                  simulate=False):
         """
         Initialize the RoboClawManager.
@@ -682,14 +684,14 @@ class RoboClawManager(threading.Thread):
             the motors are running at 100% duty cycle. This is empirically
             determined. Roboclaw needs this at start to report correct "QPPS".
             See the Roboclaw manual.
-        :param poll_interval_s: 1/rate at which the work thread runs.
+        :param poll_rate_hz: rate at which the work thread runs.
             RoboClawManager will periocially poll the RoboClaws for wheel
             speeds, and look for and dispatch incoming speed change commands.
         :param accel: the rate at which the Roboclaw controllers will
             accelerate the wheels to a commanded speed, in counts/s/s.
         :param cmd_input_queue: this queue will be checked every
-            poll_interval_s seconds for incoming speed change commands.
-        :param output_queue: every poll_interval_s seconds, RoboClawManager
+            1 / poll_interval_s seconds for incoming speed change commands.
+        :param output_queue: every 1 / poll_rate_hz seconds, RoboClawManager
             polls the Roboclaw controllers for the current wheel speeds, pack
             the speeds into a tuple, and put them into the output_queue.
         """
@@ -698,7 +700,7 @@ class RoboClawManager(threading.Thread):
         self.accel = accel
         self.max_ticks_per_second = max_ticks_per_second
         self.ticks_per_rev = ticks_per_rev
-        self.poll_interval_s = poll_interval_s
+        self.sleeper = rospy.Rate(poll_rate_hz)
         self.cmd_queue = cmd_input_queue
         self.output_queue = output_queue
         self.simulate = simulate
@@ -724,7 +726,7 @@ class RoboClawManager(threading.Thread):
                 self.set_wheel_velocities(w)
             w = self.get_wheel_velocities()
             self.output_queue.append(w)
-            time.sleep(self.poll_interval_s)
+            self.sleeper.sleep()
         logging.info("RoboClawManager: exiting.")
 
     def set_wheel_velocities(self, w):
