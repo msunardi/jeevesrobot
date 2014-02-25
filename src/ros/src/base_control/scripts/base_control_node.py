@@ -61,9 +61,8 @@ class BaseController(threading.Thread):
         """Pull a cmd_vel (Twist) message from the incoming queue, covert it
           to a tuple of motor speeds, and put them into the motor manager's
           work queue, ad infinitum"""
+        twist = Twist()
         while not rospy.is_shutdown():
-            twist = Twist()
-
             # get a new command
             with self.lock:
                 if len(self.cmd_vel_incoming) != 0:
@@ -101,8 +100,8 @@ class BaseTransformHandler(object):
         self.v3_to_w4 = np.array([
             [1.0, -1.0, -L],
             [1.0, 1.0, -L],
-            [1.0, -1.0, -L],
-            [1.0, 1.0, -L]])
+            [1.0, -1.0, L],
+            [1.0, 1.0, L]])
 
     def wheel_velocities_to_twist(self, w):
         w = np.array([w[0], w[1], w[2], w[3]])
@@ -145,10 +144,19 @@ class OdometryPublisher(threading.Thread):
                 # get the incoming update
                 w = self.work_queue.popleft()
                 twist = self.transformer.wheel_velocities_to_twist(w)
-                self.theta += twist.angular.z * self.delta_t
-                self.x += (twist.linear.x * self.delta_t) * np.cos(self.theta)
-                self.y += (twist.linear.y * self.delta_t) * np.sin(self.theta)
-                
+                rospy.logdebug("OdometryPublisher.run(): wheel velocities: " + str(w))
+                rospy.logdebug("OdometryPublisher.run(): twist: " + str(twist))
+
+# double delta_x = (vx * cos(th) - vy * sin(th)) * dt;
+# double delta_y = (vx * sin(th) + vy * cos(th)) * dt;
+# double delta_th = vth * dt;
+                delta_x = (twist.linear.x * np.cos(self.theta) - twist.linear.y * np.sin(self.theta)) * self.delta_t
+                delta_y = (twist.linear.x * np.sin(self.theta) + twist.linear.y * np.cos(self.theta)) * self.delta_t
+                delta_theta = twist.angular.z * self.delta_t
+                self.x += delta_x
+                self.y += delta_y
+                self.theta += delta_theta
+
                 # create an Odometry message
                 msg = Odometry()
                 msg.header.stamp = rospy.Time.now()

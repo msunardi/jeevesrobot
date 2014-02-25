@@ -1,6 +1,7 @@
 """Factory demo code from Orion Robotics, wrapped into classes."""
 import logging
 import numpy
+import pdb
 import serial
 import struct
 import threading
@@ -365,7 +366,6 @@ class RoboClaw(object):
         self.writeslong(speed2)
         self.writebyte(self.checksum & 0x7F)
         return
-
     def SetM1SpeedDistance(self, speed, distance, buffer):
         self.sendcommand(128, 41)
         self.writeslong(speed)
@@ -720,22 +720,24 @@ class RoboClawManager(threading.Thread):
 
     def run(self):
         while((self.quit == False)):
+            w_in = (0.0, 0.0, 0.0, 0.0)
             if 0 != len(self.cmd_queue):
-                w = self.cmd_queue.popleft()
-                self.set_wheel_velocities(w)
-            w = self.get_wheel_velocities()
-            self.output_queue.append(w)
+                w_in = self.cmd_queue.popleft()
+                self.set_wheel_velocities(w_in)
+            w_out = self.get_wheel_velocities()
+            self.output_queue.append(w_out)
             time.sleep(1.0 / self.poll_rate_hz)
         logging.info("RoboClawManager: exiting.")
 
     def set_wheel_velocities(self, w):
+        """Set wheel velocities in this order: lf, lr, rr, rf."""
         n0 = self.radians_to_ticks(w[0])
         n1 = self.radians_to_ticks(w[1])
         n2 = self.radians_to_ticks(w[2])
         n3 = self.radians_to_ticks(w[3])
 
-        self.front.SetMixedSpeedAccel(self.accel, n0, n1)
-        self.rear.SetMixedSpeedAccel(self.accel, n2, n3)
+        self.front.SetMixedSpeedAccel(self.accel, n0, n3)
+        self.rear.SetMixedSpeedAccel(self.accel, n1, n2)
 
     def get_wheel_velocities(self):
         """ Ask the Roboclaw controller for the current instantaneous speeds,
@@ -744,9 +746,9 @@ class RoboClawManager(threading.Thread):
         """
         w = [0.0, 0.0, 0.0, 0.0]
         w[0] = self.ticks_to_radians(125.0 * self.front.readM1instspeed())
-        w[1] = self.ticks_to_radians(125.0 * self.front.readM2instspeed())
-        w[2] = self.ticks_to_radians(125.0 * self.rear.readM1instspeed())
-        w[3] = self.ticks_to_radians(125.0 * self.rear.readM2instspeed())
+        w[1] = self.ticks_to_radians(125.0 * self.rear.readM1instspeed())
+        w[2] = self.ticks_to_radians(125.0 * self.rear.readM2instspeed())
+        w[3] = self.ticks_to_radians(125.0 * self.front.readM2instspeed())
         return tuple(w)
 
     def ticks_to_radians(self, n):

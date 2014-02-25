@@ -58,7 +58,14 @@ class BaseControllerTransformHandlerTest(unittest.TestCase):
         w = th.twist_to_wheel_velocities(twist)
         self.assertEqual(w, should_be)
 
-        
+        # z-axis, positive
+        twist = Twist()
+        twist.linear.x = 0.0
+        twist.linear.y = 0.0
+        twist.angular.z = 1.0
+        should_be = (-1.0, -1.0, 1.0, 1.0)
+        w = th.twist_to_wheel_velocities(twist)
+        self.assertEqual(w, should_be)
         
 def main():
     """Run all tests."""
