@@ -147,11 +147,12 @@ class OdometryPublisher(threading.Thread):
                 rospy.logdebug("OdometryPublisher.run(): wheel velocities: " + str(w))
                 rospy.logdebug("OdometryPublisher.run(): twist: " + str(twist))
 
-# double delta_x = (vx * cos(th) - vy * sin(th)) * dt;
-# double delta_y = (vx * sin(th) + vy * cos(th)) * dt;
-# double delta_th = vth * dt;
-                delta_x = (twist.linear.x * np.cos(self.theta) - twist.linear.y * np.sin(self.theta)) * self.delta_t
-                delta_y = (twist.linear.x * np.sin(self.theta) + twist.linear.y * np.cos(self.theta)) * self.delta_t
+                # calculate our new position using a
+                # simple deterministic model
+                delta_x = ((twist.linear.x * np.cos(self.theta) - twist.linear.y
+                            * np.sin(self.theta)) * self.delta_t)
+                delta_y = ((twist.linear.x * np.sin(self.theta) + twist.linear.y
+                            * np.cos(self.theta)) * self.delta_t)
                 delta_theta = twist.angular.z * self.delta_t
                 self.x += delta_x
                 self.y += delta_y
