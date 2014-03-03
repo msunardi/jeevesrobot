@@ -15,7 +15,7 @@ import tf
 
 import roboclaw as rc
 
-SIMULATE_ROBOCLAWS = True
+SIMULATE_ROBOCLAWS = False
 WHEEL_RADIUS_m = 0.1016 # 4" radius wheels, in meters
 HALF_WHEELBASE_X_m = 0.2413 # 9.5" in meters
 HALF_WHEELBASE_Y_m = 0.2032 # 8" in meters
@@ -28,7 +28,7 @@ class BaseController(threading.Thread):
         #start a RoboClawManager
         ports = ('/dev/ttyUSB0', '/dev/ttyACM0')
         baudrate = 2400
-        accel = 250
+        accel = 1000
         max_ticks_per_second = 3336
         self.sleeper = rospy.Rate(MOTOR_CONTROLLER_POLL_RATE_Hz)
         self.motor_mgr_cmd_queue = deque()
