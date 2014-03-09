@@ -45,7 +45,6 @@ class RoboClaw(object):
         self.SetM1pidq(p, i, d, max_ticks_per_second)
         (p, i, d, q) = self.readM2pidq()
         self.SetM2pidq(p, i, d, max_ticks_per_second)
-
     def __del__(self):
         self.port.close()
 
@@ -637,11 +636,17 @@ class RoboClawSim(object):
         self.M1Speed = speed1
         self.M2Speed = speed2
 
+    def readM1speed(self):
+        return (self.M1Speed, 0)
+    
+    def readM2speed(self):
+        return (self.M2Speed, 0)
+    
     def readM1instspeed(self):
-        return self.M1Speed / 125.0
+        return (int(self.M1Speed / 125.0), 0)
 
     def readM2instspeed(self):
-        return self.M2Speed / 125.0
+        return (int(self.M2Speed / 125.0), 0)
 
     def SetM1pidq(self, p, i, d, qpps):
         pass
@@ -710,7 +715,7 @@ class RoboClawManager(threading.Thread):
             self.rear = rc.RoboClawSim(ports[1], baudrate, accel,
                                        max_ticks_per_second)
         else:
-            self.front = rc.RoboClaw(ports[0], baudrate, accel,
+            self.front = rc.RoboClawSim(ports[0], baudrate, accel,
                                         max_ticks_per_second)
             self.rear = rc.RoboClaw(ports[1], baudrate, accel,
                                        max_ticks_per_second)
@@ -719,36 +724,45 @@ class RoboClawManager(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        """Ask the controller for our current speed and output it,
+        unless we've got an incoming move command, in which
+        we'll send the command and output our last speeds."""
+        w_prev = (0.0, 0.0, 0.0, 0.0)
+        w_out = (0.0, 0.0, 0.0, 0.0)
         while((self.quit == False)):
             w_in = (0.0, 0.0, 0.0, 0.0)
             if 0 != len(self.cmd_queue):
                 w_in = self.cmd_queue.popleft()
                 self.set_wheel_velocities(w_in)
-            w_out = self.get_wheel_velocities()
+                w_out = w_prev
+            else:
+                w_out = self.get_wheel_velocities()
             self.output_queue.append(w_out)
+            w_prev = w_out
             time.sleep(1.0 / self.poll_rate_hz)
         logging.info("RoboClawManager: exiting.")
 
     def set_wheel_velocities(self, w):
-        """Set wheel velocities in this order: lf, lr, rr, rf."""
+        """Set wheel velocities received in this order: lf, lr, rr, rf."""
         n0 = self.radians_to_ticks(w[0])
         n1 = self.radians_to_ticks(w[1])
         n2 = self.radians_to_ticks(w[2])
         n3 = self.radians_to_ticks(w[3])
 
-        self.front.SetMixedSpeedAccel(self.accel, n0, n3)
-        self.rear.SetMixedSpeedAccel(self.accel, n1, n2)
+        self.front.SetMixedSpeedAccel(self.accel, int(n0), int(n3))
+        self.rear.SetMixedSpeedAccel(self.accel, int(n1), int(n2))
 
     def get_wheel_velocities(self):
         """ Ask the Roboclaw controller for the current instantaneous speeds,
-         in ticks/second. The speeds returned from the Roboclaws are in units
-         of 'ticks per 1/125 seconds'.
+         in ticks/second. The speeds returned from the Roboclaws are in
+         encoder ticks.
         """
         w = [0.0, 0.0, 0.0, 0.0]
-        w[0] = self.ticks_to_radians(125.0 * self.front.readM1instspeed())
-        w[1] = self.ticks_to_radians(125.0 * self.rear.readM1instspeed())
-        w[2] = self.ticks_to_radians(125.0 * self.rear.readM2instspeed())
-        w[3] = self.ticks_to_radians(125.0 * self.front.readM2instspeed())
+        w[0] = self.ticks_to_radians(self.front.readM1speed()[0])
+        w[1] = self.ticks_to_radians(self.rear.readM1speed()[0])
+        time.sleep(1.0/ self.poll_rate_hz)
+        w[2] = self.ticks_to_radians(self.rear.readM2speed()[0])
+        w[3] = self.ticks_to_radians(self.front.readM2speed()[0])        
         return tuple(w)
 
     def ticks_to_radians(self, n):
