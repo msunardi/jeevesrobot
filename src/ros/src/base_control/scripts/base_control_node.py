@@ -10,12 +10,13 @@ import roslib
 import rospy
 from geometry_msgs.msg import Twist, Point, Quaternion
 from nav_msgs.msg import Odometry
+from roboteq_msgs.msg import Command as MotorCommand
 import PyKDL as kdl
 import tf
 
 import roboclaw as rc
 
-SIMULATE_ROBOCLAWS = False
+SIMULATE_ROBOCLAWS = True
 WHEEL_RADIUS_m = 0.1016 # 4" radius wheels, in meters
 HALF_WHEELBASE_X_m = 0.2413 # 9.5" in meters
 HALF_WHEELBASE_Y_m = 0.2032 # 8" in meters
@@ -40,14 +41,16 @@ class BaseController(threading.Thread):
                                 self.motor_mgr_cmd_queue,
                                 self.motor_mgr_output_queue,
                                 SIMULATE_ROBOCLAWS)
-        self.publisher = OdometryPublisher(self.motor_mgr_output_queue,
+        self.motor2_cmd_publisher = rospy.Publisher("/motor2/cmd", MotorCommand)
+        self.motor3_cmd_publisher = rospy.Publisher("/motor3/cmd", MotorCommand)
+        self.odom_publisher = OdometryPublisher(self.motor_mgr_output_queue,
                                            BaseTransformHandler(WHEEL_RADIUS_m,
                                                             HALF_WHEELBASE_X_m,
                                                             HALF_WHEELBASE_Y_m),
                                            MOTOR_CONTROLLER_POLL_RATE_Hz)
         # start up worker threads
         self.motor_mgr.start()
-        self.publisher.start()
+        self.odom_publisher.start()
         self.bth = BaseTransformHandler(WHEEL_RADIUS_m, HALF_WHEELBASE_X_m,
                                   HALF_WHEELBASE_Y_m)
 
@@ -72,6 +75,9 @@ class BaseController(threading.Thread):
             if not (self.cmd_vel_last == twist):
                 rospy.logdebug("cmd_vel message received: " + str(twist))
                 w = self.bth.twist_to_wheel_velocities(twist)
+                c = MotorCommand()
+                self.motor2_cmd_publisher.publish(MotorCommand(w[1]))
+                self.motor3_cmd_publisher.publish(MotorCommand(w[2]))
                 self.motor_mgr_cmd_queue.append(w)
             self.cmd_vel_last = twist                    
             self.sleeper.sleep()
@@ -94,14 +100,14 @@ class BaseTransformHandler(object):
         assert R > 0.0
         self.R = R
         self.w4_to_v3 =  np.array([
-            [1.0, 1.0, 1.0, 1.0],
-            [-1.0, 1.0, -1.0, 1.0],
-            [-1.0/L, -1.0/L, 1.0/L, 1.0/L]])
+            [1.0, 1.0, -1.0, -1.0],
+            [-1.0, 1.0, 1.0, -1.0],
+            [-1.0/L, -1.0/L, -1.0/L, -1.0/L]])
         self.v3_to_w4 = np.array([
-            [1.0, -1.0, -L],
             [1.0, 1.0, -L],
-            [1.0, -1.0, L],
-            [1.0, 1.0, L]])
+            [1.0, 1.0, -L],
+            [-1.0, 1.0, -L],
+            [-1.0, -1.0, -L]])
 
     def wheel_velocities_to_twist(self, w):
         w = np.array([w[0], w[1], w[2], w[3]])
@@ -124,7 +130,7 @@ class OdometryPublisher(threading.Thread):
         self.sleeper = rospy.Rate(motor_update_rate_hz)
         self.delta_t = 1.0 / motor_update_rate_hz
         self.motor_update_rate_hz = motor_update_rate_hz
-        self.publisher = rospy.Publisher("/odom", Odometry)
+        self.odom_publisher = rospy.Publisher("/odom", Odometry)
         self.tf_broadcaster = tf.TransformBroadcaster()
         self.frame_id = '/odom'
         self.child_frame_id = '/base_footprint'
@@ -194,14 +200,14 @@ class OdometryPublisher(threading.Thread):
                 if 0 == (loop_count % 5):
                     # Publish odometry message and transform
                     rospy.logdebug("OdometryPublisher.run(): publishing to /odom")
-                    self.publisher.publish(msg)          
+                    self.odom_publisher.publish(msg)
                     self.tf_broadcaster.sendTransform(pos, ori, msg.header.stamp,
                                                         msg.child_frame_id,
                                                         msg.header.frame_id)
             
 
 def main(args):
-    rospy.init_node('base_controller_node', anonymous=True, log_level=rospy.DEBUG)
+    rospy.init_node('base_controller_node', anonymous=True, log_level=rospy.INFO)
     controller = BaseController()
     controller.start()
     rospy.spin()

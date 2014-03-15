@@ -715,7 +715,7 @@ class RoboClawManager(threading.Thread):
             self.rear = rc.RoboClawSim(ports[1], baudrate, accel,
                                        max_ticks_per_second)
         else:
-            self.front = rc.RoboClawSim(ports[0], baudrate, accel,
+            self.front = rc.RoboClaw(ports[0], baudrate, accel,
                                         max_ticks_per_second)
             self.rear = rc.RoboClaw(ports[1], baudrate, accel,
                                        max_ticks_per_second)

@@ -59,11 +59,11 @@ class JoyController(threading.Thread):
                 self.angular_rate = 0.0
     
             if 1 == buttons[4]: # left upper trigger
-                self.linear_rate += 0.25
+                self.linear_rate += 0.05
                 
             if 1 == buttons[6]: # left lower trigger
                 if self.linear_rate != 0.0:
-                    self.linear_rate -= 0.25
+                    self.linear_rate -= 0.05
                 
             if 1 == buttons[5]: # right upper trigger
                 self.angular_rate += 0.25
@@ -81,7 +81,7 @@ class JoyController(threading.Thread):
 
 
 def main(args):
-    rospy.init_node('joy_controller_node', anonymous=True, log_level=rospy.DEBUG)
+    rospy.init_node('joy_controller_node', anonymous=True, log_level=rospy.INFO)
     controller = JoyController()
     controller.start()
     rospy.spin()
