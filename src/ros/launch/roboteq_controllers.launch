@@ -3,7 +3,7 @@
         <rosparam>
             port: /dev/ttyACM0
             baud: 115200
-            channels: ["motor_1", "motor_4"]
+            channels: ["motor2", "motor3"]
         </rosparam>
     </node>
 </launch>
