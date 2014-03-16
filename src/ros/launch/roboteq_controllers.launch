@@ -1,7 +1,14 @@
 <launch>
-    <node pkg="roboteq_driver" type="driver_node" name="roboteq_driver" output="screen">
+    <node pkg="roboteq_driver" type="driver_node" name="roboteq_driver_front" output="screen">
         <rosparam>
             port: /dev/ttyACM0
+            baud: 115200
+            channels: ["motor1", "motor4"]
+        </rosparam>
+    </node>
+    <node pkg="roboteq_driver" type="driver_node" name="roboteq_driver_rear" output="screen">
+        <rosparam>
+            port: /dev/ttyACM1
             baud: 115200
             channels: ["motor2", "motor3"]
         </rosparam>

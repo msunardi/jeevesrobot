@@ -41,8 +41,10 @@ class BaseController(threading.Thread):
                                 self.motor_mgr_cmd_queue,
                                 self.motor_mgr_output_queue,
                                 SIMULATE_ROBOCLAWS)
+        self.motor1_cmd_publisher = rospy.Publisher("/motor1/cmd", MotorCommand)
         self.motor2_cmd_publisher = rospy.Publisher("/motor2/cmd", MotorCommand)
         self.motor3_cmd_publisher = rospy.Publisher("/motor3/cmd", MotorCommand)
+        self.motor4_cmd_publisher = rospy.Publisher("/motor4/cmd", MotorCommand)
         self.odom_publisher = OdometryPublisher(self.motor_mgr_output_queue,
                                            BaseTransformHandler(WHEEL_RADIUS_m,
                                                             HALF_WHEELBASE_X_m,
@@ -76,8 +78,10 @@ class BaseController(threading.Thread):
                 rospy.logdebug("cmd_vel message received: " + str(twist))
                 w = self.bth.twist_to_wheel_velocities(twist)
                 c = MotorCommand()
+                self.motor1_cmd_publisher.publish(MotorCommand(w[0]))
                 self.motor2_cmd_publisher.publish(MotorCommand(w[1]))
                 self.motor3_cmd_publisher.publish(MotorCommand(w[2]))
+                self.motor4_cmd_publisher.publish(MotorCommand(w[3]))
                 self.motor_mgr_cmd_queue.append(w)
             self.cmd_vel_last = twist                    
             self.sleeper.sleep()
@@ -100,14 +104,14 @@ class BaseTransformHandler(object):
         assert R > 0.0
         self.R = R
         self.w4_to_v3 =  np.array([
-            [1.0, 1.0, -1.0, -1.0],
-            [-1.0, 1.0, 1.0, -1.0],
-            [-1.0/L, -1.0/L, -1.0/L, -1.0/L]])
+            [1.0, 1.0, 1.0, 1.0],
+            [-1.0, 1.0, -1.0, 1.0],
+            [-1.0/L, -1.0/L, 1.0/L, 1.0/L]])
         self.v3_to_w4 = np.array([
+            [1.0, -1.0, -L],
             [1.0, 1.0, -L],
-            [1.0, 1.0, -L],
-            [-1.0, 1.0, -L],
-            [-1.0, -1.0, -L]])
+            [1.0, -1.0, L],
+            [1.0, 1.0, L]])
 
     def wheel_velocities_to_twist(self, w):
         w = np.array([w[0], w[1], w[2], w[3]])

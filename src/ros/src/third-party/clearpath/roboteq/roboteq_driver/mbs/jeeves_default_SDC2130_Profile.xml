@@ -34,10 +34,10 @@
               <Node Text="Priority 1" Value="0">
                 <Nodes />
               </Node>
-              <Node Text="Priority 2" Value="1">
+              <Node Text="Priority 2" Value="4">
                 <Nodes />
               </Node>
-              <Node Text="Priority 3" Value="2">
+              <Node Text="Priority 3" Value="4">
                 <Nodes />
               </Node>
               <Node Text="Priority 4" Value="4">
@@ -69,7 +69,7 @@
             <Nodes>
               <Node Text="RS232 Safety">
                 <Nodes>
-                  <Node Text="Watchdog (ms)" Value="0">
+                  <Node Text="Watchdog (ms)" Value="1000">
                     <Nodes />
                   </Node>
                 </Nodes>
@@ -615,7 +615,7 @@
               <Node Text="Active Level" Value="0">
                 <Nodes />
               </Node>
-              <Node Text="Activate when" Value="49">
+              <Node Text="Activate when" Value="0">
                 <Nodes />
               </Node>
             </Nodes>
@@ -625,7 +625,7 @@
               <Node Text="Active Level" Value="0">
                 <Nodes />
               </Node>
-              <Node Text="Activate when" Value="6">
+              <Node Text="Activate when" Value="0">
                 <Nodes />
               </Node>
             </Nodes>
