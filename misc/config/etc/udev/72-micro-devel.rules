@@ -1,0 +1,6 @@
+SUBSYSTEM=="tty" ATTRS{serial}=="64932343838351A021A1" SYMLINK+="arduino_mega"
+SUBSYSTEM=="tty" ATTRS{serial}=="752303137333511141C0" SYMLINK+="arduino_uno"
+SUBSYSTEM=="tty" ATTRS{serial}=="00059835" SYMLINK+="mini_maestro"
+
+
+

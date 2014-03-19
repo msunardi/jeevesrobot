@@ -1,0 +1,3 @@
+# Roboteq SDC2130 motor controllers
+SUBSYSTEM=="tty", ATTRS{manufacturer}=="Roboteq", ATTRS{serial}=="8D6F587A4949", SYMLINK+="motors_rear"
+SUBSYSTEM=="tty", ATTRS{manufacturer}=="Roboteq", ATTRS{serial}=="8D70327A4949", SYMLINK+="motors_front"

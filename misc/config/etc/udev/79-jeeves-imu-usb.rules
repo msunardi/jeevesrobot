@@ -1,0 +1,2 @@
+# Razor 9DoF AHRS from Sparkfun
+SUBSYSTEM=="usb", ATTRS{manufacturer}=="FTDI", ATTRS{serial}=="A603AYHG", SYMLINK+="imu"
