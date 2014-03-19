@@ -74,15 +74,14 @@ class BaseController(threading.Thread):
                     twist = self.cmd_vel_incoming.popleft()
 
             # if it's a new command, convert it into motor speeds, else discard.
-            if not (self.cmd_vel_last == twist):
-                rospy.logdebug("cmd_vel message received: " + str(twist))
-                w = self.bth.twist_to_wheel_velocities(twist)
-                c = MotorCommand()
-                self.motor1_cmd_publisher.publish(MotorCommand(w[0]))
-                self.motor2_cmd_publisher.publish(MotorCommand(w[1]))
-                self.motor3_cmd_publisher.publish(MotorCommand(w[2]))
-                self.motor4_cmd_publisher.publish(MotorCommand(w[3]))
-                self.motor_mgr_cmd_queue.append(w)
+            rospy.logdebug("cmd_vel message received: " + str(twist))
+            w = self.bth.twist_to_wheel_velocities(twist)
+            c = MotorCommand()
+            self.motor1_cmd_publisher.publish(MotorCommand(w[0]))
+            self.motor2_cmd_publisher.publish(MotorCommand(w[1]))
+            self.motor3_cmd_publisher.publish(MotorCommand(w[2]))
+            self.motor4_cmd_publisher.publish(MotorCommand(w[3]))
+            self.motor_mgr_cmd_queue.append(w)
             self.cmd_vel_last = twist                    
             self.sleeper.sleep()
 
