@@ -53,12 +53,17 @@ class BaseController(threading.Thread):
           work queue, ad infinitum"""
         twist = Twist()
         while not rospy.is_shutdown():
+            self.sleeper.sleep()
+            
             # get a new command
             with self.lock:
                 if len(self.cmd_vel_incoming) != 0:
                     twist = self.cmd_vel_incoming.popleft()
+                else:
+                    continue        
 
-            # if it's a new command, convert it into motor speeds, else discard.
+            # convert the incoming velocity vector into wheel speeds,
+            # (rad/s) and publish them 
             rospy.logdebug("cmd_vel message received: " + str(twist))
             w = self.bth.twist_to_wheel_velocities(twist)
             c = MotorCommand()
@@ -68,8 +73,10 @@ class BaseController(threading.Thread):
             self.motor4_cmd_publisher.publish(MotorCommand(w[3]))
             self.motor_mgr_cmd_queue.append(w)
             self.cmd_vel_last = twist                    
-            self.sleeper.sleep()
 
+        rospy.loginfo("BaseController.run(): waiting for motor_mgr to stop...")
+        self.motor_mgr.quit = True
+        self.motor_mgr.join()
         rospy.loginfo("BaseController.run(): exiting.")
         
     def cmd_vel_callback(self, twist_msg):
