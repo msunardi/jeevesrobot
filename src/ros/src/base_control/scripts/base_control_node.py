@@ -26,21 +26,7 @@ MOTOR_CONTROLLER_POLL_RATE_Hz = 10
 class BaseController(threading.Thread):
     
     def __init__(self):
-        #start a RoboClawManager
-        ports = ('/dev/ttyUSB0', '/dev/ttyACM0')
-        baudrate = 2400
-        accel = 1000
-        max_ticks_per_second = 3336
         self.sleeper = rospy.Rate(MOTOR_CONTROLLER_POLL_RATE_Hz)
-        self.motor_mgr_cmd_queue = deque()
-        self.motor_mgr_output_queue = deque()
-        self.motor_mgr = rc.RoboClawManager(ports, baudrate, accel,
-                                max_ticks_per_second,
-                                rc.TICKS_PER_REV,
-                                MOTOR_CONTROLLER_POLL_RATE_Hz,
-                                self.motor_mgr_cmd_queue,
-                                self.motor_mgr_output_queue,
-                                SIMULATE_ROBOCLAWS)
         self.motor1_cmd_publisher = rospy.Publisher("/motor1/cmd", MotorCommand)
         self.motor2_cmd_publisher = rospy.Publisher("/motor2/cmd", MotorCommand)
         self.motor3_cmd_publisher = rospy.Publisher("/motor3/cmd", MotorCommand)
@@ -51,7 +37,6 @@ class BaseController(threading.Thread):
                                                             HALF_WHEELBASE_Y_m),
                                            MOTOR_CONTROLLER_POLL_RATE_Hz)
         # start up worker threads
-        self.motor_mgr.start()
         self.odom_publisher.start()
         self.bth = BaseTransformHandler(WHEEL_RADIUS_m, HALF_WHEELBASE_X_m,
                                   HALF_WHEELBASE_Y_m)
@@ -85,9 +70,6 @@ class BaseController(threading.Thread):
             self.cmd_vel_last = twist                    
             self.sleeper.sleep()
 
-        rospy.loginfo("BaseController.run(): waiting for motor_mgr to stop...")
-        self.motor_mgr.quit = True
-        self.motor_mgr.join()
         rospy.loginfo("BaseController.run(): exiting.")
         
     def cmd_vel_callback(self, twist_msg):
