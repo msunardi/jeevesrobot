@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-""" Unit tests for the base_control_node module.
+""" Unit tests for the base_control_node module. It is intended that these
+    be unit-level tests for code that doesn't need a ROS node running.
 """
 import logging
 import unittest
@@ -66,7 +67,8 @@ class BaseControllerTransformHandlerTest(unittest.TestCase):
         should_be = (-1.0, -1.0, 1.0, 1.0)
         w = th.twist_to_wheel_velocities(twist)
         self.assertEqual(w, should_be)
-        
+
+
 def main():
     """Run all tests."""
     logging.basicConfig(level=logging.INFO)

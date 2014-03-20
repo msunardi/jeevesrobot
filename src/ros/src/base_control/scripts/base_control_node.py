@@ -17,7 +17,6 @@ import tf
 
 import roboclaw as rc
 
-SIMULATE_ROBOCLAWS = True
 WHEEL_RADIUS_m = 0.1016 # 4" radius wheels, in meters
 HALF_WHEELBASE_X_m = 0.2413 # 9.5" in meters
 HALF_WHEELBASE_Y_m = 0.2032 # 8" in meters

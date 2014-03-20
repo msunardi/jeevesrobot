@@ -1,6 +1,12 @@
 <launch>
   <include file="./roboteq_controllers.launch" />
-  <node name="joystick_node" pkg="joy" type="joy_node" />
-  <node name="joy_controller_node" pkg="base_control" type="joy_controller_node.py" />
-  <node name="base_control_node" pkg="base_control" type="base_control_node.py" />
+  <node name="imu" pkg="razor_imu_9dof" type="node.py">
+   <rosparam>
+     device: /dev/imu
+   </rosparam>
+  </node>
+  <node name="base_odometry" pkg="base_control" type="odometry_publisher_node.py" />
+  <node name="joystick" pkg="joy" type="joy_node" />
+  <node name="joy_controller" pkg="base_control" type="joy_controller_node.py" />
+  <node name="base_control" pkg="base_control" type="base_control_node.py" />
 </launch>
