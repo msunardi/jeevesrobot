@@ -1,0 +1,2 @@
+# RS-422 converter connected to SICK LMS-200 laser rangefinder
+SUBSYSTEM=="tty", ATTRS{manufacturer}=="FTDI", ATTRS{serial}=="A602HY18", SYMLINK+="sick_lms_200"
