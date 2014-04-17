@@ -1,4 +1,5 @@
 <launch>
   <include file="./roboteq_controllers.launch" />
+  <include file="$(find razor_imu_9dof)/launch/razor.launch" />
   <node name="base_control_node" pkg="base_control" type="base_control_node.py" />
 </launch>
