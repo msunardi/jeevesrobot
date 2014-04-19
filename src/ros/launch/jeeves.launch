@@ -1,13 +1,36 @@
 <launch>
+  <!-- motor controllers -->
   <include file="./roboteq_controllers.launch" />
+
+  <!-- imu -->
   <node name="imu" pkg="razor_imu_9dof" type="node.py">
    <rosparam>
      device: /dev/imu
    </rosparam>
   </node>
+
+  <!-- laser scanner -->
   <include file="./sick_lms_200.launch" />
+
+  <!-- jeeves-specific stuff -->
   <node name="base_odometry" pkg="base_control" type="odometry_publisher_node.py" />
   <node name="joystick" pkg="joy" type="joy_node" />
   <node name="joy_controller" pkg="base_control" type="joy_controller_node.py" />
   <node name="base_control" pkg="base_control" type="base_control_node.py" />
+
+  <!-- Nav stack -->
+  <node name="gmapping" pkg="gmapping" type="slam_gmapping"> 
+    <rosparam>
+      scan: scan
+      base_frame: base_footprint
+    </rosparam>
+  </node>
+  <include file="$(find amcl)/examples/amcl_omni.launch"/>
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <rosparam file="$(find jeeves_2d_nav)/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find jeeves_2d_nav)/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find jeeves_2d_nav)/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find jeeves_2d_nav)/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find jeeves_2d_nav)/base_local_planner_params.yaml" command="load" />
+  </node>
 </launch>

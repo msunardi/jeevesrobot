@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC -O2 -g   -shared -Wl,-soname,libgtest.so -o ../lib/libgtest.so CMakeFiles/gtest.dir/src/gtest-all.cc.o -L/home/mcecsbot/richarda/roboticsclub-mcecsbot/src/ros/src/third-party/razor_imu_9dof/razor_imu_9dof/gtest/src -lpthread -Wl,-rpath,/home/mcecsbot/richarda/roboticsclub-mcecsbot/src/ros/src/third-party/razor_imu_9dof/razor_imu_9dof/gtest/src 
