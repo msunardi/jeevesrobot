@@ -1,0 +1,6 @@
+image: ../Downloads/EB_only_Lower_Level_sm.png
+resolution: 0.06096
+origin: [-22.0, -25.0, 0.0]
+occupied_thresh: 0.65
+free_thresh: 0.196
+negate: 0
