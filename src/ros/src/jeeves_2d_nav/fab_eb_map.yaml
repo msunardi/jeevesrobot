@@ -1,4 +1,4 @@
-image: ../Downloads/FAB_EB_Lower_Levels_sm.png
+image: ./FAB_EB_Lower_Levels_sm.png
 resolution: 0.06096
 origin: [-22.0, -25.0, 0.0]
 occupied_thresh: 0.65
