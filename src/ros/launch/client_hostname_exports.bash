@@ -3,11 +3,11 @@
 # communication with the ROS master on jeeves.
 
 # IP of the remote client.
-export ROS_IP=131.252.201.217
+export ROS_IP=192.168.1.24
 
 # Hostname of the remote client
 # (or simply the IP, if you don't have name resolution).
-export ROS_HOSTNAME=131.252.201.217
+export ROS_HOSTNAME=192.168.1.24
 
 # URI of the robot
-export ROS_MASTER_URI=http://jeeves.dnsdynamic.com:11311
+export ROS_MASTER_URI=http://192.168.1.2:11311
