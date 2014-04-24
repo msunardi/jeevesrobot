@@ -2,9 +2,7 @@
 import copy
 import sys
 import threading
-import time
 
-import roslib
 import rospy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
@@ -40,13 +38,8 @@ class JoyController(threading.Thread):
             #rospy.logdebug("got a callback from Joy: \n" + "axes: " + str(axes) + '\n' + "buttons: " + str(buttons))            
             msg.linear.x = axes[1] * self.linear_rate
             msg.linear.y = axes[0] * self.linear_rate
-            
-            if 1 == buttons[1]:
-                msg.angular.z = -1.0 * self.angular_rate
-                            
-            if 1 == buttons[3]:
-                msg.angular.z = 1.0 * self.angular_rate
-            
+            msg.angular.z = axes[2] * self.angular_rate
+
             # publish            
             rospy.logdebug("Publishing to topic /cmd_vel: " + str(msg))
             self.publisher.publish(msg)
