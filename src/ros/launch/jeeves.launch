@@ -19,16 +19,17 @@
   <node name="base_control" pkg="base_control" type="base_control_node.py" />
 
   <!-- Nav stack -->
+<!--
    <node name="gmapping" pkg="gmapping" type="slam_gmapping"> 
     <rosparam>
       scan: scan
       base_frame: base_footprint
     </rosparam>
   </node>
-
-<!--
-  <include file="./amcl_omni.launch"/>
 -->
+
+  <include file="./map_server.launch" />
+  <include file="./amcl_omni.launch" />
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <rosparam file="$(find jeeves_2d_nav)/costmap_common_params.yaml" command="load" ns="global_costmap" />
