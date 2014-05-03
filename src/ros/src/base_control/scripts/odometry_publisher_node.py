@@ -12,6 +12,7 @@ from geometry_msgs.msg import Twist, Point, Quaternion
 from nav_msgs.msg import Odometry
 from roboteq_msgs.msg import Command as MotorCommand
 from roboteq_msgs.msg import Feedback as MotorFeedback
+from sensor_msgs.msg import Imu
 import PyKDL as kdl
 import tf
 
@@ -56,6 +57,7 @@ class OdometryPublisher(threading.Thread):
         self.sleeper = rospy.Rate(odometry_update_rate_hz)
         self.delta_t = 1.0 / odometry_update_rate_hz
         self.odom_publisher = rospy.Publisher("/odom", Odometry)
+        self.imu_subscriber = rospy.Subscriber("/imu", Imu, self.imu_callback)
         self.tf_broadcaster = tf.TransformBroadcaster()
         self.frame_id = '/odom'
         self.child_frame_id = '/base_footprint'
@@ -63,6 +65,7 @@ class OdometryPublisher(threading.Thread):
         self.x = 0.0
         self.y = 0.0
         self.theta = 0.0
+        self.imu_orientation = Quaternion()
         threading.Thread.__init__(self)
 
     def run(self):
@@ -78,14 +81,16 @@ class OdometryPublisher(threading.Thread):
 
             # calculate our new position using a
             # simple deterministic model
+            q = self.imu_orientation
+            self.theta = (kdl.Rotation.Quaternion(q.x, q.y, q.z, q.w).GetRPY())[2]
             delta_x = ((twist.linear.x * np.cos(self.theta) - twist.linear.y
                         * np.sin(self.theta)) * self.delta_t)
             delta_y = ((twist.linear.x * np.sin(self.theta) + twist.linear.y
                         * np.cos(self.theta)) * self.delta_t)
-            delta_theta = twist.angular.z * self.delta_t
+#            delta_theta = twist.angular.z * self.delta_t
             self.x += delta_x
             self.y += delta_y
-            self.theta += delta_theta
+#            self.theta += delta_theta
 
             # create an Odometry message
             msg = Odometry()
@@ -95,21 +100,7 @@ class OdometryPublisher(threading.Thread):
 
             msg.twist.twist = twist
             msg.pose.pose.position = Point(self.x, self.y, 0.0)
-            msg.pose.pose.orientation = Quaternion(*(kdl.Rotation.RPY(0.0, 0.0, self.theta).GetQuaternion()))
-
-            p_cov = np.array([0.0]*36).reshape(6,6)
-
-            # position covariance
-            p_cov[0:2,0:2] = self.P[0:2,0:2]
-            # orientation covariance for Yaw
-            # x and Yaw
-            p_cov[5,0] = p_cov[0,5] = self.P[2,0]
-            # y and Yaw
-            p_cov[5,1] = p_cov[1,5] = self.P[2,1]
-            # Yaw and Yaw
-            p_cov[5,5] = self.P[2,2]
-
-            msg.pose.covariance = tuple(p_cov.ravel().tolist())
+            msg.pose.pose.orientation = self.imu_orientation
 
             pos = (msg.pose.pose.position.x,
                    msg.pose.pose.position.y,
@@ -140,6 +131,12 @@ class OdometryPublisher(threading.Thread):
     def motor_4_feedback_callback(self, feedback_msg):
         self.w_4 = feedback_msg.measured_velocity
 
+    def imu_callback(self, imu_msg):
+        self.imu_orientation = imu_msg.orientation
+        self.imu_orientation.z = -self.imu_orientation.z
+        self.imu_orientation.x = 0.0
+        self.imu_orientation.y = 0.0
+        self.imu_orientation.w = 1.0
 
 def main(args):
     rospy.init_node('base_odometry', anonymous=True, log_level=rospy.INFO)
