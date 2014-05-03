@@ -76,6 +76,7 @@ class ObstacleAvoider(threading.Thread):
         delta_angular = 0.0
         angular_scaling = 0.7
         linear_rate = 0.15
+        distance_scaling = 1.0
 
         # Get heading
         while not self.imu_data:
@@ -87,9 +88,9 @@ class ObstacleAvoider(threading.Thread):
         while not rospy.is_shutdown():
             sleeper.sleep()
             #msg = Twist()
-            rospy.logdebug("Ding!")
+            #rospy.logdebug("Ding!")
             if self.imu_data:
-                rospy.logdebug("Got IMU data: %s" % self.imu_data)
+                #rospy.logdebug("Got IMU data: %s" % self.imu_data)
 
                 delta_heading = initial_heading - self.imu_data.yaw
                 print "Initial: %s vs. current %s -- delta: %s" % (initial_heading, self.imu_data.yaw, delta_heading)
@@ -99,26 +100,29 @@ class ObstacleAvoider(threading.Thread):
 
             if self.scan_data:
                 rospy.logdebug("Got Scan data:")
-                rospy.logdebug("Scan.ranges size: %s" % len(self.scan_data.ranges))
+                #rospy.logdebug("Scan.ranges size: %s" % len(self.scan_data.ranges))
 
                 scan = self.array_cleanup(self.scan_data.ranges)
 
                 # Dividing the laser scan data to left, front and right perception
                 # Scan data [right front left] (yes, it's flipped)
                 # Subject to parameter changes
-                left_distance = np.mean(scan[380:])
-                right_distance = np.mean(scan[:260])
-                front_distance = np.mean(scan[260:380])
+                #left_distance = np.mean(scan[380:])
+                #right_distance = np.mean(scan[:260])
+                #front_distance = np.mean(scan[260:380])
+                left_distance = np.mean(scan[120:])*distance_scaling
+                right_distance = np.mean(scan[:70])*distance_scaling
+                front_distance = np.mean(scan[70:120])*distance_scaling
 
                 left = fuzz.get_membership_for('left', left_distance)
                 right = fuzz.get_membership_for('right', right_distance)
                 front = fuzz.get_membership_for('front', front_distance)
                 
 
-                print "Left: %s (Distance: %s)" % (left, left_distance)
-                print "Right: %s (Distance: %s)" % (right, right_distance)
-                print "Front: %s (Distance: %s)" % (front, front_distance)
-                print "Heading offset: %s" % heading
+                #print "Left: %s (Distance: %s)" % (left, left_distance)
+                #print "Right: %s (Distance: %s)" % (right, right_distance)
+                #print "Front: %s (Distance: %s)" % (front, front_distance)
+                #print "Heading offset: %s" % heading
                 
                 turn_right = fuzzyAND(fuzzyNOT(right['near']), fuzzyAND(front['near'], left['near']))**2\
                              + fuzzyAND(fuzzyNOT(right['near']), fuzzyAND(front['near'], left['mid']))**2\
@@ -177,6 +181,7 @@ class ObstacleAvoider(threading.Thread):
     def imu_callback(self, data):
         with self.lock:
             self.imu_data = data
+            #rospy.loginfo(self.imu_data.yaw)
         """ Imu data:
             float32 roll
             float32 pitch
@@ -186,6 +191,7 @@ class ObstacleAvoider(threading.Thread):
     def scan_callback(self, data):
         with self.lock:
             self.scan_data = data
+            #rospy.loginfo("Data points: %s" % len(self.scan_data.ranges))
         """ Scan data:
             uint32 seq
             time stamp
