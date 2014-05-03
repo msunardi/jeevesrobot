@@ -1,10 +1,16 @@
 <launch>
   <include file="./roboteq_controllers.launch" />
-  <include file="$(find razor_imu_9dof)/launch/razor.launch" />
-  <include file="$(find openni_launch)/launch/openni.launch" />
-  <node name="depthimage_to_laserscan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan">
+
+  <!--include file="$(find razor_imu_9dof)/launch/razor.launch" /-->
+
+  <!--include file="$(find openni_launch)/launch/openni.launch" /-->
+
+  <!--node name="depthimage_to_laserscan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan">
     <remap from="image" to="/camera/depth/image_raw" />
-  </node>
-  <node name="base_control_node" pkg="base_control" type="base_control_node.py" />
+  </node-->
+
+  <!--node name="base_control_node" pkg="base_control" type="base_control_node.py" /-->
+
+  <include file="./jeeves.launch" />
   <node name="obstacle_avoidance_node" pkg="obstacle_avoidance" type="obstacle_avoidance.py" />
 </launch>
