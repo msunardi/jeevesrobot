@@ -37,5 +37,7 @@
     <rosparam file="$(find jeeves_2d_nav)/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find jeeves_2d_nav)/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find jeeves_2d_nav)/base_local_planner_params.yaml" command="load" />
+    <rosparam file="$(find jeeves_2d_nav)/move_base_params.yaml" command="load" />
   </node>
+
 </launch>

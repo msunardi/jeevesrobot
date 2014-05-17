@@ -1,5 +1,5 @@
 TrajectoryPlannerROS:
-  max_vel_x: 0.2
+  max_vel_x: 0.5
   min_vel_x: 0.1
   max_rotational_vel: 0.3
   min_in_place_rotational_vel: 0.3
@@ -8,4 +8,27 @@ TrajectoryPlannerROS:
   acc_lim_x: 2.5
   acc_lim_y: 2.5
 
-  holonomic_robot: true
+  holonomic_robot: false
+
+# These are borrowed from turtlebot_navigation
+
+# Goal Tolerance Parameters
+  yaw_goal_tolerance: 0.3
+  xy_goal_tolerance: 0.15
+
+# Forward Simulation Parameters
+  sim_time: 3.0
+  vx_samples: 6
+  vtheta_samples: 20
+
+# Trajectory Scoring Parameters
+  meter_scoring: true
+  pdist_scale: 0.6
+  gdist_scale: 0.8
+  occdist_scale: 0.01
+  heading_lookahead: 0.325
+  dwa: true
+
+# Oscillation Prevention Parameters
+  oscillation_reset_dist: 0.05
+
