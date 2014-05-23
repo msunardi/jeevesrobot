@@ -52,11 +52,11 @@ class OdometryPublisher(threading.Thread):
             MotorFeedback,
             self.motor_3_feedback_callback)
 
-        # wheel angular velocities, rads/s
-        self.w_1 = 0.0
-        self.w_2 = 0.0
-        self.w_3 = 0.0
-        self.w_4 = 0.0
+        # last three wheel angular velocities, rads/s
+        self.w_1 = deque([0.0, 0.0, 0.0, 0.0])
+        self.w_2 = deque([0.0, 0.0, 0.0, 0.0])
+        self.w_3 = deque([0.0, 0.0, 0.0, 0.0])
+        self.w_4 = deque([0.0, 0.0, 0.0, 0.0])
 
         self.transformer = transformer
         self.sleeper = rospy.Rate(odometry_update_rate_hz)
@@ -77,7 +77,7 @@ class OdometryPublisher(threading.Thread):
             self.sleeper.sleep()
 
             # get the incoming update
-            w = [self.w_1, self.w_2, self.w_3, self.w_4]
+            w = [np.median(self.w_1), np.median(self.w_2), np.median(self.w_3), np.median(self.w_4)]
             twist = self.transformer.wheel_velocities_to_twist(w)
             rospy.logdebug("OdometryPublisher.run(): wheel velocities: " + str(w))
             rospy.logdebug("OdometryPublisher.run(): twist: " + str(twist))
@@ -88,7 +88,7 @@ class OdometryPublisher(threading.Thread):
                         * np.sin(self.theta)) * self.delta_t)
             delta_y = ((twist.linear.x * np.sin(self.theta) + twist.linear.y
                         * np.cos(self.theta)) * self.delta_t)
-            delta_theta = twist.angular.z * self.delta_t * self.TWIST_ANGULAR_CORRECTION
+            delta_theta = twist.angular.z * self.delta_t * 0.9
             self.x += delta_x
             self.y += delta_y
             self.theta += delta_theta
@@ -121,16 +121,20 @@ class OdometryPublisher(threading.Thread):
                                                   msg.header.frame_id)
 
     def motor_1_feedback_callback(self, feedback_msg):
-        self.w_1 = feedback_msg.measured_velocity
+        self.w_1.append(feedback_msg.measured_velocity)
+        self.w_1.popleft()
 
     def motor_2_feedback_callback(self, feedback_msg):
-        self.w_2 = feedback_msg.measured_velocity
+        self.w_2.append(feedback_msg.measured_velocity)
+        self.w_2.popleft()
 
     def motor_3_feedback_callback(self, feedback_msg):
-        self.w_3 = feedback_msg.measured_velocity
+        self.w_3.append(feedback_msg.measured_velocity)
+        self.w_3.popleft()
 
     def motor_4_feedback_callback(self, feedback_msg):
-        self.w_4 = feedback_msg.measured_velocity
+        self.w_4.append(feedback_msg.measured_velocity)
+        self.w_4.popleft()
 
 def main(args):
     rospy.init_node('base_odometry', anonymous=True, log_level=rospy.INFO)
