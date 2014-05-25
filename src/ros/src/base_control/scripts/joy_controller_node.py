@@ -4,22 +4,26 @@ import sys
 import threading
 
 import rospy
+from actionlib_msgs.msg import GoalStatusArray
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 
 UPDATE_RATE_Hz = 5
-
+NAV_INACTIVE = 0
+NAV_ACTIVE = 1
 
 class JoyController(threading.Thread):
     
     def __init__(self):
         self.quit = False
-        self.subscriber = rospy.Subscriber("/joy", Joy, self.callback)
+        self.joy_subscriber = rospy.Subscriber("/joy", Joy, self.joy_callback)
+        self.nav_status_subscriber = rospy.Subscriber("/move_base/status", GoalStatusArray, self.nav_status_callback)
         self.publisher = rospy.Publisher("/cmd_vel", Twist)
         self.linear_rate = 0.0
         self.angular_rate = 0.0
         self.axes = []
         self.buttons = []
+        self.nav_status = NAV_INACTIVE
         self.lock = threading.Lock()
         threading.Thread.__init__(self)    
     
@@ -35,14 +39,14 @@ class JoyController(threading.Thread):
             
             # populate a Twist message from the joystick state
             msg = Twist()
-            #rospy.logdebug("got a callback from Joy: \n" + "axes: " + str(axes) + '\n' + "buttons: " + str(buttons))            
             msg.linear.x = axes[1] * self.linear_rate
             msg.linear.y = axes[0] * self.linear_rate
             msg.angular.z = axes[2] * self.angular_rate
 
-            # publish            
-            rospy.logdebug("Publishing to topic /cmd_vel: " + str(msg))
-            self.publisher.publish(msg)
+            # publish, unless the navigation stack is active
+            if self.nav_status != NAV_ACTIVE:
+                rospy.logdebug("Publishing to topic /cmd_vel: " + str(msg))
+                self.publisher.publish(msg)
             
             # set command rates
             if 1 == buttons[8]: # button marked "9" on the top of the gamepad
@@ -67,12 +71,15 @@ class JoyController(threading.Thread):
         
         rospy.loginfo("JoyController.run(): exiting.")
         
-    def callback(self, data):
+    def joy_callback(self, data):
         with self.lock:
             self.axes = list(data.axes)
             self.buttons = list(data.buttons)
 
-
+    def nav_status_callback(self, data):
+        if len(data.status_list) > 0:
+            self.nav_status = data.status_list[0].status
+            
 def main(args):
     rospy.init_node('joy_controller_node', anonymous=True, log_level=rospy.INFO)
     controller = JoyController()
