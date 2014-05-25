@@ -18,8 +18,8 @@ import tf
 import roboclaw as rc
 
 WHEEL_RADIUS_m = 0.1016 # 4" radius wheels, in meters
-HALF_WHEELBASE_X_m = 0.2413 # 9.5" in meters
-HALF_WHEELBASE_Y_m = 0.2032 # 8" in meters
+HALF_WHEELBASE_X_m = 0.2032 # 16" / 2, in meters
+HALF_WHEELBASE_Y_m = 0.2667 # 21" / 2, in meters
 MOTOR_CONTROLLER_POLL_RATE_Hz = 10
 
 
