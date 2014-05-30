@@ -211,12 +211,12 @@ boolean output_errors = false;  // true or false
 // Put MIN/MAX and OFFSET readings for your board here!
 // Accelerometer
 // "accel x,y,z (min/max) = X_MIN/X_MAX  Y_MIN/Y_MAX  Z_MIN/Z_MAX"
-#define ACCEL_X_MIN ((float) -250)
-#define ACCEL_X_MAX ((float) 250)
-#define ACCEL_Y_MIN ((float) -250)
-#define ACCEL_Y_MAX ((float) 250)
-#define ACCEL_Z_MIN ((float) -250)
-#define ACCEL_Z_MAX ((float) 250)
+#define ACCEL_X_MIN ((float) -265)
+#define ACCEL_X_MAX ((float) 271)
+#define ACCEL_Y_MIN ((float) -246)
+#define ACCEL_Y_MAX ((float) 285)
+#define ACCEL_Z_MIN ((float) -295)
+#define ACCEL_Z_MAX ((float) 228)
 
 // Magnetometer (standard calibration)
 // "magn x,y,z (min/max) = X_MIN/X_MAX  Y_MIN/Y_MAX  Z_MIN/Z_MAX"
@@ -235,9 +235,9 @@ boolean output_errors = false;  // true or false
 
 // Gyroscope
 // "gyro x,y,z (current/average) = .../OFFSET_X  .../OFFSET_Y  .../OFFSET_Z
-#define GYRO_AVERAGE_OFFSET_X ((float) 0.0)
-#define GYRO_AVERAGE_OFFSET_Y ((float) 0.0)
-#define GYRO_AVERAGE_OFFSET_Z ((float) 0.0)
+#define GYRO_AVERAGE_OFFSET_X ((float) 1.89)
+#define GYRO_AVERAGE_OFFSET_Y ((float) 24.38)
+#define GYRO_AVERAGE_OFFSET_Z ((float) -6.85)
 
 /*
 // Calibration example:
