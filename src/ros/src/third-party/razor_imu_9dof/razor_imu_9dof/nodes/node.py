@@ -57,7 +57,7 @@ imuMsg.linear_acceleration_covariance = [0.2 , 0 , 0,
 0 , 0.2, 0,
 0 , 0 , 0.2]
 
-default_port='/dev/ttyUSB0'
+default_port='/dev/imu'
 port = rospy.get_param('device', default_port)
 # Check your COM port and baud rate
 ser = serial.Serial(port=port,baudrate=57600, timeout=1)
@@ -68,7 +68,7 @@ roll=0
 pitch=0
 yaw=0
 rospy.sleep(5) # Sleep for 8 seconds to wait for the board to boot then only write command.
-ser.write('#ox' + chr(13)) # To start display angle and sensor reading in text 
+#ser.write('#ox' + chr(13)) # To start display angle and sensor reading in text 
 line = ser.readline()
 line = ser.readline()
 while 1:
