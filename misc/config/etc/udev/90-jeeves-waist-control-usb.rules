@@ -1,0 +1,9 @@
+# Arduino MEGA, reads potentiometers on linear actuators and streams values via serial
+SUBSYSTEM=="tty", ATTRS{manufacturer}=="Arduino (www.arduino.cc)", ATTRS{serial}=="75230313833351400180", SYMLINK+="waist_feedback"
+
+# USB Roboclaw 2x15A, motor controller for linear actuators on the left side
+SUBSYSTEM=="tty", ATTRS{product}=="USB Roboclaw 2x15A", KERNELS=="2-4.2", SYMLINK+="waist_actuator_control_left"
+
+# USB Roboclaw 2x15A, motor controller for linear actuators on the right side
+SUBSYSTEM=="tty", ATTRS{product}=="USB Roboclaw 2x15A", KERNELS=="2-4.1", SYMLINK+="waist_actuator_control_right"
+

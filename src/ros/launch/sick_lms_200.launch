@@ -1,5 +1,5 @@
 <launch>
-    <node pkg="tf" type="static_transform_publisher" name="laser_transform_broadcaster" args="0 0 0 0 0 0 base_footprint laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="laser_transform_broadcaster" args="0.1 0 0.38 0 0 0 base_footprint laser 100" />
     <node pkg="sicktoolbox_wrapper" type="sicklms" name="sick_lms_200" output="screen">
         <rosparam>
             port: /dev/sick_lms_200

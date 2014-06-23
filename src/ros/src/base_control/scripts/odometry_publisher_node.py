@@ -12,6 +12,7 @@ from geometry_msgs.msg import Twist, Point, Quaternion
 from nav_msgs.msg import Odometry
 from roboteq_msgs.msg import Command as MotorCommand
 from roboteq_msgs.msg import Feedback as MotorFeedback
+from sensor_msgs.msg import Imu
 import PyKDL as kdl
 import tf
 
@@ -20,9 +21,14 @@ from base_control_node import BaseTransformHandler, WHEEL_RADIUS_m, \
 
 ODOMETRY_UPDATE_RATE_Hz = 10
 
-
 class OdometryPublisher(threading.Thread):
     def __init__(self, transformer, odometry_update_rate_hz):
+        # Correction factor to account for cumulative error sources: Mecanum wheel slippage,
+        # encoder miscalibrations, etc. Empirically determined using the "poor-man's map" 
+        # technique described here: 
+        # http://wiki.ros.org/navigation/Tutorials/Navigation%20Tuning%20Guide. 
+        # Might only be correct for carpet in EB 84; needs more testing.
+        self.TWIST_ANGULAR_CORRECTION = 1.1
 
         # front motors are #1, #4
         self.motor_1_listener = rospy.Subscriber(
@@ -46,20 +52,20 @@ class OdometryPublisher(threading.Thread):
             MotorFeedback,
             self.motor_3_feedback_callback)
 
-        # wheel angular velocities, rads/s
-        self.w_1 = 0.0
-        self.w_2 = 0.0
-        self.w_3 = 0.0
-        self.w_4 = 0.0
+        # last three wheel angular velocities, rads/s
+        self.w_1 = deque([0.0, 0.0, 0.0, 0.0])
+        self.w_2 = deque([0.0, 0.0, 0.0, 0.0])
+        self.w_3 = deque([0.0, 0.0, 0.0, 0.0])
+        self.w_4 = deque([0.0, 0.0, 0.0, 0.0])
 
         self.transformer = transformer
         self.sleeper = rospy.Rate(odometry_update_rate_hz)
         self.delta_t = 1.0 / odometry_update_rate_hz
         self.odom_publisher = rospy.Publisher("/odom", Odometry)
+
         self.tf_broadcaster = tf.TransformBroadcaster()
         self.frame_id = '/odom'
         self.child_frame_id = '/base_footprint'
-        self.P = np.mat(np.diag([0.0]*3)) # covariance matrix
         self.x = 0.0
         self.y = 0.0
         self.theta = 0.0
@@ -71,7 +77,7 @@ class OdometryPublisher(threading.Thread):
             self.sleeper.sleep()
 
             # get the incoming update
-            w = [self.w_1, self.w_2, self.w_3, self.w_4]
+            w = [np.median(self.w_1), np.median(self.w_2), np.median(self.w_3), np.median(self.w_4)]
             twist = self.transformer.wheel_velocities_to_twist(w)
             rospy.logdebug("OdometryPublisher.run(): wheel velocities: " + str(w))
             rospy.logdebug("OdometryPublisher.run(): twist: " + str(twist))
@@ -82,7 +88,7 @@ class OdometryPublisher(threading.Thread):
                         * np.sin(self.theta)) * self.delta_t)
             delta_y = ((twist.linear.x * np.sin(self.theta) + twist.linear.y
                         * np.cos(self.theta)) * self.delta_t)
-            delta_theta = twist.angular.z * self.delta_t
+            delta_theta = twist.angular.z * self.delta_t * 0.9
             self.x += delta_x
             self.y += delta_y
             self.theta += delta_theta
@@ -96,20 +102,6 @@ class OdometryPublisher(threading.Thread):
             msg.twist.twist = twist
             msg.pose.pose.position = Point(self.x, self.y, 0.0)
             msg.pose.pose.orientation = Quaternion(*(kdl.Rotation.RPY(0.0, 0.0, self.theta).GetQuaternion()))
-
-            p_cov = np.array([0.0]*36).reshape(6,6)
-
-            # position covariance
-            p_cov[0:2,0:2] = self.P[0:2,0:2]
-            # orientation covariance for Yaw
-            # x and Yaw
-            p_cov[5,0] = p_cov[0,5] = self.P[2,0]
-            # y and Yaw
-            p_cov[5,1] = p_cov[1,5] = self.P[2,1]
-            # Yaw and Yaw
-            p_cov[5,5] = self.P[2,2]
-
-            msg.pose.covariance = tuple(p_cov.ravel().tolist())
 
             pos = (msg.pose.pose.position.x,
                    msg.pose.pose.position.y,
@@ -129,23 +121,26 @@ class OdometryPublisher(threading.Thread):
                                                   msg.header.frame_id)
 
     def motor_1_feedback_callback(self, feedback_msg):
-        self.w_1 = feedback_msg.measured_velocity
+        self.w_1.append(feedback_msg.measured_velocity)
+        self.w_1.popleft()
 
     def motor_2_feedback_callback(self, feedback_msg):
-        self.w_2 = feedback_msg.measured_velocity
+        self.w_2.append(feedback_msg.measured_velocity)
+        self.w_2.popleft()
 
     def motor_3_feedback_callback(self, feedback_msg):
-        self.w_3 = feedback_msg.measured_velocity
+        self.w_3.append(feedback_msg.measured_velocity)
+        self.w_3.popleft()
 
     def motor_4_feedback_callback(self, feedback_msg):
-        self.w_4 = feedback_msg.measured_velocity
-
+        self.w_4.append(feedback_msg.measured_velocity)
+        self.w_4.popleft()
 
 def main(args):
     rospy.init_node('base_odometry', anonymous=True, log_level=rospy.INFO)
     bth = BaseTransformHandler(WHEEL_RADIUS_m,
                                HALF_WHEELBASE_X_m,
-                               HALF_WHEELBASE_X_m)
+                               HALF_WHEELBASE_Y_m)
     pub = OdometryPublisher(bth, ODOMETRY_UPDATE_RATE_Hz)
     pub.start()
     rospy.spin()
