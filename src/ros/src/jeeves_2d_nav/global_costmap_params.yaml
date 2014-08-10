@@ -6,5 +6,5 @@ global_costmap:
 
 # These are taken from turtlebot_navigation
   update_frequency: 1.0
-  publish_frequency: 0.5
+  publish_frequency: 0.3
   transform_tolerance: 0.5
