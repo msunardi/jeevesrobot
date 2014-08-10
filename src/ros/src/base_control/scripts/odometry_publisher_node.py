@@ -88,7 +88,7 @@ class OdometryPublisher(threading.Thread):
                         * np.sin(self.theta)) * self.delta_t)
             delta_y = ((twist.linear.x * np.sin(self.theta) + twist.linear.y
                         * np.cos(self.theta)) * self.delta_t)
-            delta_theta = twist.angular.z * self.delta_t * 0.9
+            delta_theta = twist.angular.z * self.delta_t
             self.x += delta_x
             self.y += delta_y
             self.theta += delta_theta
