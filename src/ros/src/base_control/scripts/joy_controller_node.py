@@ -18,7 +18,7 @@ class JoyController(threading.Thread):
         self.quit = False
         self.joy_subscriber = rospy.Subscriber("/joy", Joy, self.joy_callback)
         self.nav_status_subscriber = rospy.Subscriber("/move_base/status", GoalStatusArray, self.nav_status_callback)
-        self.publisher = rospy.Publisher("/cmd_vel", Twist)
+        self.publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=5)
         self.linear_rate = 0.0
         self.angular_rate = 0.0
         self.axes = []

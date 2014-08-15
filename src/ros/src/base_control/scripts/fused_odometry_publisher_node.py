@@ -67,7 +67,7 @@ class OdometryPublisher(threading.Thread):
         self.transformer = transformer
         self.sleeper = rospy.Rate(odometry_update_rate_hz)
         self.delta_t = 1.0 / odometry_update_rate_hz
-        self.odom_publisher = rospy.Publisher("/odom", Odometry)
+        self.odom_publisher = rospy.Publisher("/odom", Odometry, queue_size=5)
 
         self.tf_broadcaster = tf.TransformBroadcaster()
         self.frame_id = '/odom'

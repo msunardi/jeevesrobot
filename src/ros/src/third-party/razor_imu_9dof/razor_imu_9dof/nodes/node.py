@@ -42,8 +42,8 @@ import tf
 grad2rad = 3.141592/180.0
 
 rospy.init_node("node")
-pub = rospy.Publisher('imu', Imu)
-pubRaw = rospy.Publisher('imuRaw', RazorImu)
+pub = rospy.Publisher('imu', Imu, queue_size=5)
+pubRaw = rospy.Publisher('imuRaw', RazorImu, queue_size=5)
 
 imuMsg = Imu()
 imuRawMsg = RazorImu()

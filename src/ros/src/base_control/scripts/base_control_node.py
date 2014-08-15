@@ -27,10 +27,10 @@ class BaseController(threading.Thread):
     
     def __init__(self):
         self.sleeper = rospy.Rate(MOTOR_CONTROLLER_POLL_RATE_Hz)
-        self.motor_1_cmd_publisher = rospy.Publisher("/motor_1/cmd", MotorCommand)
-        self.motor_2_cmd_publisher = rospy.Publisher("/motor_2/cmd", MotorCommand)
-        self.motor_3_cmd_publisher = rospy.Publisher("/motor_3/cmd", MotorCommand)
-        self.motor_4_cmd_publisher = rospy.Publisher("/motor_4/cmd", MotorCommand)
+        self.motor_1_cmd_publisher = rospy.Publisher("/motor_1/cmd", MotorCommand, queue_size=5)
+        self.motor_2_cmd_publisher = rospy.Publisher("/motor_2/cmd", MotorCommand, queue_size=5)
+        self.motor_3_cmd_publisher = rospy.Publisher("/motor_3/cmd", MotorCommand, queue_size=5)
+        self.motor_4_cmd_publisher = rospy.Publisher("/motor_4/cmd", MotorCommand, queue_size=5)
 
         self.bth = BaseTransformHandler(WHEEL_RADIUS_m, HALF_WHEELBASE_X_m,
                                   HALF_WHEELBASE_Y_m)
