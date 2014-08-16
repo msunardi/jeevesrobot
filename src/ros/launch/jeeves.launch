@@ -32,6 +32,9 @@
   <include file="./amcl_omni.launch" />
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <rosparam>
+      base_local_planner: dwa_local_planner/DWAPlannerROS
+    </rosparam>
     <rosparam file="$(find jeeves_2d_nav)/costmap_common_params.yaml" command="load" ns="global_costmap" />
     <rosparam file="$(find jeeves_2d_nav)/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find jeeves_2d_nav)/local_costmap_params.yaml" command="load" />
