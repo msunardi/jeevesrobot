@@ -645,8 +645,14 @@ void loop()
       
       if (output_stream_on || output_single_on) output_angles();
     }
-    else  // Output sensor values
-    {      
+    else  // Output angles and sensor values
+    {
+          // Run DCM algorithm
+      Compass_Heading(); // Calculate magnetic heading
+      Matrix_update();
+      Normalize();
+      Drift_correction();
+      Euler_angles();      
       if (output_stream_on || output_single_on) output_sensors();
     }
     

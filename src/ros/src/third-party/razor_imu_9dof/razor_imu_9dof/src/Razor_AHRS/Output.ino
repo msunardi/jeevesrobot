@@ -70,7 +70,7 @@ void output_calibration(int calibration_sensor)
 }
 
 void output_sensors_text(char raw_or_calibrated)
-{
+{  
   Serial.print("#A-"); Serial.print(raw_or_calibrated); Serial.print('=');
   Serial.print(accel[0]); Serial.print(",");
   Serial.print(accel[1]); Serial.print(",");
@@ -87,25 +87,29 @@ void output_sensors_text(char raw_or_calibrated)
   Serial.print(gyro[2]); Serial.println();
 }
 
-void output_both_angles_and_sensors_text()
-{
-  Serial.print("#YPRAMG=");
+void output_angles_and_sensors_text(char raw_or_calibrated)
+{  
+  Serial.print("#YPR=");
   Serial.print(TO_DEG(yaw)); Serial.print(",");
   Serial.print(TO_DEG(pitch)); Serial.print(",");
-  Serial.print(TO_DEG(roll)); Serial.print(",");
-  
+  Serial.print(TO_DEG(roll)); Serial.println();
+    
+  Serial.print("#A-"); Serial.print(raw_or_calibrated); Serial.print('=');
   Serial.print(accel[0]); Serial.print(",");
   Serial.print(accel[1]); Serial.print(",");
-  Serial.print(accel[2]); Serial.print(",");
+  Serial.print(accel[2]); Serial.println();
 
+  Serial.print("#M-"); Serial.print(raw_or_calibrated); Serial.print('=');
   Serial.print(magnetom[0]); Serial.print(",");
   Serial.print(magnetom[1]); Serial.print(",");
-  Serial.print(magnetom[2]); Serial.print(",");
-  
+  Serial.print(magnetom[2]); Serial.println();
+
+  Serial.print("#G-"); Serial.print(raw_or_calibrated); Serial.print('=');
   Serial.print(gyro[0]); Serial.print(",");
   Serial.print(gyro[1]); Serial.print(",");
   Serial.print(gyro[2]); Serial.println();
 }
+
 
 void output_sensors_binary()
 {
@@ -131,7 +135,7 @@ void output_sensors()
     if (output_format == OUTPUT__FORMAT_BINARY)
       output_sensors_binary();
     else if (output_format == OUTPUT__FORMAT_TEXT)
-      output_sensors_text('C');
+      output_angles_and_sensors_text('C');
   }
   else if (output_mode == OUTPUT__MODE_SENSORS_BOTH)
   {
