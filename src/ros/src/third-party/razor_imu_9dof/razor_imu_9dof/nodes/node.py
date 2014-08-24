@@ -41,77 +41,76 @@ import tf
 
 grad2rad = 3.141592/180.0
 
-rospy.init_node("node")
-pub = rospy.Publisher('imu', Imu, queue_size=5)
-pubRaw = rospy.Publisher('imuRaw', RazorImu, queue_size=5)
-
+imu_pub = rospy.Publisher('imu', Imu, queue_size=5)
+euler_pub = rospy.Publisher('imu_euler', RazorImu, queue_size=5)
 imuMsg = Imu()
-imuRawMsg = RazorImu()
-imuMsg.orientation_covariance = [999999 , 0 , 0,
-0, 9999999, 0,
-0, 0, 999999]
-imuMsg.angular_velocity_covariance = [9999, 0 , 0,
-0 , 99999, 0,
-0 , 0 , 0.02]
-imuMsg.linear_acceleration_covariance = [0.2 , 0 , 0,
-0 , 0.2, 0,
-0 , 0 , 0.2]
+imuMsg.orientation_covariance = [999999, 0, 0, 0, 9999999, 0, 0, 0, 999999]
+imuMsg.angular_velocity_covariance = [999999, 0, 0, 0, 99999, 0, 0, 0, 999999]
+imuMsg.linear_acceleration_covariance = [0.2 , 0 , 0, 0, 0.2, 0,0 , 0 , 0.2]
+eulerMsg = RazorImu()
 
-default_port='/dev/imu'
-port = rospy.get_param('device', default_port)
-# Check your COM port and baud rate
-ser = serial.Serial(port=port,baudrate=57600, timeout=1)
+def extract_triplet(s):
+     vals = (s[s.find('=') + 1 : s.find('\r')]).split(',')
+     return [float(x) for x in vals]
 
-#f = open("Serial"+str(time())+".txt", 'w')
-
-roll=0
-pitch=0
-yaw=0
-rospy.sleep(5) # Sleep for 8 seconds to wait for the board to boot then only write command.
-#ser.write('#ox' + chr(13)) # To start display angle and sensor reading in text 
-line = ser.readline()
-line = ser.readline()
-while 1:
+def main():
+    
+    # Check your COM port and baud rate
+    default_port='/dev/imu'
+    port = rospy.get_param('device', default_port)
+    ser = serial.Serial(port=port,baudrate=57600, timeout=1.0)
+    
+    rospy.sleep(5) # Sleep for 8 seconds to wait for the board to boot then only write command.
+    ser.write('#osct' + chr(13)) # 'Calibrated sensor readings'
     line = ser.readline()
-    line = line.replace("#YPR=","")   # Delete "#YPR="
-    #f.write(line)                     # Write to the output log file
-    words = string.split(line,",")    # Fields split
-    words = [word.rstrip() for word in words]
-    #print words
-    if len(words) > 2:
+    line = ser.readline()
+    got_omegas = False
+    got_accels = False
+    got_eulers = False
+    while True:
+        line = ser.readline()
         try:
-            yaw = float(words[0])*grad2rad
-            pitch = -float(words[1])*grad2rad
-            roll = -float(words[2])*grad2rad
-            
-            # Publish message
-            """
+            if(line.find('#G') == 0):
+                omegas = extract_triplet(line)
+                imuMsg.angular_velocity.x = omegas[0]
+                imuMsg.angular_velocity.y = omegas[1]
+                imuMsg.angular_velocity.z = omegas[2]
+                got_omegas = True
+    
+            if(line.find('#A') == 0):
+                accels = extract_triplet(line)
+                imuMsg.linear_acceleration.x = accels[0]
+                imuMsg.linear_acceleration.y = accels[1]
+                imuMsg.linear_acceleration.z = accels[2]
+                got_accels = True
 
-            imuMsg.linear_acceleration.x = float(words[3])
-            imuMsg.linear_acceleration.y = float(words[4])
-            imuMsg.linear_acceleration.z = float(words[5])
+            if(line.find('#Y') == 0):
+                ypr = extract_triplet(line)
+                eulerMsg.yaw = ypr[0]
+                eulerMsg.pitch = ypr[1]
+                eulerMsg.roll = ypr[2]
+                got_eulers = True
+    
+        except ValueError:
+            pass
             
-            imuMsg.angular_velocity.x = float(words[9])
-            imuMsg.angular_velocity.y = float(words[10])
-            imuMsg.angular_velocity.z = float(words[11])
-            """
-        except Exception as e:
-            print e
+        #q = tf.transformations.quaternion_from_euler(roll,pitch,yaw)
+        #imuMsg.orientation.x = q[0]
+        #imuMsg.orientation.y = q[1]
+        #imuMsg.orientation.z = q[2]
+        #imuMsg.orientation.w = q[3]
+
+        if got_accels and got_omegas and got_eulers:
+            imuMsg.header.stamp = rospy.Time.now()
+            imuMsg.header.frame_id = 'base_footprint'
+            imu_pub.publish(imuMsg)
+            euler_pub.publish(eulerMsg)
+            got_accels = False
+            got_omegas = False
+            got_eulers = False
             
-        q = tf.transformations.quaternion_from_euler(roll,pitch,yaw)
-        imuMsg.orientation.x = q[0]
-        imuMsg.orientation.y = q[1]
-        imuMsg.orientation.z = q[2]
-        imuMsg.orientation.w = q[3]
-        imuMsg.header.stamp= rospy.Time.now()
-        imuMsg.header.frame_id = 'base_link'
-        pub.publish(imuMsg)
-            
-        # Publish Raw message from Razor board
-        imuRawMsg.yaw = yaw
-        imuRawMsg.pitch = pitch
-        imuRawMsg.roll = roll
-        pubRaw.publish(imuRawMsg)
-        
-ser.close
-#f.close
+    ser.close
+
+if __name__ == '__main__':
+    rospy.init_node("imu_node")
+    main()

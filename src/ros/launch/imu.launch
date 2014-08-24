@@ -1,6 +1,7 @@
-<node name="imu" pkg="razor_imu_9dof" type="node.py">
-  <rosparam>
-     device: /dev/imu
-  </rosparam>
-</node>
-
+<launch>
+  <node name="imu" pkg="razor_imu_9dof" type="node.py">
+    <rosparam>
+       device: /dev/imu
+    </rosparam>
+  </node>
+</launch>
