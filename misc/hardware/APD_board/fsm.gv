@@ -4,12 +4,16 @@ digraph finite_state_machine {
 	splines=true;
 	sep="+100,100";
 	overlap=false;
-	node [shape = circle]; START PWR_OFF HALT ARMED;
-	START -> PWR_OFF [ label = "e-stop engage" ];
-	PWR_OFF -> HALT [ label = "e-stop disengage" ];
-	HALT -> ARMED [ label = "enable actuators pushbutton" ];
+	node [shape = circle]; MASTER_PWR_OFF ACTUATOR_PWR_OFF HALT RUN
 
-	ARMED -> HALT [ label = "bumper hit" ];
-	ARMED -> PWR_OFF [ label = "e-stop engage" ];
-	HALT -> PWR_OFF [ label = "e-stop engage" ]; 
+	ACTUATOR_PWR_OFF -> HALT [ label = "e-stop disengage" ];
+	HALT -> ACTUATOR_PWR_OFF [ label = "e-stop engage" ];
+
+	HALT -> RUN [ label = "enable actuators pushbutton pressed" ];
+	RUN -> HALT [ label = "bumper hit" ];
+	
+	RUN -> ACTUATOR_PWR_OFF [ label = "e-stop engage" ];
+
+	MASTER_PWR_OFF -> ACTUATOR_PWR_OFF [ label = "master power on && e-stop engaged" ];
+	MASTER_PWR_OFF -> HALT [ label = "master power on && e-stop disengaged" ];
 }
