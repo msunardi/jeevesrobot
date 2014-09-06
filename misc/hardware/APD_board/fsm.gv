@@ -1,0 +1,15 @@
+// turn this file into a PNG graph with 'dot fsm.gv -Tpng -O'
+digraph finite_state_machine {
+	rankdir=LR;
+	splines=true;
+	sep="+100,100";
+	overlap=false;
+	node [shape = circle]; START PWR_OFF HALT ARMED;
+	START -> PWR_OFF [ label = "e-stop engage" ];
+	PWR_OFF -> HALT [ label = "e-stop disengage" ];
+	HALT -> ARMED [ label = "enable actuators pushbutton" ];
+
+	ARMED -> HALT [ label = "bumper hit" ];
+	ARMED -> PWR_OFF [ label = "e-stop engage" ];
+	HALT -> PWR_OFF [ label = "e-stop engage" ]; 
+}
