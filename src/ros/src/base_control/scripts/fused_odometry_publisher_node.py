@@ -20,16 +20,12 @@ import tf
 from base_control_node import BaseTransformHandler, WHEEL_RADIUS_m, \
     HALF_WHEELBASE_X_m, HALF_WHEELBASE_Y_m
 
-ODOMETRY_UPDATE_RATE_Hz = 10
+# we get feeback messages from the motor controllers at 50 Hz,
+# so let's publish at the same rate
+ODOMETRY_UPDATE_RATE_Hz = 50
 
 class OdometryPublisher(threading.Thread):
     def __init__(self, transformer, odometry_update_rate_hz):
-        # Correction factor to account for cumulative error sources: Mecanum wheel slippage,
-        # encoder miscalibrations, etc. Empirically determined using the "poor-man's map" 
-        # technique described here: 
-        # http://wiki.ros.org/navigation/Tutorials/Navigation%20Tuning%20Guide. 
-        # Might only be correct for carpet in EB 84; needs more testing.
-        self.TWIST_ANGULAR_CORRECTION = 1.1
 
         # front motors are #1, #4
         self.motor_1_listener = rospy.Subscriber(
@@ -58,12 +54,16 @@ class OdometryPublisher(threading.Thread):
             Pose2D,
             self.lsm_pose2D_callback)
 
-        # last three wheel angular velocities, rads/s
-        self.w_1 = deque([0.0, 0.0, 0.0, 0.0])
-        self.w_2 = deque([0.0, 0.0, 0.0, 0.0])
-        self.w_3 = deque([0.0, 0.0, 0.0, 0.0])
-        self.w_4 = deque([0.0, 0.0, 0.0, 0.0])
-
+        # angular velocities, rads/s
+        self.w_1 = 0.0
+        self.w_2 = 0.0
+        self.w_3 = 0.0
+        self.w_4 = 0.0
+        self.w_1_lock = threading.Lock()
+        self.w_2_lock = threading.Lock()
+        self.w_3_lock = threading.Lock()
+        self.w_4_lock = threading.Lock()
+        
         self.transformer = transformer
         self.sleeper = rospy.Rate(odometry_update_rate_hz)
         self.delta_t = 1.0 / odometry_update_rate_hz
@@ -74,34 +74,42 @@ class OdometryPublisher(threading.Thread):
         self.child_frame_id = '/base_footprint'
         self.x = 0.0
         self.y = 0.0
-        self.theta = 0.0
-        self.theta_prev = 0.0
+        self.theta = (0.0, 0.0)         # theta, timestamp (seconds)
+        self.theta_prev = (0.0, 0.1)    # theta, timestamp (seconds)
         self.lsm_theta = 0.0
-        self.theta_lock = Lock()
+        self.pose_lock = Lock()
         threading.Thread.__init__(self)
 
     def run(self):
         loop_count = 0
+        w = [0.0, 0.0, 0.0, 0.0]
         while not rospy.is_shutdown():
             self.sleeper.sleep()
 
-            # get the incoming update
-            w = [np.median(self.w_1), np.median(self.w_2), np.median(self.w_3), np.median(self.w_4)]
+            # get the latest incoming update
+            with self.w_1_lock:
+                w[0] = self.w_1
+            with self.w_2_lock:
+                w[1] = self.w_1
+            with self.w_3_lock:
+                w[2] = self.w_1
+            with self.w_4_lock:
+                w[3] = self.w_1
 
             # we don't trust the angular part of the twist message, so use
             # the info from laser_scan_matcher
             twist = self.transformer.wheel_velocities_to_twist(w)
-            with self.theta_lock:
-                twist.angular.z =  (self.theta_prev - self.theta) / self.delta_t
+            with self.pose_lock:
+                twist.angular.z =  (self.theta[0] - self.theta_prev[0]) / (self.theta[1] - self.theta_prev[1])
             rospy.logdebug("OdometryPublisher.run(): wheel velocities: " + str(w))
             rospy.logdebug("OdometryPublisher.run(): twist: " + str(twist))
 
             # calculate our new position using a
             # simple deterministic model
-            delta_x = ((twist.linear.x * np.cos(self.theta) - twist.linear.y
-                        * np.sin(self.theta)) * self.delta_t)
-            delta_y = ((twist.linear.x * np.sin(self.theta) + twist.linear.y
-                        * np.cos(self.theta)) * self.delta_t)
+            delta_x = ((twist.linear.x * np.cos(self.theta[0]) - twist.linear.y
+                        * np.sin(self.theta[0])) * self.delta_t)
+            delta_y = ((twist.linear.x * np.sin(self.theta[0]) + twist.linear.y
+                        * np.cos(self.theta[0])) * self.delta_t)
             self.x += delta_x
             self.y += delta_y
 
@@ -113,7 +121,7 @@ class OdometryPublisher(threading.Thread):
 
             msg.twist.twist = twist
             msg.pose.pose.position = Point(self.x, self.y, 0.0)
-            msg.pose.pose.orientation = Quaternion(*(kdl.Rotation.RPY(0.0, 0.0, self.theta).GetQuaternion()))
+            msg.pose.pose.orientation = Quaternion(*(kdl.Rotation.RPY(0.0, 0.0, self.theta[0]).GetQuaternion()))
 
             pos = (msg.pose.pose.position.x,
                    msg.pose.pose.position.y,
@@ -133,25 +141,25 @@ class OdometryPublisher(threading.Thread):
                                                   msg.header.frame_id)
 
     def motor_1_feedback_callback(self, feedback_msg):
-        self.w_1.append(feedback_msg.measured_velocity)
-        self.w_1.popleft()
+        with self.w_1_lock:
+            self.w_1 = feedback_msg.measured_velocity
 
     def motor_2_feedback_callback(self, feedback_msg):
-        self.w_2.append(feedback_msg.measured_velocity)
-        self.w_2.popleft()
+        with self.w_2_lock:
+            self.w_2 = feedback_msg.measured_velocity
 
     def motor_3_feedback_callback(self, feedback_msg):
-        self.w_3.append(feedback_msg.measured_velocity)
-        self.w_3.popleft()
+        with self.w_3_lock:
+            self.w_3 = feedback_msg.measured_velocity
 
     def motor_4_feedback_callback(self, feedback_msg):
-        self.w_4.append(feedback_msg.measured_velocity)
-        self.w_4.popleft()
+        with self.w_4_lock:
+            self.w_4 = feedback_msg.measured_velocity
 
     def lsm_pose2D_callback(self, pose_msg):
-        with self.theta_lock:
-            self.delta_theta = self.theta - pose_msg.theta
-            self.theta = pose_msg.theta
+        with self.pose_lock:
+            self.theta_prev = self.theta
+            self.theta = (pose_msg.theta, rospy.get_time())
 
 def main(args):
     rospy.init_node('base_odometry', anonymous=True, log_level=rospy.INFO)

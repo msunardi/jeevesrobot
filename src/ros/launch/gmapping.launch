@@ -1,0 +1,25 @@
+<launch>
+  <!-- motor controllers -->
+  <include file="./roboteq_controllers.launch" />
+
+  <!-- imu -->
+  <include file="./imu.launch" />
+
+  <!-- laser scanner -->
+  <include file="./sick_lms_200.launch" />
+
+  <!-- jeeves-specific stuff -->
+  <node name="base_odometry" pkg="base_control" type="odometry_publisher_node.py" />
+  <node name="joystick" pkg="joy" type="joy_node" />
+  <node name="joy_controller" pkg="base_control" type="joy_controller_node.py" />
+  <node name="base_control" pkg="base_control" type="base_control_node.py" />
+
+  <!-- Nav stack -->
+   <node name="gmapping" pkg="gmapping" type="slam_gmapping"> 
+    <rosparam>
+      scan: scan
+      base_frame: base_footprint
+    </rosparam>
+  </node>
+
+</launch>

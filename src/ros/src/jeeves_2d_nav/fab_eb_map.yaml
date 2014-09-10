@@ -1,8 +1,6 @@
 image: ./FAB_EB_Lower_Levels_sm.png
-#resolution: 0.06096
 resolution: 0.07
-#origin: [-22.0, -25.0, 0.0]
-origin: [-10.0, -62.0, 0.0]
+origin: [0.0, 0.0, 0.0]
 occupied_thresh: 0.65
 free_thresh: 0.196
 negate: 0

@@ -1,12 +1,21 @@
 <launch>
   <!-- motor controllers -->
-  <include file="./roboteq_controllers.launch" />
+  <include file="../roboteq_controllers.launch" />
 
   <!-- imu -->
-  <include file="./imu.launch" />
+<!--
+  <node name="imu" pkg="razor_imu_9dof" type="node.py">
+   <rosparam>
+     device: /dev/imu
+   </rosparam>
+  </node>
+-->
 
   <!-- laser scanner -->
-  <include file="./sick_lms_200.launch" />
+  <include file="../sick_lms_200.launch" />
+
+  <!-- not using AMCL, so need map <-> odom transform -->
+  <node pkg="tf" type="static_transform_publisher" name="map_odom_transform_broadcaster" args="0 0 0 0 0 0 map odom 20" />
 
   <!-- laser scan_matcher -->
   <node pkg="tf" type="static_transform_publisher" name="lsm_sink_laser_transform_broadcaster" args="0 0 0 0 0 0 laser lsm_sink 100" />
@@ -27,8 +36,7 @@
   <node name="base_control" pkg="base_control" type="base_control_node.py" />
 
   <!-- Nav stack -->
-  <include file="./map_server.launch" />
-  <include file="./amcl_diff.launch" />
+  <include file="./blank_map_server.launch" />
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <rosparam>
       base_local_planner: dwa_local_planner/DWAPlannerROS
@@ -36,7 +44,7 @@
     <rosparam file="$(find jeeves_2d_nav)/costmap_common_params.yaml" command="load" ns="global_costmap" />
     <rosparam file="$(find jeeves_2d_nav)/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find jeeves_2d_nav)/local_costmap_params.yaml" command="load" />
-    <rosparam file="$(find jeeves_2d_nav)/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find jeeves_2d_nav)/global_costmap_params_odom_only.yaml" command="load" />
     <rosparam file="$(find jeeves_2d_nav)/base_local_planner_params.yaml" command="load" />
     <rosparam file="$(find jeeves_2d_nav)/move_base_params.yaml" command="load" />
   </node>

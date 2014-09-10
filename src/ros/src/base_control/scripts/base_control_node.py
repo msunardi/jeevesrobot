@@ -20,13 +20,13 @@ import roboclaw as rc
 WHEEL_RADIUS_m = 0.1016 # 4" radius wheels, in meters
 HALF_WHEELBASE_X_m = 0.2032 # 16" / 2, in meters
 HALF_WHEELBASE_Y_m = 0.2667 # 21" / 2, in meters
-MOTOR_CONTROLLER_POLL_RATE_Hz = 10
+MOTOR_CONTROLLER_CMD_RATE_Hz = 50
 
 
 class BaseController(threading.Thread):
     
     def __init__(self):
-        self.sleeper = rospy.Rate(MOTOR_CONTROLLER_POLL_RATE_Hz)
+        self.sleeper = rospy.Rate(MOTOR_CONTROLLER_CMD_RATE_Hz)
         self.motor_1_cmd_publisher = rospy.Publisher("/motor_1/cmd", MotorCommand, queue_size=5)
         self.motor_2_cmd_publisher = rospy.Publisher("/motor_2/cmd", MotorCommand, queue_size=5)
         self.motor_3_cmd_publisher = rospy.Publisher("/motor_3/cmd", MotorCommand, queue_size=5)
@@ -36,7 +36,7 @@ class BaseController(threading.Thread):
                                   HALF_WHEELBASE_Y_m)
 
         self.subscriber = rospy.Subscriber("/cmd_vel", Twist, self.cmd_vel_callback)
-        self.cmd_vel_incoming = deque()
+        self.cmd_vel_incoming = Twist()
         self.lock = threading.Lock()
         threading.Thread.__init__(self)
 
@@ -46,18 +46,18 @@ class BaseController(threading.Thread):
           work queue, ad infinitum"""
         twist = Twist()
         while not rospy.is_shutdown():
+            
+            # we send command to the controllers at a steady rate
+            # that doesn't depend on the rate of incoming cmd_vel messaes
             self.sleeper.sleep()
             
-            # get a new command
+            # get the current command
             with self.lock:
-                if len(self.cmd_vel_incoming) != 0:
-                    twist = self.cmd_vel_incoming.popleft()
-                else:
-                    continue        
-
+                twist = self.cmd_vel_incoming
+                
             # convert the incoming velocity vector into wheel speeds,
             # (rad/s) and publish them 
-            rospy.logdebug("cmd_vel message received: " + str(twist))
+            rospy.logdebug("current cmd_vel: " + str(twist))
             w = self.bth.twist_to_wheel_velocities(twist)
             c = MotorCommand()
             self.motor_1_cmd_publisher.publish(MotorCommand(w[0]))
@@ -69,7 +69,7 @@ class BaseController(threading.Thread):
         
     def cmd_vel_callback(self, twist_msg):
         with self.lock:
-            self.cmd_vel_incoming.append(twist_msg)
+            self.cmd_vel_incoming = twist_msg
 
 
 class BaseTransformHandler(object):

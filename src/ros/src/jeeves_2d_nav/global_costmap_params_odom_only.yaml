@@ -1,0 +1,19 @@
+### This file is for use when we want to navigate without AMCL,
+### for instance, when we're debugging in the Robotics lab, 
+### outside the building map bounds.
+#
+### Commented-out entries use defaults
+global_costmap:
+  global_frame: odom
+  robot_base_frame: base_footprint
+#  transform_tolerance: 0.2
+#  update_frequency: 5.0
+  publish_frequency: 1.0
+  rolling_window: true
+  static_map: false
+  width: 10.0
+  height: 10.0
+#  resolution: 0.05
+#  origin_x: 0.0
+#  origin_y: 0.0
+

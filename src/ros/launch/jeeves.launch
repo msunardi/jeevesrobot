@@ -3,11 +3,7 @@
   <include file="./roboteq_controllers.launch" />
 
   <!-- imu -->
-  <node name="imu" pkg="razor_imu_9dof" type="node.py">
-   <rosparam>
-     device: /dev/imu
-   </rosparam>
-  </node>
+  <include file="./imu.launch" />
 
   <!-- laser scanner -->
   <include file="./sick_lms_200.launch" />
@@ -19,17 +15,8 @@
   <node name="base_control" pkg="base_control" type="base_control_node.py" />
 
   <!-- Nav stack -->
-<!--
-   <node name="gmapping" pkg="gmapping" type="slam_gmapping"> 
-    <rosparam>
-      scan: scan
-      base_frame: base_footprint
-    </rosparam>
-  </node>
--->
-
   <include file="./map_server.launch" />
-  <include file="./amcl_omni.launch" />
+  <include file="./amcl_diff.launch" />
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <rosparam>
