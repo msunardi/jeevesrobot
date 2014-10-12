@@ -3,15 +3,19 @@
   <env name="ROS_IP" value="192.168.1.2" />
   <env name="ROS_HOSTNAME" value="192.168.1.2" />
   <env name="ROS_MASTER_URI" value="http://192.168.1.2:11311" />
+  <env name="PYTHONPATH" value="/home/mcecsbot/src/roboticsclub-mcecsbot/src/ros/devel/lib/python2.7/dist-packages:/opt/ros/indigo/lib/python2.7/dist-packages" />
+
+  <arg name="JEEVES_LAUNCH_DIR" value="/home/mcecsbot/src/roboticsclub-mcecsbot/src/ros/launch" />
+
 
   <!-- motor controllers -->
-  <include file="./roboteq_controllers.launch" />
+  <include file="$(arg JEEVES_LAUNCH_DIR)/roboteq_controllers.launch" />
 
   <!-- imu -->
-<!--  <include file="./imu.launch" /> -->
+<!--  <include file="$(arg JEEVES_LAUNCH_DIR)/imu.launch" /> -->
 
   <!-- laser scanner -->
-  <include file="./sick_lms_200.launch" />
+  <include file="$(arg JEEVES_LAUNCH_DIR)/sick_lms_200.launch" />
 
   <!-- laser scan_matcher -->
   <node pkg="tf" type="static_transform_publisher" name="lsm_sink_laser_transform_broadcaster" args="0 0 0 0 0 0 laser lsm_sink 100" />
@@ -32,8 +36,8 @@
   <node name="base_control" pkg="base_control" type="base_control_node.py" />
 
   <!-- Nav stack -->
-  <include file="./map_server.launch" />
-  <include file="./amcl_diff.launch" />
+  <include file="$(arg JEEVES_LAUNCH_DIR)/map_server.launch" />
+  <include file="$(arg JEEVES_LAUNCH_DIR)/amcl_diff.launch" />
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <rosparam>
       base_local_planner: dwa_local_planner/DWAPlannerROS

@@ -5,7 +5,7 @@
 #
 #	rosrun robot_upstart install jeeves_startup/jeeves_service.launch
 #
-# copies this launch file to /etc/ros/hydro/jeeves.d, and creates an upstart
+# copies this launch file to /etc/ros/indigo/jeeves.d, and creates an upstart
 # job at /etc/init/jeeves.conf. 
 # The upstart file waits for eth0 to come up, sets $ROS_IP and $ROS_URI_MASTER, 
 # then kicks off the launch file. You can start and stop the jeeves service 
@@ -17,5 +17,5 @@
 #
 -->
 <launch>
-  <node pkg="ps3joy" type="ps3joy_node.py" respawn="false" name="ps3joy" />
+  <include file="/home/mcecsbot/src/roboticsclub-mcecsbot/src/ros/launch/jeeves.launch" />
 </launch>
