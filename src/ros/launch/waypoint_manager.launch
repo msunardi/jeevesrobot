@@ -1,0 +1,4 @@
+<launch>
+  <node name="waypoint_manager" pkg="jeeves_2d_nav" type="waypoint_manager.py" />
+</launch>
+

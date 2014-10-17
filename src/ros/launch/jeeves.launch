@@ -7,7 +7,6 @@
 
   <arg name="JEEVES_LAUNCH_DIR" value="/home/mcecsbot/src/roboticsclub-mcecsbot/src/ros/launch" />
 
-
   <!-- motor controllers -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/roboteq_controllers.launch" />
 
@@ -34,6 +33,7 @@
   <node name="joystick" pkg="joy" type="joy_node" />
   <node name="joy_controller" pkg="base_control" type="joy_controller_node.py" />
   <node name="base_control" pkg="base_control" type="base_control_node.py" />
+  <node name="waypoint_manager" pkg="jeeves_2d_nav" type="waypoint_manager.py" />
 
   <!-- Nav stack -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/map_server.launch" />
