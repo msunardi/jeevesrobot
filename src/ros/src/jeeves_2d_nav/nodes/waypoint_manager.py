@@ -10,9 +10,9 @@ import tf
 from jeeves_2d_nav.srv import *
 
 # EDIT THIS: default initial pose
-HOME_X = 0.0
-HOME_Y = 0.0
-HOME_THETA = 0.0
+HOME_X = 26.033
+HOME_Y = 10.657
+HOME_THETA = 1.528
 
 
 class WaypointManager(threading.Thread):
