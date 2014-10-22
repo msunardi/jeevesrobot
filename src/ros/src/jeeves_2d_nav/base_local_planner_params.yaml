@@ -43,3 +43,8 @@ DWAPlannerROS:
 
 # Global Plan Parameters
 #  prune_plan: true
+
+# Undocumented Parameters (see source dwa_planner.cpp)
+  publish_traj_pc: true
+  publish_cost_grid_pc: true
+
