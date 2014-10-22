@@ -106,7 +106,7 @@ class OdometryPublisher(threading.Thread):
                 theta = self.theta
                 theta_prev = self.theta_prev
             theta_delta_t = theta[1] - theta_prev[1]
-            twist.angular.z =  (theta_prev[0] - theta[0]) / theta_delta_t
+            twist.angular.z =  (theta[0] - theta_prev[0]) / theta_delta_t
             rospy.logdebug("OdometryPublisher.run(): wheel velocities: " + str(w))
             rospy.logdebug("OdometryPublisher.run(): twist: " + str(twist))
 
