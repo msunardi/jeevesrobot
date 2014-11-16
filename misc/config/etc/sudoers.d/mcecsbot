@@ -1,0 +1,7 @@
+# Note: when installed on the robot, 
+# this file should be owned by root, 
+# and chmod 440. This file makes it 
+# possible for a ROS node to power off 
+# the system.
+mcecsbot ALL=(ALL) NOPASSWD: /sbin/shutdown
+mcecsbot ALL=(ALL) NOPASSWD: /sbin/poweroff

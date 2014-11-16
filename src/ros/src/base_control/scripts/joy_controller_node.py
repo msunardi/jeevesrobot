@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import copy
+import os
 import sys
 import threading
 
@@ -23,6 +24,7 @@ class JoyController(threading.Thread):
         self.angular_rate = 0.0
         self.axes = []
         self.buttons = []
+        self.shutdown_already_requested = False
         self.nav_status = NAV_INACTIVE
         self.lock = threading.Lock()
         threading.Thread.__init__(self)    
@@ -68,6 +70,12 @@ class JoyController(threading.Thread):
             if 1 == buttons[7]: # right lower trigger
                 if self.angular_rate != 0.0:
                     self.angular_rate -= 0.25
+
+            if 1 == buttons[12]: # shutdown command
+                if not self.shutdown_already_requested:
+                    rospy.loginfo("System is shutting down NOW.")
+                    self.shutdown_already_requested = True
+                    os.system("sudo poweroff")
         
         rospy.loginfo("JoyController.run(): exiting.")
         
