@@ -19,7 +19,9 @@ export LC_ALL=C
 
 cd $MY_CATKIN_WS_DIR
 
-# This must be run after reboot:
+# If errors on running "catkin_make",
+# then open new terminal and re-run.
+# If still error, reboot and run catkin_make:
 catkin_make --force-cmake
 
 cd ~/Downloads
