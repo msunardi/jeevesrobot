@@ -1,5 +1,15 @@
 #!/bin/bash
 
+:<<OpenPtrackInstall1_sh_Description
+  Installs open_ptrack, aka People Detection and Tracking Package,
+  and its dependencies. This is script 1 of 2. 
+  After running this script, run next script, named open_ptrack_install_2.sh
+  Assumptions:
+    1. ROS Indigo, Full Desktop Version has been installed.
+    2. Catkin Workspace has been initialized.
+OpenPtrackInstall1_sh_Description
+
+
 abort()
 {
     echo >&2 '
@@ -20,7 +30,7 @@ for FILE in $(find / -name '.catkin_workspace' 2>/dev/null); do
         FILENAME="${CAT_WS:${#DIRNAME} + 1}"
 	EXT="${FILE##*\.}"
 done
-# echo >&2 'MY_CATKIN_WS_DIR: ' $CATKIN_WS_DIR_NAME
+## echo >&2 'MY_CATKIN_WS_DIR: ' $CATKIN_WS_DIR_NAME
 
 source /opt/ros/indigo/setup.bash
 source $MY_CATKIN_WS_DIR/devel/setup.bash
@@ -52,7 +62,7 @@ cd calibration_toolkit
 git fetch origin --tags
 git checkout tags/v0.2
 
-# Update to v0.4 of libfreenect driver for Kinect:
+## Update to v0.4 of libfreenect driver for Kinect:
 cd ~
 mkdir libfreenect
 cd libfreenect
@@ -77,9 +87,10 @@ sudo rm -R ~/libfreenect
 
 if [ -d "~/Downloads" ]
 then 
-	echo ""
+	echo "Cloning Freenect package into ~/Downloads directory."
 else
 	mkdir -p ~/Downloads
+	echo "Created ~/Downloads directory. Cloned Freenect package there."
 fi 
 cd $MY_CATKIN_WS_DIR/src/open_ptrack/scripts
 ./mesa_install.sh
@@ -94,7 +105,7 @@ catkin_make --pkg opt_msgs
 
 trap : 0
 echo >&2 '
-**********************************
-*** DONE: there were no errors *** 
-**********************************
+************
+*** DONE ***
+************
 '
