@@ -13,7 +13,7 @@
 // #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h" 
 
-// #define PRINT_OUTPUT 1
+#define PRINT_OUTPUT 0
 
 
 class DetectorMarkersArrayListener
@@ -102,8 +102,7 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "PeopleTracker");
     DetectorMarkersArrayListener dmal;
-    if (PRINT_OUTPUT)
-        ROS_INFO("Spinning node");
+    ROS_INFO("Spinning node detector_markers_array_listener");
     ros::spin();
     return 0;
 }
