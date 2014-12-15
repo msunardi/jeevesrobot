@@ -1,4 +1,6 @@
 #!/bin/bash
+## 2014.12.14
+
 :<<OpenPtrackInstall2_sh_Description
   1. This is script 2 of 2. This script is run after its predecessor
      has been executed successfully, open_ptrack_install_2.sh
@@ -7,6 +9,7 @@
      If still errors, reboot and run it again.
 OpenPtrackInstall2_sh_Description
 
+currentyExecutingCommand=''
 
 for FILE in $(find / -name '.catkin_workspace' 2>/dev/null); do
 	CAT_WS="${FILE%.[^.]*}"
@@ -19,8 +22,6 @@ done
 
 source /opt/ros/indigo/setup.bash
 source $MY_CATKIN_WS_DIR/devel/setup.bash
-export KINECT_DRIVER=freenect
-export LC_ALL=C
 
 
 cd $MY_CATKIN_WS_DIR
@@ -30,14 +31,9 @@ cd $MY_CATKIN_WS_DIR
   this script second time. If still errors, reboot and run it again.
 IF_ERRORS_ON_CATKIN_MAKE
 
+
+echo >&2 'executing catkin_make --force-cmake'
 catkin_make --force-cmake
 
-
-cd ~/Downloads
-git clone https://github.com/avin2/SensorKinect
-cd SensorKinect/Bin
-tar -xjf SensorKinect093-Bin-Linux-x64-v5.1.2.1.tar.bz2
-cd Sensor-Bin-Linux-x64-v5.1.2.1
-sudo ./install.sh
 
 

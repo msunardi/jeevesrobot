@@ -1,4 +1,5 @@
 #!/bin/bash
+##  2014.12.14
 
 :<<OpenPtrackInstall1_sh_Description
   Installs open_ptrack, aka People Detection and Tracking Package,
@@ -9,6 +10,7 @@
     2. Catkin Workspace has been initialized.
 OpenPtrackInstall1_sh_Description
 
+currentlyExecutingCommand=""
 
 abort()
 {
@@ -17,12 +19,14 @@ abort()
 *** ABORTED ***
 ***************
 '
+echo >&2 'error was in executing of this: ' $currentlyExecutingCommand
     exit 1
 }
 trap 'abort' 0
 set -e    # aborts script on any error
 
-
+echo >&2 > 'Searching for catking workspace directory ....'
+currentlyExecutingCommand='find / -name .catkin_workspace'
 for FILE in $(find / -name '.catkin_workspace' 2>/dev/null); do
 	CAT_WS="${FILE%.[^.]*}"
         MY_CATKIN_WS_DIR="${CAT_WS%/}"
@@ -30,7 +34,14 @@ for FILE in $(find / -name '.catkin_workspace' 2>/dev/null); do
         FILENAME="${CAT_WS:${#DIRNAME} + 1}"
 	EXT="${FILE##*\.}"
 done
-## echo >&2 'MY_CATKIN_WS_DIR: ' $CATKIN_WS_DIR_NAME
+
+if [ "$CAT_WS" = "" ]; then
+  echo >&2 'catkin workspace directory not found. Exiting installation script'
+  exit
+else 
+  echo >&2 'Found your catkin workspace directory: ' $CAT_WS
+fi 
+
 
 source /opt/ros/indigo/setup.bash
 source $MY_CATKIN_WS_DIR/devel/setup.bash
@@ -38,10 +49,13 @@ source $MY_CATKIN_WS_DIR/devel/setup.bash
 
 ROS_PACKAGES="python-rosinstall ros-$ROS_DISTRO-robot-state-publisher ros-$ROS_DISTRO-cmake-modules ros-$ROS_DISTRO-freenect-stack ros-$ROS_DISTRO-openni-launch ros-$ROS_DISTRO-camera-info-manager-py"
 
+echo >&2 'installing: ' $ROS_PACKAGES
+currentlyExecutingCommand="sudo apt-get install ROS_PACKAGES"
 sudo apt-get install $ROS_PACKAGES
 
-echo "export KINECT_DRIVER=freenect" >> ~/.bashrc
-echo "export LC_ALL=C" >> ~/.bashrc
+echo >&2 'exporing KINECT_DRIVER=freenect and LC_ALL=C to .bashrc'
+echo >&2 "export KINECT_DRIVER=freenect" >> ~/.bashrc
+echo >&2 "export LC_ALL=C" >> ~/.bashrc
 export KINECT_DRIVER=freenect
 export LC_ALL=C
 
@@ -50,27 +64,65 @@ source /opt/ros/indigo/setup.bash
 source $MY_CATKIN_WS_DIR/devel/setup.bash
 
 cd $MY_CATKIN_WS_DIR/src
+
+echo >&2 'cloning: git clone https://github.com/OpenPTrack/open_ptrack.git'
+currentlyExecutingCommand='git clone https://github.com/OpenPTrack/open_ptrack.git'
 git clone https://github.com/OpenPTrack/open_ptrack.git
 cd open_ptrack/scripts
 sudo chmod +x *.sh
 
+echo >&2 'executing ./ceres_install_trusty.sh'
+currentlyExecutingCommand='./ceres_install_trusty.sh'
 ./ceres_install_trusty.sh
 
 cd $MY_CATKIN_WS_DIR/src
+
+echo >&2 'cloning: git clone https://github.com/iaslab-unipd/calibration_toolkit'
+currentlyExecutingCommand='git clone https://github.com/iaslab-unipd/calibration_toolkit'
 git clone https://github.com/iaslab-unipd/calibration_toolkit
 cd calibration_toolkit
+
+echo >&2 'running git fetch origin --tags, and git checkout tags/v0.2'
 git fetch origin --tags
 git checkout tags/v0.2
 
+
+
+echo >&2 'installing SensorKinect dirver'
+currentlyExecutingCommand='git clone https://github.com/avin2/SensorKinect'
+cd ~/Downloads
+git clone https://github.com/avin2/SensorKinect
+cd SensorKinect/Bin
+tar -xjf SensorKinect093-Bin-Linux-x64-v5.1.2.1.tar.bz2
+cd Sensor-Bin-Linux-x64-v5.1.2.1
+currentlyExecutingCommand='./install.sh'
+echo >&2 'runnint: ./install.sh of SensorKinect, Avin2 driver installation'
+sudo ./install.sh
+
+
+:<<THESE_DO_NOT_WORK
+echo >&2 'Installing libfreenect driver for Kinect'
+echo >&2 'running sudo apt-get install libfreenect-dev'
+currentlyExecutingCommand='apt-get install libfreenect-dev'
+sudo apt-get install libfreenect-dev
+
+echo >&2 'running apt-get install ros-indigo-freenect-launch'
+currentlyExecutingCommand='apt-get install ros-indigo-freenect-launch'
+sudo apt-get install ros-indigo-freenect-launch
+THESE_DO_NOT_WORK
+
+:<<THESE_DO_NOT_WORK_EITHER
 ## Update to v0.4 of libfreenect driver for Kinect:
 cd ~
 mkdir libfreenect
 cd libfreenect
+echo >&2 'running: git clone https://github.com/OpenKinect/libfreenect.git'
 git clone https://github.com/OpenKinect/libfreenect.git
 cd libfreenect
 git checkout tags/v0.4.0
 mkdir build
 cd build
+currentlyExecutingCommand='cmake -L of libfreenect installation'
 cmake -L ..
 make
 
@@ -87,20 +139,44 @@ sudo rm -R ~/libfreenect
 
 if [ -d "~/Downloads" ]
 then 
-	echo "Cloning Freenect package into ~/Downloads directory."
+	echo "Cloned Freenect package into ~/Downloads directory."
 else
 	mkdir -p ~/Downloads
 	echo "Created ~/Downloads directory. Cloned Freenect package there."
 fi 
+THESE_DO_NOT_WORK_EITHER
+
 cd $MY_CATKIN_WS_DIR/src/open_ptrack/scripts
-./mesa_install.sh
+echo >&2 'installing Mesa SwissRanger driver ....'
+currentlyExecutingCommand='sudo dpkg -i libmesasr-dev-1.0.14-748'
+# Install Mesa SwissRanger driver:
+cd ~/Downloads
+if [ "$(uname -m)" = "x86_64" ]; then
+wget -U "Mozilla" http://www.mesa-imaging.ch/customer/driver/libmesasr-dev-1.0.14-748.amd64.deb
+sudo dpkg -i libmesasr-dev-1.0.14-748.amd64.deb 
+elif [ "$(uname -m)" = "i686" ]; then
+wget -U "Mozilla" http://www.mesa-imaging.ch/customer/driver/libmesasr-dev-1.0.14-747.i386.deb
+sudo dpkg -i libmesasr-dev-1.0.14-747.i386.deb
+# http://downloads.mesa-imaging.ch/dlm.php?fname=./customer/driver/libmesasr-dev-1.0.14-747.i386.deb
+else
+  echo >&2 'Could not determine the bus width architecture of your machine'
+  echo >&2 'Manualy install SwissRanger driver'
+  exit
+fi
+
 
 source /opt/ros/indigo/setup.bash
 source $MY_CATKIN_WS_DIR/devel/setup.bash
 cd $MY_CATKIN_WS_DIR
-catkin_make --pkg calibration_msgs
-catkin_make --pkg opt_msgs
 
+echo >&2 'running catkin_make --pkg calibration_msgs'
+currentlyExecutingCommand='catkin_make --pkg calibration_msgs'
+catkin_make --pkg calibration_msgs
+
+echo >&2 'running catkin_make --pkg opt_msg'
+echo >&2 'there will be ROI package error here, re-run catkin_make --pkg opt_msg'
+currentlyExecutingCommand='catkin_make --pkg opt_msgs'
+catkin_make --pkg opt_msgs
 
 
 trap : 0
