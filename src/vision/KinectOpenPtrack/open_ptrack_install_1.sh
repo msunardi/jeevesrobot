@@ -1,9 +1,8 @@
 #!/bin/bash
-##  2014.12.14
-
+## date:       2015.01.03
 :<<OpenPtrackInstall1_sh_Description
   Installs open_ptrack, aka People Detection and Tracking Package,
-  and its dependencies. This is script 1 of 2. 
+  and its dependencies. This is script 1 of 3. 
   After running this script, run next script, named open_ptrack_install_2.sh
   Assumptions:
     1. ROS Indigo, Full Desktop Version has been installed.
@@ -25,8 +24,7 @@ echo >&2 'error was in executing of this: ' $currentlyExecutingCommand
 trap 'abort' 0
 set -e    # aborts script on any error
 
-echo >&2 > 'Searching for catking workspace directory ....'
-currentlyExecutingCommand='find / -name .catkin_workspace'
+echo >&2 'Searching for catking workspace directory ....'
 for FILE in $(find / -name '.catkin_workspace' 2>/dev/null); do
 	CAT_WS="${FILE%.[^.]*}"
         MY_CATKIN_WS_DIR="${CAT_WS%/}"
@@ -34,18 +32,14 @@ for FILE in $(find / -name '.catkin_workspace' 2>/dev/null); do
         FILENAME="${CAT_WS:${#DIRNAME} + 1}"
 	EXT="${FILE##*\.}"
 done
-
-if [ "$CAT_WS" = "" ]; then
+if ["$CAT_WS" == ""]; then
   echo >&2 'catkin workspace directory not found. Exiting installation script'
   exit
 else 
   echo >&2 'Found your catkin workspace directory: ' $CAT_WS
 fi 
-
-
 source /opt/ros/indigo/setup.bash
 source $MY_CATKIN_WS_DIR/devel/setup.bash
-
 
 ROS_PACKAGES="python-rosinstall ros-$ROS_DISTRO-robot-state-publisher ros-$ROS_DISTRO-cmake-modules ros-$ROS_DISTRO-freenect-stack ros-$ROS_DISTRO-openni-launch ros-$ROS_DISTRO-camera-info-manager-py"
 
@@ -59,7 +53,7 @@ echo >&2 "export LC_ALL=C" >> ~/.bashrc
 export KINECT_DRIVER=freenect
 export LC_ALL=C
 
-
+echo >&2 "source $MY_CATKIN_WS_DIR/devel/setup.bash" >> ~/.bashrc
 source /opt/ros/indigo/setup.bash
 source $MY_CATKIN_WS_DIR/devel/setup.bash
 
@@ -86,21 +80,13 @@ echo >&2 'running git fetch origin --tags, and git checkout tags/v0.2'
 git fetch origin --tags
 git checkout tags/v0.2
 
+## Use either ros-indigo-freenect Kinect driver, commented as "ROS_S_LIBFREENECT"
+## or "leebfreenect below, "original" open_ptrack's libfreenect installation 
+## they will be overwriten by Avin2 drivers, anyway, but they might be
+## required to run open_ptrack:
 
-
-echo >&2 'installing SensorKinect dirver'
-currentlyExecutingCommand='git clone https://github.com/avin2/SensorKinect'
-cd ~/Downloads
-git clone https://github.com/avin2/SensorKinect
-cd SensorKinect/Bin
-tar -xjf SensorKinect093-Bin-Linux-x64-v5.1.2.1.tar.bz2
-cd Sensor-Bin-Linux-x64-v5.1.2.1
-currentlyExecutingCommand='./install.sh'
-echo >&2 'runnint: ./install.sh of SensorKinect, Avin2 driver installation'
-sudo ./install.sh
-
-
-:<<THESE_DO_NOT_WORK
+:<<ROS_S_LIBFREENECT
+## or "leebfreenect below, "original" open_ptrack's libfreenect installation 
 echo >&2 'Installing libfreenect driver for Kinect'
 echo >&2 'running sudo apt-get install libfreenect-dev'
 currentlyExecutingCommand='apt-get install libfreenect-dev'
@@ -109,9 +95,15 @@ sudo apt-get install libfreenect-dev
 echo >&2 'running apt-get install ros-indigo-freenect-launch'
 currentlyExecutingCommand='apt-get install ros-indigo-freenect-launch'
 sudo apt-get install ros-indigo-freenect-launch
-THESE_DO_NOT_WORK
+ROS_S_LIBFREENECT
 
-:<<THESE_DO_NOT_WORK_EITHER
+
+
+## open_ptrack's own libfreenect Kinect Drivers:
+## Use these drivers. Else, there might be some "roi_msgs" error.
+## open_ptrack's own libfreenect, use this one.
+## It will be overwritten by Avin2 drivers, but it is still required for
+## installation.
 ## Update to v0.4 of libfreenect driver for Kinect:
 cd ~
 mkdir libfreenect
@@ -137,15 +129,6 @@ cd $MY_CATKIN_WS_DIR/src
 git clone https://github.com/ros-drivers/freenect_stack.git
 sudo rm -R ~/libfreenect
 
-if [ -d "~/Downloads" ]
-then 
-	echo "Cloned Freenect package into ~/Downloads directory."
-else
-	mkdir -p ~/Downloads
-	echo "Created ~/Downloads directory. Cloned Freenect package there."
-fi 
-THESE_DO_NOT_WORK_EITHER
-
 cd $MY_CATKIN_WS_DIR/src/open_ptrack/scripts
 echo >&2 'installing Mesa SwissRanger driver ....'
 currentlyExecutingCommand='sudo dpkg -i libmesasr-dev-1.0.14-748'
@@ -164,6 +147,8 @@ else
   exit
 fi
 
+echo >&2 "source /opt/ros/indigo/setup.bash" >> ~/.bashrc
+echo >&2 "source $MY_CATKIN_WS_DIR/devel/setup.bash" >> ~/.bashrc
 
 source /opt/ros/indigo/setup.bash
 source $MY_CATKIN_WS_DIR/devel/setup.bash
@@ -174,7 +159,7 @@ currentlyExecutingCommand='catkin_make --pkg calibration_msgs'
 catkin_make --pkg calibration_msgs
 
 echo >&2 'running catkin_make --pkg opt_msg'
-echo >&2 'there will be ROI package error here, re-run catkin_make --pkg opt_msg'
+echo >&2 'If there is ROI_msgs error here, re-run catkin_make --pkg opt_msg'
 currentlyExecutingCommand='catkin_make --pkg opt_msgs'
 catkin_make --pkg opt_msgs
 

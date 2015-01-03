@@ -1,13 +1,16 @@
+2015.01.03
 
 People Detection And Tracking ROS node,
 "open_ptrack" package installation scripts are in this directory:
 
 open_ptrack_install_1.sh
 open_ptrack_install_2.sh
+open_ptrack_install_3.sh
 
 Assumption (requirements): you have 
 a) ROS Full Desktop installed and
 b) catkin workspace directory exists (has been initialized).
+c) internet connection
 
 To install open_ptrack package:
 
@@ -16,6 +19,9 @@ To install open_ptrack package:
 
 2. When first script finishes, in a new terminal window, execute / run:
     open_ptrack_install_2.sh
+
+3. When second script finishes, in a new terminal window, execute / run:
+    open_ptrack_install_3.sh
     
 
 If you get errors during execution of a second script:
