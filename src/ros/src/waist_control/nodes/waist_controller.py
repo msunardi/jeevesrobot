@@ -125,7 +125,7 @@ class WaistController(threading.Thread):
             if self.counter < 1000:
                 self.counter = self.counter + 1
             else:
-                ## Peter D.: perhaps, need one more command here:  self.r2.port.close()
+                self.r2.port.close()   ## Inserted by Peter D
                 self.r2 = rc_waist.RoboClaw("/dev/waist_actuator_control_left")
                 self.counter = 0
 
