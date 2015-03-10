@@ -1,0 +1,26 @@
+<launch>
+	<!-- 
+		When this script is executed, Jeeves will find and follow
+		a closest person.
+	-->
+
+  	<!-- People detection -->
+  	<include file="$(find detection)/launch/detector_depth.launch"/>
+
+ 	<!-- People tracking -->
+  	<include file="$(find tracking)/launch/tracker.launch"/>
+
+
+	<node 
+		pkg="detector_markers_array_listener"
+		type="detector_markers_array_listener"
+		name="detector_markers_array_listener"
+	/>
+
+	<node
+		pkg="kinect_nav_goal_listener"
+		type="kinect_nav_goal_listener"
+		name="kinect_nav_goal_listener"
+	/>
+
+</launch>
