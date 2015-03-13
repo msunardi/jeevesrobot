@@ -1,0 +1,19 @@
+
+
+How to access the Roboclaw boards directy (Python wrapper functions):
+
+cd <wait_control/nodes>
+
+ipython
+
+import roboclaw   ## this imports roboclaw.py wrapper functions
+
+rc = roboclaw.RoboClaw('/dev/ttyACM0', '9600', 1, 1)
+
+rc.readversion()  ## example of using wrapper function
+
+## rc.port
+
+## rc.port.close()
+
+
