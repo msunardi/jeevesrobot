@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 .. module:: battery_monitor_node
    :synopsis: Node that continuously reads current consumption and battery 
