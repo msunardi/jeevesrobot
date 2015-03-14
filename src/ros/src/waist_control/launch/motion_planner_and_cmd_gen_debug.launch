@@ -1,0 +1,10 @@
+<launch>
+  
+  <!-- Debugging script of waist_control -->
+
+  <node name="waist_motion_planner_joy_node" pkg="waist_control" type="waist_motion_planner_joy.py" />
+  <node name="waist_cmd_generator_node" pkg="waist_control" type="waist_cmd_generator.py" />
+  
+</launch>
+
+
