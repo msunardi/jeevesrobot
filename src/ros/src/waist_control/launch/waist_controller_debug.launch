@@ -1,0 +1,10 @@
+<launch>
+  
+  <!-- Debugging only: standalone waist_controller -->
+
+  <node name="waist_position_monitor_node" pkg="waist_control" type="waist_position_monitor.py" />
+
+  <node name="waist_controller_node" pkg="waist_control" type="waist_controller.py" />
+
+  
+</launch>

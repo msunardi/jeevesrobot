@@ -1,0 +1,9 @@
+<launch>
+  
+  <!--For Debugging only: standalone module of waist_control -->
+
+  <node name="waist_cmd_generator_node" pkg="waist_control" type="waist_cmd_generator.py" />
+
+
+  
+</launch>
