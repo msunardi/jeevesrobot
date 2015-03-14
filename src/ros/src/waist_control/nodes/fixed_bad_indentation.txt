@@ -1,0 +1,8 @@
+
+## 2015.02.28, Peter D: replaced 8-spaced TABS with standard Python's 
+## 4-space indentation, using automatic feature of Eric IDE.
+## Result: 8-spaced TAB was replaced with two "4-spaced" standard Python's indent.
+## Original files were placed in archive  named original_with_tabs_archive.tar.gz
+## which is placed in same (this) directory
+
+
