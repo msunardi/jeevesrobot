@@ -7,6 +7,9 @@
 
   <arg name="JEEVES_LAUNCH_DIR" value="/home/mcecsbot/src/roboticsclub-mcecsbot/src/ros/launch" />
 
+  <!-- battery status -->
+  <include file="$(arg JEEVES_LAUNCH_DIR)/battery_monitor.launch" />
+
   <!-- motor controllers -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/roboteq_controllers.launch" />
 
