@@ -1,0 +1,7 @@
+<launch>
+  <node name="battery_monitor_node" pkg="battery_monitor" type="battery_monitor_node.py">
+    <rosparam>
+       device: /dev/ttyACM0
+    </rosparam>
+  </node>
+</launch>
