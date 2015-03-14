@@ -10,8 +10,11 @@
   <!-- motor controllers -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/roboteq_controllers.launch" />
 
+  <!-- waist -->
+  <include file="$(arg JEEVES_LAUNCH_DIR)/waist_controller.launch" />
+
   <!-- imu -->
-<!--  <include file="$(arg JEEVES_LAUNCH_DIR)/imu.launch" /> -->
+  <!--  <include file="$(arg JEEVES_LAUNCH_DIR)/imu.launch" /> -->
 
   <!-- laser scanner -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/sick_lms_200.launch" />
