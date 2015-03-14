@@ -11,7 +11,7 @@
   <include file="$(arg JEEVES_LAUNCH_DIR)/roboteq_controllers.launch" />
 
   <!-- waist -->
-  <include file="$(arg JEEVES_LAUNCH_DIR)/waist_controller.launch" />
+  <include file="$(arg JEEVES_LAUNCH_DIR)/waist_control.launch" />
 
   <!-- imu -->
   <!--  <include file="$(arg JEEVES_LAUNCH_DIR)/imu.launch" /> -->
