@@ -1,0 +1,12 @@
+
+You have arrived at the face controller, congratulations.
+This guy controls the expressions on the LED arrays that make up the 
+eyes and mouth.
+This is not to be confused with the head controller which controls
+the head's physical position.
+
+DIRECTORY STRUCTURE
+    ./firmware/     -- the Arduino code for displaying the expression primitives
+    ./launch/       -- ROS launch stuff (still learning what this stuff is for Nov-2014 -pwl)
+    ./nodes/        -- the python scripts that work the ROS magic (subscribing to topics, publishing, etc.)
+    ./msg/          -- the messages this node can write
