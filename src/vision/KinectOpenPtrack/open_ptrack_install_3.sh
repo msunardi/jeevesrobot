@@ -1,5 +1,4 @@
 #!/bin/bash
-## date 2015.01.03
 
 echo >&2 'installing Avin2 SensorKinect dirver'
 currentlyExecutingCommand='git clone https://github.com/avin2/SensorKinect'

@@ -1,0 +1,20 @@
+## 2015.03.18
+
+How to use pre-existing calibration configuration file:
+
+Place rgb_A00363A09076112A.yaml file into 
+~/.ros/camera_info/
+e.g. /home/mcecsbot/.ros/camera_info/
+
+
+where rgb_A00363A09076112A is a serial number of specific camera.
+Serial num is displayed during freenect_launch stdout output.
+
+Note: only rgb camera calibration file is needed. 
+No need for use of calibration file for depth (IR) camera: default is used.
+
+
+To confirm correct configuration, run:
+    rostopic echo /camera/rgb/camera_info
+It should steam the Kinect's configuration parameters as set by .yaml file.
+

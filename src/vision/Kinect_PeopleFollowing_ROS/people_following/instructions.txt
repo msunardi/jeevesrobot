@@ -1,0 +1,12 @@
+
+people_following package uses open_ptrack detection and tracking.
+Assumption: open_ptrack has been built (installed).
+            freenect (or Avin2) Kinect drivers have been installed.
+
+To use people_following:
+    a) copy "people_following" directory to /home/mcecsbot/src/roboticsclub-mcecsbot/src/ros/src
+    directory
+    b) cd /home/mcecsbot/src/roboticsclub-mcecsbot/src/ros
+       catkin_make
+
+

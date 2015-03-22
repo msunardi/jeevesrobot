@@ -1,5 +1,5 @@
 // kinect_nav_goal_listener.cpp
-// 2015.01.18
+// 2015.01.18, 2015.03.16
 // Tested and working Person Following.
 
 
@@ -53,7 +53,7 @@ class KinectNavGoalListener
     tf::Stamped<tf::Pose> person_global_pose_from_laser; // in “global”, “map"
     double roll1, pitch1, yaw1, roll2, pitch2, yaw2;
     tf::Stamped<tf::Quaternion> base_target_transformed_q;
-    int debugCounter;
+    int debugCounter, goalCounter;
 };
 
 
@@ -80,6 +80,7 @@ void KinectNavGoalListener::amclPoseCallback(
 KinectNavGoalListener::KinectNavGoalListener()
 {
     debugCounter = 1;
+    goalCounter = 1;
     initialPosePublished = false;
     sub_target = nh.subscribe<geometry_msgs::Twist>
 	      ("/detected_person", 1, &KinectNavGoalListener::detectionCallBack, this);
@@ -142,15 +143,15 @@ void KinectNavGoalListener::runActionClient(void){
     // base_footprint, laser, map, odom
     
 
-		try { 
-      tfListener.waitForTransform("map", "laser", ros::Time(0), ros::Duration(4.0));
-			tfListener.lookupTransform("map", "laser", ros::Time(0), tfLaserToMap);
-		  cur_laser_pose_q = tfLaserToMap.getRotation();   // tf::Quaternion type
-		  lazerPositionX = tfLaserToMap.getOrigin().x();  // robot (lazer) position
-		  lazerPositionY = tfLaserToMap.getOrigin().y();
-      double laser_roll, laser_pitch, laser_yaw;
-      tf::Matrix3x3 m_laser_pose(cur_laser_pose_q);
-      m_laser_pose.getRPY(laser_roll, laser_pitch, laser_yaw);
+    try { 
+        tfListener.waitForTransform("map", "laser", ros::Time(0), ros::Duration(4.0));
+        tfListener.lookupTransform("map", "laser", ros::Time(0), tfLaserToMap);
+        cur_laser_pose_q = tfLaserToMap.getRotation();   // tf::Quaternion type
+        lazerPositionX = tfLaserToMap.getOrigin().x();  // robot (lazer) position
+        lazerPositionY = tfLaserToMap.getOrigin().y();
+        double laser_roll, laser_pitch, laser_yaw;
+        tf::Matrix3x3 m_laser_pose(cur_laser_pose_q);
+        m_laser_pose.getRPY(laser_roll, laser_pitch, laser_yaw);
      
       double result_yaw = laser_yaw + saved_msg.angular.z;
       tf::Quaternion target_q = tf::createQuaternionFromYaw(result_yaw);
@@ -218,12 +219,13 @@ void KinectNavGoalListener::runActionClient(void){
     ROS_INFO("Cur lazer RPY:        r: %f, p: %f, y: %f", cur_roll, cur_pitch, cur_yaw);
     ROS_INFO("============================================");
 
-
+    ROS_INFO("                      GOAL No. %d ", goalCounter);
+    goalCounter++;
     ROS_INFO("Target (local frame): x: %f, y: %f,  angle: %f", 
         saved_msg.linear.x, saved_msg.linear.y, saved_msg.angular.z);
-    ROS_INFO("Target Point          x: %f, y: %f",
+    ROS_INFO("Target Point Global:  x: %f, y: %f",
        goal.target_pose.pose.position.x, goal.target_pose.pose.position.y);
-    ROS_INFO("Target Orient:        x: %f, y: %f, z: %f, w: %f", 
+    ROS_INFO("Target Orient Global: x: %f, y: %f, z: %f, w: %f", 
         goal.target_pose.pose.orientation.x, goal.target_pose.pose.orientation.y,
         goal.target_pose.pose.orientation.z, goal.target_pose.pose.orientation.w);
 
@@ -236,10 +238,12 @@ void KinectNavGoalListener::runActionClient(void){
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
     ac->sendGoal(goal);      
-    bool finished_before_timeout = ac->waitForResult(ros::Duration(30.0));
+    float waitForResultTime = 30.0; 
+    ROS_INFO("Waiting for Result for %f", waitForResultTime);
+    bool finished_before_timeout = ac->waitForResult(ros::Duration(waitForResultTime));
     actionlib::SimpleClientGoalState state = ac->getState();
     if (finished_before_timeout) { 
-      ROS_INFO("\t\tFINISHED: %s\n\n", state.toString().c_str());        
+      ROS_INFO("\t\tFINISHED before timeout of %f: %s\n\n", waitForResultTime, state.toString().c_str());        
     }
     else 
       ROS_INFO("\t\tFAILED: %s\n\n", state.toString().c_str());
@@ -263,7 +267,7 @@ void KinectNavGoalListener::poseStampedCallBack(  // not needed
 
 void KinectNavGoalListener::detectionCallBack(const geometry_msgs::Twist::ConstPtr& msg)
 {  
-	saved_ang_z = saved_msg.angular.z = msg->angular.z;
+  saved_ang_z = saved_msg.angular.z = msg->angular.z;
   saved_lin_x = saved_msg.linear.x = msg->linear.x;
   saved_lin_y = saved_msg.linear.y = msg->linear.y;
   ROS_INFO("DETECTIONS CALLBACK: x: %f, y: %f, z: %f\n", 
