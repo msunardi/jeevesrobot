@@ -1,16 +1,35 @@
 # Commented-out lines use defaults
 
 DWAPlannerROS:
-  acc_lim_x: 0.8 # measured
-  acc_lim_y: 0.0
-  acc_lim_th: 0.7
+
+# Acceleration limits. These have a strong effect 
+# on trajectory generation, so make sure they're 
+# reasonable.
+
+  acc_lim_x: 2.0  # measured
+#  acc_limit_trans: 2.5 # undocumented
+  acc_lim_y: 0.0  # no strafing (odometry is horrible)
+  acc_lim_theta: 4.6  # measured
+
+# Velocity limits.
+
+  # should both be the same on our robot
   max_trans_vel: 0.6
-  min_trans_vel: 0.1 # measured
   max_vel_x: 0.6
-  min_vel_x: 0.1  # measured
+
+  # note: this can be negative if we want to allow 
+  # going backward (and indeed we might)
+#  min_vel_x: 0.0
+
+  # slowest speed the motors can achieve,
+  # forward or backward
+  min_trans_vel: 0.1  # measured  
+
+  # no strafing
   max_vel_y: 0.0
   min_vel_y: 0.0
-#  max_rot_vel: 1.0 # measured
+
+#  max_rot_vel: 1.0
   min_rot_vel: 0.25 # measured
 
 # Goal Tolerance Parameters
@@ -19,12 +38,10 @@ DWAPlannerROS:
   latch_xy_goal_tolerance: true
   
 # Forward Simulation Parameters
-#  sim_time: 1.7
+  sim_time: 3.0  # large effect on trajectory scoring!
 #  sim_granularity: 0.025
 #  vx_samples: 3
-
   vy_samples: 0
-
 #  vtheta_samples: 20
 #  controller_frequency: 20
 #  penalize_negative_x: true
@@ -44,7 +61,13 @@ DWAPlannerROS:
 # Global Plan Parameters
 #  prune_plan: true
 
-# Undocumented Parameters (see source dwa_planner.cpp)
-  publish_traj_pc: true
-  publish_cost_grid_pc: true
+# Undocumented Parameters
+  # Nice for visualization. See source dwa_planner.cpp
+  publish_traj_pc: true       # DWA local planner trajectory cloud
+  publish_cost_grid_pc: true  # DWA local planner cost grid
 
+  # measured
+  trans_stopped_vel: 0.1
+
+  # measured
+  rot_stopped_vel: 0.25 
