@@ -24,6 +24,33 @@ ODOMETRY_UPDATE_RATE_Hz = 50
 
 class OdometryPublisher(threading.Thread):
     def __init__(self, transformer, odometry_update_rate_hz):
+        # last few wheel angular velocities, rads/s
+        self.w_1 = deque([0.0, 0.0, 0.0, 0.0])
+        self.w_2 = deque([0.0, 0.0, 0.0, 0.0])
+        self.w_3 = deque([0.0, 0.0, 0.0, 0.0])
+        self.w_4 = deque([0.0, 0.0, 0.0, 0.0])
+
+        self.transformer = transformer
+        self.sleeper = rospy.Rate(odometry_update_rate_hz)
+        self.delta_t = 1.0 / odometry_update_rate_hz
+        self.odom_publisher = rospy.Publisher("/odom", Odometry, queue_size=5)
+
+        self.tf_broadcaster = tf.TransformBroadcaster()
+        self.frame_id = '/odom'
+        self.child_frame_id = '/base_footprint'
+        self.x = 0.0
+        self.y = 0.0
+        self.theta = (0.0, 0.0)         # theta, timestamp
+        self.theta_prev = (0.0, -1.0)   # theta, timestamp 
+        self.lsm_theta = 0.0
+        self.theta_lock = Lock()
+        self.w_1_lock = Lock()
+        self.w_2_lock = Lock()
+        self.w_3_lock = Lock()
+        self.w_4_lock = Lock()
+        threading.Thread.__init__(self)
+
+        # Init subscribers
         # front motors are #1, #4
         self.motor_1_listener = rospy.Subscriber(
             "/motor_1/feedback",
@@ -50,32 +77,6 @@ class OdometryPublisher(threading.Thread):
             "/pose_stamped",
             PoseStamped,
             self.lsm_pose2D_callback)
-
-        # last few wheel angular velocities, rads/s
-        self.w_1 = deque([0.0, 0.0, 0.0, 0.0])
-        self.w_2 = deque([0.0, 0.0, 0.0, 0.0])
-        self.w_3 = deque([0.0, 0.0, 0.0, 0.0])
-        self.w_4 = deque([0.0, 0.0, 0.0, 0.0])
-
-        self.transformer = transformer
-        self.sleeper = rospy.Rate(odometry_update_rate_hz)
-        self.delta_t = 1.0 / odometry_update_rate_hz
-        self.odom_publisher = rospy.Publisher("/odom", Odometry, queue_size=5)
-
-        self.tf_broadcaster = tf.TransformBroadcaster()
-        self.frame_id = '/odom'
-        self.child_frame_id = '/base_footprint'
-        self.x = 0.0
-        self.y = 0.0
-        self.theta = (0.0, 0.0)         # theta, timestamp
-        self.theta_prev = (0.0, -1.0)   # theta, timestamp 
-        self.lsm_theta = 0.0
-        self.theta_lock = Lock()
-        self.w_1_lock = Lock()
-        self.w_2_lock = Lock()
-        self.w_3_lock = Lock()
-        self.w_4_lock = Lock()
-        threading.Thread.__init__(self)
 
     def run(self):
         loop_count = 0
