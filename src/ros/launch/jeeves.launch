@@ -7,6 +7,10 @@
 
   <arg name="JEEVES_LAUNCH_DIR" value="/home/mcecsbot/src/roboticsclub-mcecsbot/src/ros/launch" />
 
+  # use our config files to set default logger levels
+  <env name="ROSCONSOLE_CONFIG_FILE" value="$(arg JEEVES_LAUNCH_DIR)/rosconsole.config" />
+  <env name="ROS_PYTHON_LOG_CONFIG_FILE" value="$(arg JEEVES_LAUNCH_DIR)/python_logging.config" />
+
   <!-- battery status -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/battery_monitor.launch" />
 
@@ -35,7 +39,7 @@
   <!-- Nav stack -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/map_server.launch" />
   <include file="$(arg JEEVES_LAUNCH_DIR)/amcl_diff.launch" />
-  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base">
     <rosparam>
       base_local_planner: dwa_local_planner/DWAPlannerROS
     </rosparam>

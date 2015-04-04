@@ -1,12 +1,12 @@
 <launch>
-    <node pkg="roboteq_driver" type="driver_node" name="motor_controller_front" output="screen">
+    <node pkg="roboteq_driver" type="driver_node" name="motor_controller_front">
         <rosparam>
             port: /dev/motors_front
             baud: 115200
             channels: ["motor_1", "motor_4"]
         </rosparam>
     </node>
-    <node pkg="roboteq_driver" type="driver_node" name="motor_controller_rear" output="screen">
+    <node pkg="roboteq_driver" type="driver_node" name="motor_controller_rear">
         <rosparam>
             port: /dev/motors_rear
             baud: 115200
