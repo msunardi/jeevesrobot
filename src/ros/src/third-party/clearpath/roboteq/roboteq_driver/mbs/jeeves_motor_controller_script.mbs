@@ -47,10 +47,11 @@ setconfig(_ECHOF, 1) ' Serial echo off (p195)
 'setconfig(_CLERD, 1, 0)
 'setconfig(_CLERD, 2, 0)
 
-
 top:
 	for ch = 1 andwhile ch <= MAX_CHANNELS evaluate ch++
-		GoSub PrintFeedback  ' 25 Hz
+		if getvalue(_BOOL, ch) = 1 then
+			GoSub PrintFeedback  ' 25 Hz
+		end if
 	next
 	c++
 	if c = 5 then

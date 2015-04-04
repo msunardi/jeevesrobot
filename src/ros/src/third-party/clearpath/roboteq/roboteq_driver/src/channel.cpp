@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace roboteq {
 
 Channel::Channel(int channel_num, std::string ns, Controller* controller) :
-  channel_num_(channel_num), nh_(ns), controller_(controller), max_rpm_(130)
+  channel_num_(channel_num), nh_(ns), controller_(controller), max_rpm_(3500)
 {
   sub_cmd_ = nh_.subscribe("cmd", 1, &Channel::cmdCallback, this);
   pub_feedback_ = nh_.advertise<roboteq_msgs::Feedback>("feedback", 1);
@@ -82,7 +82,9 @@ void Channel::feedbackCallback(std::vector<std::string> fields) {
 void Channel::timerCallback(const ros::TimerEvent&) {
   if (ros::Time::now() - last_feedback_time_ > ros::Duration(1.0)) {
     // Not receiving feedback, attempt to start it.
-    controller_->setUserBool(1, 1);
+    controller_->command << "R 2" << controller_->send; // restart script
+    controller_->flush();
+    controller_->setUserBool(channel_num_, 1);  // enable feedback from script
     controller_->flush();
   }
 }
