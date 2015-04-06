@@ -89,7 +89,7 @@ class JoyController(threading.Thread):
             self.nav_status = data.status_list[0].status
             
 def main(args):
-    rospy.init_node('joy_controller_node', anonymous=True, log_level=rospy.INFO)
+    rospy.init_node('joy_controller_node', anonymous=True)
     controller = JoyController()
     controller.start()
     rospy.spin()

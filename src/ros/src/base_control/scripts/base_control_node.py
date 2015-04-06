@@ -105,7 +105,6 @@ class BaseTransformHandler(object):
     
 
 def main(args):
-#    rospy.init_node('base_controller_node', anonymous=True, log_level=rospy.INFO)
     rospy.init_node('base_controller_node', anonymous=True)
     controller = BaseController()
     controller.start()
