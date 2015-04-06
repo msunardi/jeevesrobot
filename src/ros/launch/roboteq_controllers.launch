@@ -4,6 +4,7 @@
             port: /dev/motors_front
             baud: 115200
             channels: ["motor_1", "motor_4"]
+            max_rpm: 130
         </rosparam>
     </node>
     <node pkg="roboteq_driver" type="driver_node" name="motor_controller_rear">
@@ -11,6 +12,7 @@
             port: /dev/motors_rear
             baud: 115200
             channels: ["motor_2", "motor_3"]
+            max_rpm: 130
         </rosparam>
     </node>
 </launch>
