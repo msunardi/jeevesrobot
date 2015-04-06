@@ -178,7 +178,7 @@ class OdometryPublisher(threading.Thread):
             self.theta = (yaw, pose_msg.header.stamp.to_sec())
             
 def main(args):
-    rospy.init_node('base_odometry', anonymous=True, log_level=rospy.INFO)
+    rospy.init_node('base_odometry', anonymous=True)
     bth = BaseTransformHandler(WHEEL_RADIUS_m,
                                HALF_WHEELBASE_X_m,
                                HALF_WHEELBASE_Y_m)
