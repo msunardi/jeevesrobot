@@ -34,11 +34,13 @@ namespace roboteq_msgs {
 
 namespace roboteq {
 
+const int MAX_RPM_DEFAULT = 3500; // Grizzy default
+
 class Controller;
 
 class Channel {
 public:
-  Channel(int channel_num, std::string ns, Controller* controller);
+  Channel(int channel_num, std::string ns, Controller* controller, int max_rpm = MAX_RPM_DEFAULT);
   void feedbackCallback(std::vector<std::string>);
 
 protected:
