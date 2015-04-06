@@ -35,8 +35,10 @@ int main(int argc, char **argv) {
 
   std::string port = "/dev/ttyUSB0";
   int32_t baud = 115200;
+  int32_t max_rpm = roboteq::MAX_RPM_DEFAULT; 
   nh.param<std::string>("port", port, port);
   nh.param<int32_t>("baud", baud, baud);
+  nh.param<int32_t>("max_rpm", max_rpm, max_rpm);
 
   // Interface to motor controller.
   roboteq::Controller controller(port.c_str(), baud);
@@ -49,7 +51,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < channel_namespaces.size(); ++i) 
     {
       ROS_ASSERT(channel_namespaces[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-      controller.addChannel(new roboteq::Channel(1 + i, channel_namespaces[i], &controller));
+      controller.addChannel(new roboteq::Channel(1 + i, channel_namespaces[i], &controller, max_rpm));
     }
   } else {
     // Default configuration is a single channel in the node's namespace.
