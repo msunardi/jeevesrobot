@@ -51,6 +51,7 @@ add_service_files(
    FILES
    GetWaypoints.srv
    AddWaypoint.srv
+   DeleteWaypoint.srv
    CancelCurrentNavGoal.srv
    SetDefaultInitialPose.srv
 )

@@ -13,6 +13,10 @@ import tf
 from jeeves_2d_nav.srv import *
 
 DEFAULT_WAYPOINT_FILENAME = 'waypoints.yaml'
+RESULT_OK = 0
+RESULT_DUPLICATE_WAYPOINT = 1
+RESULT_DNE = 2
+
 # EDIT THIS: default initial pose
 HOME_X = 26.033
 HOME_Y = 10.657
@@ -31,6 +35,9 @@ class WaypointManager(threading.Thread):
         rospy.Service('/waypoint_manager/add_waypoint',
                       AddWaypoint,
                       self.handle_add_waypoint)
+        rospy.Service('/waypoint_manager/delete_waypoint',
+                      DeleteWaypoint,
+                      self.handle_delete_waypoint)
         threading.Thread.__init__(self)
 
     def load_waypoints_from_file(self, f):
@@ -65,14 +72,14 @@ class WaypointManager(threading.Thread):
         if wp['name'] not in names:
             rospy.loginfo("Adding new waypoing name: " + wp['name'])
             self.waypoints.append(wp)
-            return 0
+            return RESULT_OK
         else:
             rospy.logwarn("Ignoring duplicate waypoint name: " + wp['name'])
-            return 1
+            return RESULT_DUPLICATE_WAYPOINT
 
     def handle_get_waypoints(self, req):
         rospy.logdebug("waypoint_manager.handle_get_waypoints()")
-        return yaml.dump(self.waypoints)
+        return yaml.dump(self.waypoints, default_flow_style=False)
 
     def handle_add_waypoint(self, req):
         wp = {'name': req.name,
@@ -80,6 +87,14 @@ class WaypointManager(threading.Thread):
              'y': req.y,
              'theta': req.theta}
         return self.add_waypoint(wp)
+
+    def handle_delete_waypoint(self, req):
+        try:
+            found = next(x for x in self.waypoints if x['name'] == req.name)
+            self.waypoints.remove(found)
+            return RESULT_OK
+        except StopIteration:
+            return RESULT_DNE
 
 
 if __name__ == '__main__':
