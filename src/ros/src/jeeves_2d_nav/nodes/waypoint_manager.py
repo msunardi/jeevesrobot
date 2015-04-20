@@ -8,7 +8,7 @@ import actionlib
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion, Twist
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import rospy
-import tf
+from tf import TransformListener
 
 from jeeves_2d_nav.srv import *
 
@@ -26,6 +26,7 @@ HOME_THETA = 1.528
 class WaypointManager(threading.Thread):
     def __init__(self, waypoint_file):
         self.sleeper = rospy.Rate(1)
+        self.tl = TransformListener()
         self.waypoint_file = waypoint_file
         self.waypoints = []
         self.load_waypoints_from_file(waypoint_file)
@@ -38,6 +39,9 @@ class WaypointManager(threading.Thread):
         rospy.Service('/waypoint_manager/delete_waypoint',
                       DeleteWaypoint,
                       self.handle_delete_waypoint)
+        rospy.Service('/waypoint_manager/save_current_pose',
+                      SaveCurrentPose,
+                      self.handle_save_current_pose)
         threading.Thread.__init__(self)
 
     def load_waypoints_from_file(self, f):
@@ -63,7 +67,10 @@ class WaypointManager(threading.Thread):
             for wp in self.waypoints:
                 msg += wp['name'] + ','
             rospy.loginfo(msg)
-            self.sleeper.sleep()
+            try:
+                self.sleeper.sleep()
+            except Exception:
+                pass
         file(self.waypoint_file, 'w').write(yaml.dump(self.waypoints,
                                                     default_flow_style=False))
 
@@ -96,6 +103,12 @@ class WaypointManager(threading.Thread):
         except StopIteration:
             return RESULT_DNE
 
+    def handle_save_current_pose(self, req):
+        if self.tl.frameExists("/base_link") and self.tl.frameExists("/map"):
+            t = self.tl.getLatestCommonTime("/base_link", "/map")
+            p, q = self.tl.lookupTransform("/map", "/base_link", t)
+            wp = {'name': req.name, 'x': p[0], 'y': p[1], 'theta': 0.0}
+            return self.add_waypoint(wp)
 
 if __name__ == '__main__':
     rospy.init_node('waypoint_manager')
