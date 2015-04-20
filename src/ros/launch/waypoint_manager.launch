@@ -1,4 +1,7 @@
 <launch>
   <node name="waypoint_manager" pkg="jeeves_2d_nav" type="waypoint_manager.py" />
+  <rosparam>
+    base_local_planner: dwa_local_planner/DWAPlannerROS
+  </rosparam>
 </launch>
 

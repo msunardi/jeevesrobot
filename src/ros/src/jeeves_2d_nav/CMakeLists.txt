@@ -49,6 +49,8 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs message_generation
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES
+   GetWaypoints.srv
+   AddWaypoint.srv
    CancelCurrentNavGoal.srv
    SetDefaultInitialPose.srv
 )
