@@ -8,14 +8,15 @@ import actionlib
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion, Twist
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import rospy
+import tf
 from tf import TransformListener
-
 from jeeves_2d_nav.srv import *
 
 DEFAULT_WAYPOINT_FILENAME = 'waypoints.yaml'
 RESULT_OK = 0
-RESULT_DUPLICATE_WAYPOINT = 1
-RESULT_DNE = 2
+RESULT_DUPLICATE_WAYPOINT = -1
+RESULT_DNE = -2
+RESULT_POSE_NOT_AVAILABLE = -3
 
 # EDIT THIS: default initial pose
 HOME_X = 26.033
@@ -28,7 +29,7 @@ class WaypointManager(threading.Thread):
         self.sleeper = rospy.Rate(1)
         self.sleeper.sleep()
         self.tl = TransformListener()
-        self.base_frame = '/' + base_frame
+        self.base_frame = base_frame
         self.waypoint_file = waypoint_file
         self.waypoints = []
         self.load_waypoints_from_file(waypoint_file)
@@ -110,8 +111,12 @@ class WaypointManager(threading.Thread):
         if self.tl.frameExists(self.base_frame) and self.tl.frameExists("/map"):
             t = self.tl.getLatestCommonTime("/map", self.base_frame)
             p, q = self.tl.lookupTransform("/map", self.base_frame, t)
-            wp = {'name': req.name, 'x': p[0], 'y': p[1], 'theta': 0.0}
-            return self.add_waypoint(wp)
+            theta = tf.transformations.euler_from_quaternion(q)[2]
+            wp = {'name': req.name, 'x': p[0], 'y': p[1], 'theta': theta}
+            self.add_waypoint(wp)
+            return RESULT_OK
+        else:
+            return RESULT_POSE_NOT_AVAILABLE
 
 if __name__ == '__main__':
     rospy.init_node('waypoint_manager')
