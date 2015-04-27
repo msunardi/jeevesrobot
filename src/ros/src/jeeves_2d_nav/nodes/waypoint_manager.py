@@ -24,9 +24,11 @@ HOME_THETA = 1.528
 
 
 class WaypointManager(threading.Thread):
-    def __init__(self, waypoint_file):
+    def __init__(self, waypoint_file, base_frame):
         self.sleeper = rospy.Rate(1)
+        self.sleeper.sleep()
         self.tl = TransformListener()
+        self.base_frame = '/' + base_frame
         self.waypoint_file = waypoint_file
         self.waypoints = []
         self.load_waypoints_from_file(waypoint_file)
@@ -60,13 +62,14 @@ class WaypointManager(threading.Thread):
             rospy.logerr(msg)
             return
 
+        msg = "waypoints: "
+        for wp in self.waypoints:
+            msg += wp['name'] + ', '
+        rospy.loginfo(msg)
+
     def run(self):
         self.sleeper.sleep()
         while not rospy.is_shutdown():
-            msg = "waypoints: "
-            for wp in self.waypoints:
-                msg += wp['name'] + ','
-            rospy.loginfo(msg)
             try:
                 self.sleeper.sleep()
             except Exception:
@@ -77,7 +80,7 @@ class WaypointManager(threading.Thread):
     def add_waypoint(self, wp):
         names = [p['name'] for p in self.waypoints]
         if wp['name'] not in names:
-            rospy.loginfo("Adding new waypoing name: " + wp['name'])
+            rospy.logdebug("Adding new waypoint name: " + wp['name'])
             self.waypoints.append(wp)
             return RESULT_OK
         else:
@@ -104,14 +107,16 @@ class WaypointManager(threading.Thread):
             return RESULT_DNE
 
     def handle_save_current_pose(self, req):
-        if self.tl.frameExists("/base_link") and self.tl.frameExists("/map"):
-            t = self.tl.getLatestCommonTime("/base_link", "/map")
-            p, q = self.tl.lookupTransform("/map", "/base_link", t)
+        if self.tl.frameExists(self.base_frame) and self.tl.frameExists("/map"):
+            t = self.tl.getLatestCommonTime("/map", self.base_frame)
+            p, q = self.tl.lookupTransform("/map", self.base_frame, t)
             wp = {'name': req.name, 'x': p[0], 'y': p[1], 'theta': 0.0}
             return self.add_waypoint(wp)
 
 if __name__ == '__main__':
     rospy.init_node('waypoint_manager')
-    mgr = WaypointManager(rospy.get_param('waypoint_file', 'waypoints.yaml'))
+    mgr = WaypointManager(
+        rospy.get_param('/waypoint_manager/waypoint_file', 'waypoints.yaml'),
+        rospy.get_param('base_frame', '/base_footprint'))
     mgr.start()
     rospy.spin()

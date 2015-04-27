@@ -1,0 +1,7 @@
+<launch>
+  <node name="waypoint_manager" pkg="jeeves_2d_nav" type="waypoint_manager.py">
+    <param name="waypoint_file" value="$(find jeeves_2d_nav)/waypoints.yaml" />
+    <param name="base_frame" value="base_link" />
+  </node>
+</launch>
+
