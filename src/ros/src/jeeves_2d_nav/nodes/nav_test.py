@@ -5,15 +5,14 @@
    service to become available, loads all waypoints then visits each waypoint
    in turn before exiting.
 """
-import sys
 import threading
 import yaml
 
-import rospy
 import actionlib
-from actionlib_msgs.msg import *
 from geometry_msgs.msg import Pose, Point, Quaternion
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+import rospy
+import tf
 
 import jeeves_2d_nav
 from jeeves_2d_nav.srv import *
@@ -43,9 +42,10 @@ class NavTest(threading.Thread):
         x = wp['x']
         y = wp['y']
         theta = wp['theta']
+        q = tf.transformations.quaternion_from_euler(0.0, 0.0, theta)
         goal = MoveBaseGoal()
         goal.target_pose.pose = Pose(Point(x, y, 0.0),
-                                     Quaternion(0.0, 0.0, 0.0, 1.0))
+                                     Quaternion(q[0], q[1], q[2], q[3]))
         goal.target_pose.header.frame_id = 'map'
         goal.target_pose.header.stamp = rospy.Time.now()
         self.mbc.send_goal(goal)
