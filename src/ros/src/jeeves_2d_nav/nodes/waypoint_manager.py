@@ -119,7 +119,7 @@ class WaypointManager(threading.Thread):
             return RESULT_POSE_NOT_AVAILABLE
 
 if __name__ == '__main__':
-    rospy.init_node('waypoint_manager')
+    rospy.init_node('waypoint_manager_node')
     mgr = WaypointManager(
         rospy.get_param('/waypoint_manager/waypoint_file', 'waypoints.yaml'),
         rospy.get_param('base_frame', '/base_footprint'))
