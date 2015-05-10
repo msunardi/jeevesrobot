@@ -1,16 +1,8 @@
-- name: home
+- name: NE
   theta: 3.0
-  x: 1.0
+  x: 2.0
   y: 2.0
-- name: ece_dept_door
-  theta: 1.399999976158142
-  x: 3.0
-  y: 4.0
-- name: Circuit Lounge
-  theta: 1.399999976158142
-  x: 3.0
-  y: 4.0
-- name: the moonie
-  theta: 0.0
-  x: 0.0
-  y: 0.0
+- name: SW
+  theta: 0
+  x: -2.0
+  y: -2.0
