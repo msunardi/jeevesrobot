@@ -75,18 +75,22 @@ class WaypointManager(threading.Thread):
                 self.sleeper.sleep()
             except Exception:
                 pass
-        file(self.waypoint_file, 'w').write(yaml.dump(self.waypoints,
-                                                    default_flow_style=False))
+        self.save_waypoints()
 
     def add_waypoint(self, wp):
         names = [p['name'] for p in self.waypoints]
         if wp['name'] not in names:
             rospy.logdebug("Adding new waypoint name: " + wp['name'])
             self.waypoints.append(wp)
+            self.save_waypoints()
             return RESULT_OK
         else:
             rospy.logwarn("Ignoring duplicate waypoint name: " + wp['name'])
             return RESULT_DUPLICATE_WAYPOINT
+
+    def save_waypoints(self):
+        file(self.waypoint_file, 'w').write(yaml.dump(self.waypoints,
+                                                      default_flow_style=False))
 
     def handle_get_waypoints(self, req):
         rospy.logdebug("waypoint_manager.handle_get_waypoints()")
@@ -103,6 +107,7 @@ class WaypointManager(threading.Thread):
         try:
             found = next(x for x in self.waypoints if x['name'] == req.name)
             self.waypoints.remove(found)
+            self.save_waypoints()
             return RESULT_OK
         except StopIteration:
             return RESULT_DNE
