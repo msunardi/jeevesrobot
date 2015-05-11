@@ -113,8 +113,7 @@ class WaypointManager(threading.Thread):
             p, q = self.tl.lookupTransform("/map", self.base_frame, t)
             theta = tf.transformations.euler_from_quaternion(q)[2]
             wp = {'name': req.name, 'x': p[0], 'y': p[1], 'theta': theta}
-            self.add_waypoint(wp)
-            return RESULT_OK
+            return self.add_waypoint(wp)
         else:
             return RESULT_POSE_NOT_AVAILABLE
 
