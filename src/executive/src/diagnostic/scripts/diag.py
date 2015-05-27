@@ -72,7 +72,7 @@ def main():
 
 		# Add states to the container
                 smach.StateMachine.add('MOTOR_CHECK', sm_motor, transitions={'success':'LASER_CHECK','fail':'FAIL'})
-		smach.StateMachine.add('LASER_CHECK', laser_check(), transitions={'success':'STATUS_CHECK','fail':'FAIL'})
+		smach.StateMachine.add('LASER_CHECK', laser_check(), transitions={'success':'STATUS_CHECK','fail':'STATUS_CHECK'})
 
 		sm_status = smach.StateMachine(outcomes=['success','fail'])
 		
