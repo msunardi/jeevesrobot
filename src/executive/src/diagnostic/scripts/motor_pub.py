@@ -1,14 +1,20 @@
 #!/usr/bin/env python
 
 import rospy
-from smach_jeeves.msg import Feedback
+from diagnostic.msg import Feedback
 
 
 def motor_pub():
 	
 	rospy.init_node('motor', anonymous = True )
-	pub = rospy.Publisher('/feedback',Feedback,queue_size = 5)
-	
+	pub1 = rospy.Publisher('motor_1/feedback',Feedback,queue_size = 5)
+		
+	pub2 = rospy.Publisher('motor_2/feedback',Feedback,queue_size = 5)
+
+	pub3 = rospy.Publisher('motor_3/feedback',Feedback,queue_size = 5)
+
+	pub4 = rospy.Publisher('motor_4/feedback',Feedback,queue_size = 5)
+
 	fb = Feedback()
 	fb.motor_current = 1.2
 	fb.motor_power = 63.5
@@ -27,7 +33,11 @@ def motor_pub():
 	rate = rospy.Rate(50)
 	while not rospy.is_shutdown():
 		
-		pub.publish((fb))
+		pub1.publish((fb))
+		pub2.publish((fb))
+		pub3.publish((fb))
+		pub4.publish((fb))
+
 		rate.sleep()	
 	
 if __name__ == '__main__':

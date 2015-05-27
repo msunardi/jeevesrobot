@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(diagnostic)
+project(smach_jeeves)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -83,7 +83,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES diagnostic
+#  LIBRARIES smach_jeeves
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -100,19 +100,19 @@ include_directories(
 )
 
 ## Declare a cpp library
-# add_library(diagnostic
-#   src/${PROJECT_NAME}/diagnostic.cpp
+# add_library(smach_jeeves
+#   src/${PROJECT_NAME}/smach_jeeves.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(diagnostic_node src/diagnostic_node.cpp)
+# add_executable(smach_jeeves_node src/smach_jeeves_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(diagnostic_node diagnostic_generate_messages_cpp)
+# add_dependencies(smach_jeeves_node smach_jeeves_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(diagnostic_node
+# target_link_libraries(smach_jeeves_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -131,7 +131,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS diagnostic diagnostic_node
+# install(TARGETS smach_jeeves smach_jeeves_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -156,7 +156,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_diagnostic.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_smach_jeeves.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
