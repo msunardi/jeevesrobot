@@ -34,7 +34,7 @@ class status_front_check(smach.State):
 			self.n = self.hz
 			self.count = (self.n - self.lastn)/self.sleep_time
 			self.lastn = self.n
-			#print ' n =%d  count=%d' %(self.n,self.count)
+			print ' n =%d  count=%d' %(self.n,self.count)
 			if self.count == self.status_hz:
 				self.done = 1
 			else:

@@ -27,14 +27,14 @@ class status_front_check(smach.State):
 
 				
         def execute(self,userdata):
-                rospy.loginfo(' Executing state status_front_check')
+                rospy.loginfo(' Executing sub-state status_front_check')
                 # code for output
 		sub = rospy.Subscriber('motor_controller_front/Status', Status, self.status_callback)	
 		while( not self.done):
 			self.n = self.hz
 			self.count = (self.n - self.lastn)/self.sleep_time
 			self.lastn = self.n
-			#print ' n =%d  count=%d' %(self.n,self.count)
+			print ' n =%d  count=%d' %(self.n,self.count)
 			if self.count == self.status_hz:
 				self.done = 1
 			else:
@@ -71,7 +71,7 @@ class status_rear_check(smach.State):
 		self.retry_times = diag.retry_times
 
         def execute(self,userdata):
-                rospy.loginfo(' Executing state status_front_check')
+                rospy.loginfo(' Executing sub-state status_front_check')
                 # code for output
 		sub = rospy.Subscriber('motor_controller_rear/Status', Status, self.status_callback)	
 		while( not self.done):
