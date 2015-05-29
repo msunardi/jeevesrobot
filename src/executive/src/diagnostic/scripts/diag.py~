@@ -29,7 +29,7 @@ class laser_check(smach.State):
         def execute(self,userdata):
                 rospy.loginfo(' Executing state laser_check')
                 # code for output
-		sub = rospy.Subscriber('sensor_msgs/LaserScan', LaserScan, self.laserscan_callback)	
+		sub = rospy.Subscriber('scan', LaserScan, self.laserscan_callback)	
 		while( not self.done):
 			self.n = self.hz
 			self.count = (self.n - self.lastn)/sleep_time

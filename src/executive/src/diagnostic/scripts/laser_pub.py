@@ -6,7 +6,7 @@ from diagnostic.msg import LaserScan
 def laser_pub():
 	
 	rospy.init_node('laser', anonymous = True )
-	pub = rospy.Publisher('sensor_msgs/LaserScan',LaserScan,queue_size = 5)
+	pub = rospy.Publisher('scan',LaserScan,queue_size = 5)
 	ls = LaserScan()
 	ls.angle_min = 45.9
 	ls.angle_max = 34.4

@@ -29,7 +29,7 @@ class laser_check(smach.State):
         def execute(self,userdata):
                 rospy.loginfo(' Executing state laser_check')
                 # code for output
-		sub = rospy.Subscriber('sensor_msgs/LaserScan', LaserScan, self.laserscan_callback)	
+		sub = rospy.Subscriber('scan', LaserScan, self.laserscan_callback)	
 		while( not self.done):
 			self.n = self.hz
 			self.count = (self.n - self.lastn)/sleep_time
@@ -72,7 +72,7 @@ def main():
 
 		# Add states to the container
                 smach.StateMachine.add('MOTOR_CHECK', sm_motor, transitions={'success':'LASER_CHECK','fail':'FAIL'})
-		smach.StateMachine.add('LASER_CHECK', laser_check(), transitions={'success':'STATUS_CHECK','fail':'STATUS_CHECK'})
+		smach.StateMachine.add('LASER_CHECK', laser_check(), transitions={'success':'STATUS_CHECK','fail':'FAIL'})
 
 		sm_status = smach.StateMachine(outcomes=['success','fail'])
 		
