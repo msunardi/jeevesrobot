@@ -1,0 +1,8 @@
+prefix=/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install
+
+Name: diagnostic
+Description: Description of diagnostic
+Version: 0.0.0
+Cflags: -I/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install/include
+Libs: -L/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install/lib 
+Requires: 
