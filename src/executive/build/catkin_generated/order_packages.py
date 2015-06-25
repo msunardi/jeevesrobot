@@ -2,4 +2,4 @@
 source_root_dir = "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/src"
 whitelisted_packages = "".split(';') if "" != "" else []
 blacklisted_packages = "".split(';') if "" != "" else []
-underlay_workspaces = "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/devel;/opt/ros/indigo".split(';') if "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/devel;/opt/ros/indigo" != "" else []
+underlay_workspaces = "/opt/ros/indigo".split(';') if "/opt/ros/indigo" != "" else []
