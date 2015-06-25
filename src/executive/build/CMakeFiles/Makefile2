@@ -286,640 +286,640 @@ clean: gtest/CMakeFiles/gtest_main.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Directory level rules for directory diagnostics
+# Directory level rules for directory diagnostic
 
 # Convenience name for "all" pass in the directory.
-diagnostics/all: diagnostics/CMakeFiles/diagnostics_generate_messages.dir/all
-.PHONY : diagnostics/all
+diagnostic/all: diagnostic/CMakeFiles/diagnostic_generate_messages.dir/all
+.PHONY : diagnostic/all
 
 # Convenience name for "clean" pass in the directory.
-diagnostics/clean: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/diagnostics_gencpp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/diagnostics_generate_messages.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/diagnostics_genlisp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/diagnostics_genpy.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean
-diagnostics/clean: diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/clean
-.PHONY : diagnostics/clean
+diagnostic/clean: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/diagnostic_gencpp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/diagnostic_generate_messages.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/diagnostic_genlisp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/diagnostic_genpy.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean
+diagnostic/clean: diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/clean
+.PHONY : diagnostic/clean
 
 # Convenience name for "preinstall" pass in the directory.
-diagnostics/preinstall:
-.PHONY : diagnostics/preinstall
+diagnostic/preinstall:
+.PHONY : diagnostic/preinstall
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir
+# Target rules for target diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/build
+diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
-	@echo "Built target _diagnostics_generate_messages_check_deps_Feedback"
-.PHONY : diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/all
+	@echo "Built target _diagnostic_generate_messages_check_deps_Feedback"
+.PHONY : diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/rule
+.PHONY : diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/rule
 
 # Convenience name for target.
-_diagnostics_generate_messages_check_deps_Feedback: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/rule
-.PHONY : _diagnostics_generate_messages_check_deps_Feedback
+_diagnostic_generate_messages_check_deps_Feedback: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/rule
+.PHONY : _diagnostic_generate_messages_check_deps_Feedback
 
 # clean rule for target.
-diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/clean
-.PHONY : diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/clean
+diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/clean
+.PHONY : diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/clean
+clean: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir
+# Target rules for target diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/build
+diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
-	@echo "Built target _diagnostics_generate_messages_check_deps_LaserScan"
-.PHONY : diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/all
+	@echo "Built target _diagnostic_generate_messages_check_deps_LaserScan"
+.PHONY : diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/rule
+.PHONY : diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/rule
 
 # Convenience name for target.
-_diagnostics_generate_messages_check_deps_LaserScan: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/rule
-.PHONY : _diagnostics_generate_messages_check_deps_LaserScan
+_diagnostic_generate_messages_check_deps_LaserScan: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/rule
+.PHONY : _diagnostic_generate_messages_check_deps_LaserScan
 
 # clean rule for target.
-diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/clean
-.PHONY : diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/clean
+diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/clean
+.PHONY : diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/clean
+clean: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir
+# Target rules for target diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/build
+diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
-	@echo "Built target _diagnostics_generate_messages_check_deps_Status"
-.PHONY : diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/all
+	@echo "Built target _diagnostic_generate_messages_check_deps_Status"
+.PHONY : diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/rule
+.PHONY : diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/rule
 
 # Convenience name for target.
-_diagnostics_generate_messages_check_deps_Status: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/rule
-.PHONY : _diagnostics_generate_messages_check_deps_Status
+_diagnostic_generate_messages_check_deps_Status: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/rule
+.PHONY : _diagnostic_generate_messages_check_deps_Status
 
 # clean rule for target.
-diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/clean
-.PHONY : diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/clean
+diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/clean
+.PHONY : diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/clean
+clean: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/diagnostics_gencpp.dir
+# Target rules for target diagnostic/CMakeFiles/diagnostic_gencpp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/diagnostics_gencpp.dir/all: diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/all
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_gencpp.dir/build.make diagnostics/CMakeFiles/diagnostics_gencpp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_gencpp.dir/build.make diagnostics/CMakeFiles/diagnostics_gencpp.dir/build
+diagnostic/CMakeFiles/diagnostic_gencpp.dir/all: diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/all
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_gencpp.dir/build.make diagnostic/CMakeFiles/diagnostic_gencpp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_gencpp.dir/build.make diagnostic/CMakeFiles/diagnostic_gencpp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
-	@echo "Built target diagnostics_gencpp"
-.PHONY : diagnostics/CMakeFiles/diagnostics_gencpp.dir/all
+	@echo "Built target diagnostic_gencpp"
+.PHONY : diagnostic/CMakeFiles/diagnostic_gencpp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/diagnostics_gencpp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/diagnostic_gencpp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 3
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/diagnostics_gencpp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/diagnostic_gencpp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/diagnostics_gencpp.dir/rule
+.PHONY : diagnostic/CMakeFiles/diagnostic_gencpp.dir/rule
 
 # Convenience name for target.
-diagnostics_gencpp: diagnostics/CMakeFiles/diagnostics_gencpp.dir/rule
-.PHONY : diagnostics_gencpp
+diagnostic_gencpp: diagnostic/CMakeFiles/diagnostic_gencpp.dir/rule
+.PHONY : diagnostic_gencpp
 
 # clean rule for target.
-diagnostics/CMakeFiles/diagnostics_gencpp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_gencpp.dir/build.make diagnostics/CMakeFiles/diagnostics_gencpp.dir/clean
-.PHONY : diagnostics/CMakeFiles/diagnostics_gencpp.dir/clean
+diagnostic/CMakeFiles/diagnostic_gencpp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_gencpp.dir/build.make diagnostic/CMakeFiles/diagnostic_gencpp.dir/clean
+.PHONY : diagnostic/CMakeFiles/diagnostic_gencpp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/diagnostics_gencpp.dir/clean
+clean: diagnostic/CMakeFiles/diagnostic_gencpp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/diagnostics_generate_messages.dir
+# Target rules for target diagnostic/CMakeFiles/diagnostic_generate_messages.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages.dir/all: diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages.dir/all: diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages.dir/all: diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/all
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages.dir/build
+diagnostic/CMakeFiles/diagnostic_generate_messages.dir/all: diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages.dir/all: diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages.dir/all: diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/all
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
-	@echo "Built target diagnostics_generate_messages"
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages.dir/all
+	@echo "Built target diagnostic_generate_messages"
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages.dir/all
 
 # Include target in all.
-all: diagnostics/CMakeFiles/diagnostics_generate_messages.dir/all
+all: diagnostic/CMakeFiles/diagnostic_generate_messages.dir/all
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/diagnostic_generate_messages.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 10
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/diagnostics_generate_messages.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/diagnostic_generate_messages.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages.dir/rule
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages.dir/rule
 
 # Convenience name for target.
-diagnostics_generate_messages: diagnostics/CMakeFiles/diagnostics_generate_messages.dir/rule
-.PHONY : diagnostics_generate_messages
+diagnostic_generate_messages: diagnostic/CMakeFiles/diagnostic_generate_messages.dir/rule
+.PHONY : diagnostic_generate_messages
 
 # clean rule for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages.dir/clean
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages.dir/clean
+diagnostic/CMakeFiles/diagnostic_generate_messages.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages.dir/clean
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/diagnostics_generate_messages.dir/clean
+clean: diagnostic/CMakeFiles/diagnostic_generate_messages.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir
+# Target rules for target diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/all: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/all: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/all: diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/all: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/all
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/build
+diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/all: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/all: diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/all: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/all: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/all
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles  1 2 3
-	@echo "Built target diagnostics_generate_messages_cpp"
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/all
+	@echo "Built target diagnostic_generate_messages_cpp"
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 3
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/rule
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
-diagnostics_generate_messages_cpp: diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/rule
-.PHONY : diagnostics_generate_messages_cpp
+diagnostic_generate_messages_cpp: diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/rule
+.PHONY : diagnostic_generate_messages_cpp
 
 # clean rule for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/clean
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/clean
+diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/clean
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/clean
+clean: diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir
+# Target rules for target diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/all: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/all: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/all: diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/all: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/all
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/build
+diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/all: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/all: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/all: diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/all: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/all
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles  4 5 6
-	@echo "Built target diagnostics_generate_messages_lisp"
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/all
+	@echo "Built target diagnostic_generate_messages_lisp"
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 3
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/rule
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
-diagnostics_generate_messages_lisp: diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/rule
-.PHONY : diagnostics_generate_messages_lisp
+diagnostic_generate_messages_lisp: diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/rule
+.PHONY : diagnostic_generate_messages_lisp
 
 # clean rule for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/clean
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/clean
+diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/clean
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/clean
+clean: diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir
+# Target rules for target diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/all: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/all: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/all: diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/all
-diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/all: diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/all
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/build
+diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/all: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/all: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/all: diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/all
+diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/all: diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/all
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles  7 8 9 10
-	@echo "Built target diagnostics_generate_messages_py"
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/all
+	@echo "Built target diagnostic_generate_messages_py"
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 4
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/rule
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/rule
 
 # Convenience name for target.
-diagnostics_generate_messages_py: diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/rule
-.PHONY : diagnostics_generate_messages_py
+diagnostic_generate_messages_py: diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/rule
+.PHONY : diagnostic_generate_messages_py
 
 # clean rule for target.
-diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/clean
-.PHONY : diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/clean
+diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/clean
+.PHONY : diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/clean
+clean: diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/diagnostics_genlisp.dir
+# Target rules for target diagnostic/CMakeFiles/diagnostic_genlisp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/diagnostics_genlisp.dir/all: diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/all
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_genlisp.dir/build.make diagnostics/CMakeFiles/diagnostics_genlisp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_genlisp.dir/build.make diagnostics/CMakeFiles/diagnostics_genlisp.dir/build
+diagnostic/CMakeFiles/diagnostic_genlisp.dir/all: diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/all
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_genlisp.dir/build.make diagnostic/CMakeFiles/diagnostic_genlisp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_genlisp.dir/build.make diagnostic/CMakeFiles/diagnostic_genlisp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
-	@echo "Built target diagnostics_genlisp"
-.PHONY : diagnostics/CMakeFiles/diagnostics_genlisp.dir/all
+	@echo "Built target diagnostic_genlisp"
+.PHONY : diagnostic/CMakeFiles/diagnostic_genlisp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/diagnostics_genlisp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/diagnostic_genlisp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 3
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/diagnostics_genlisp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/diagnostic_genlisp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/diagnostics_genlisp.dir/rule
+.PHONY : diagnostic/CMakeFiles/diagnostic_genlisp.dir/rule
 
 # Convenience name for target.
-diagnostics_genlisp: diagnostics/CMakeFiles/diagnostics_genlisp.dir/rule
-.PHONY : diagnostics_genlisp
+diagnostic_genlisp: diagnostic/CMakeFiles/diagnostic_genlisp.dir/rule
+.PHONY : diagnostic_genlisp
 
 # clean rule for target.
-diagnostics/CMakeFiles/diagnostics_genlisp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_genlisp.dir/build.make diagnostics/CMakeFiles/diagnostics_genlisp.dir/clean
-.PHONY : diagnostics/CMakeFiles/diagnostics_genlisp.dir/clean
+diagnostic/CMakeFiles/diagnostic_genlisp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_genlisp.dir/build.make diagnostic/CMakeFiles/diagnostic_genlisp.dir/clean
+.PHONY : diagnostic/CMakeFiles/diagnostic_genlisp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/diagnostics_genlisp.dir/clean
+clean: diagnostic/CMakeFiles/diagnostic_genlisp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/diagnostics_genpy.dir
+# Target rules for target diagnostic/CMakeFiles/diagnostic_genpy.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/diagnostics_genpy.dir/all: diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/all
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_genpy.dir/build.make diagnostics/CMakeFiles/diagnostics_genpy.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_genpy.dir/build.make diagnostics/CMakeFiles/diagnostics_genpy.dir/build
+diagnostic/CMakeFiles/diagnostic_genpy.dir/all: diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/all
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_genpy.dir/build.make diagnostic/CMakeFiles/diagnostic_genpy.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_genpy.dir/build.make diagnostic/CMakeFiles/diagnostic_genpy.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
-	@echo "Built target diagnostics_genpy"
-.PHONY : diagnostics/CMakeFiles/diagnostics_genpy.dir/all
+	@echo "Built target diagnostic_genpy"
+.PHONY : diagnostic/CMakeFiles/diagnostic_genpy.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/diagnostics_genpy.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/diagnostic_genpy.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 4
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/diagnostics_genpy.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/diagnostic_genpy.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/diagnostics_genpy.dir/rule
+.PHONY : diagnostic/CMakeFiles/diagnostic_genpy.dir/rule
 
 # Convenience name for target.
-diagnostics_genpy: diagnostics/CMakeFiles/diagnostics_genpy.dir/rule
-.PHONY : diagnostics_genpy
+diagnostic_genpy: diagnostic/CMakeFiles/diagnostic_genpy.dir/rule
+.PHONY : diagnostic_genpy
 
 # clean rule for target.
-diagnostics/CMakeFiles/diagnostics_genpy.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_genpy.dir/build.make diagnostics/CMakeFiles/diagnostics_genpy.dir/clean
-.PHONY : diagnostics/CMakeFiles/diagnostics_genpy.dir/clean
+diagnostic/CMakeFiles/diagnostic_genpy.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_genpy.dir/build.make diagnostic/CMakeFiles/diagnostic_genpy.dir/clean
+.PHONY : diagnostic/CMakeFiles/diagnostic_genpy.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/diagnostics_genpy.dir/clean
+clean: diagnostic/CMakeFiles/diagnostic_genpy.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir
+# Target rules for target diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/build
+diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
 	@echo "Built target roscpp_generate_messages_cpp"
-.PHONY : diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/all
+.PHONY : diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
+.PHONY : diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
-roscpp_generate_messages_cpp: diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
+roscpp_generate_messages_cpp: diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
 .PHONY : roscpp_generate_messages_cpp
 
 # clean rule for target.
-diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/clean
-.PHONY : diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/clean
+diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/clean
+.PHONY : diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/clean
+clean: diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir
+# Target rules for target diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/build
+diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
 	@echo "Built target roscpp_generate_messages_lisp"
-.PHONY : diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/all
+.PHONY : diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
+.PHONY : diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
-roscpp_generate_messages_lisp: diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
+roscpp_generate_messages_lisp: diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
 .PHONY : roscpp_generate_messages_lisp
 
 # clean rule for target.
-diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/clean
-.PHONY : diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/clean
+diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/clean
+.PHONY : diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/clean
+clean: diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/roscpp_generate_messages_py.dir
+# Target rules for target diagnostic/CMakeFiles/roscpp_generate_messages_py.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/build
+diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
 	@echo "Built target roscpp_generate_messages_py"
-.PHONY : diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/all
+.PHONY : diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/rule
+.PHONY : diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/rule
 
 # Convenience name for target.
-roscpp_generate_messages_py: diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/rule
+roscpp_generate_messages_py: diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/rule
 .PHONY : roscpp_generate_messages_py
 
 # clean rule for target.
-diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/clean
-.PHONY : diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/clean
+diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/clean
+.PHONY : diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/clean
+clean: diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir
+# Target rules for target diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build
+diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
 	@echo "Built target rosgraph_msgs_generate_messages_cpp"
-.PHONY : diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/all
+.PHONY : diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
+.PHONY : diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
-rosgraph_msgs_generate_messages_cpp: diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
+rosgraph_msgs_generate_messages_cpp: diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
 .PHONY : rosgraph_msgs_generate_messages_cpp
 
 # clean rule for target.
-diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean
-.PHONY : diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean
+diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean
+.PHONY : diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean
+clean: diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir
+# Target rules for target diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build
+diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
 	@echo "Built target rosgraph_msgs_generate_messages_lisp"
-.PHONY : diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/all
+.PHONY : diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
+.PHONY : diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
-rosgraph_msgs_generate_messages_lisp: diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
+rosgraph_msgs_generate_messages_lisp: diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
 .PHONY : rosgraph_msgs_generate_messages_lisp
 
 # clean rule for target.
-diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean
-.PHONY : diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean
+diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean
+.PHONY : diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean
+clean: diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir
+# Target rules for target diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build
+diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
 	@echo "Built target rosgraph_msgs_generate_messages_py"
-.PHONY : diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/all
+.PHONY : diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
+.PHONY : diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
 
 # Convenience name for target.
-rosgraph_msgs_generate_messages_py: diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
+rosgraph_msgs_generate_messages_py: diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
 .PHONY : rosgraph_msgs_generate_messages_py
 
 # clean rule for target.
-diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
-.PHONY : diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
+diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
+.PHONY : diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
+clean: diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir
+# Target rules for target diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
+diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
 	@echo "Built target std_msgs_generate_messages_cpp"
-.PHONY : diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
+.PHONY : diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
+.PHONY : diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
-std_msgs_generate_messages_cpp: diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
+std_msgs_generate_messages_cpp: diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
 .PHONY : std_msgs_generate_messages_cpp
 
 # clean rule for target.
-diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean
-.PHONY : diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean
+diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean
+.PHONY : diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean
+clean: diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir
+# Target rules for target diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
+diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
 	@echo "Built target std_msgs_generate_messages_lisp"
-.PHONY : diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
+.PHONY : diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
+.PHONY : diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
-std_msgs_generate_messages_lisp: diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
+std_msgs_generate_messages_lisp: diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
 .PHONY : std_msgs_generate_messages_lisp
 
 # clean rule for target.
-diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean
-.PHONY : diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean
+diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean
+.PHONY : diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean
+clean: diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir
+# Target rules for target diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir
 
 # All Build rule for target.
-diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/all:
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/depend
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/build
+diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/all:
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/depend
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 
 	@echo "Built target std_msgs_generate_messages_py"
-.PHONY : diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/all
+.PHONY : diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/all
 
 # Build rule for subdir invocation for target.
-diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/rule: cmake_check_build_system
+diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles 0
-.PHONY : diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/rule
+.PHONY : diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/rule
 
 # Convenience name for target.
-std_msgs_generate_messages_py: diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/rule
+std_msgs_generate_messages_py: diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/rule
 .PHONY : std_msgs_generate_messages_py
 
 # clean rule for target.
-diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/clean:
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/clean
-.PHONY : diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/clean
+diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/clean:
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/clean
+.PHONY : diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/clean
 
 # clean rule for target.
-clean: diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/clean
+clean: diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/clean
 .PHONY : clean
 
 #=============================================================================

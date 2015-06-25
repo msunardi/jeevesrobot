@@ -1,0 +1,12 @@
+<launch>
+  <node name="motor_pub" pkg="diagnostic" type="motor_pub.py">
+  </node>
+  <node name="laser_pub" pkg="diagnostic" type="laser_pub.py">
+  </node>
+  <node name="status_pub" pkg="diagnostic" type="status_pub.py">
+  </node>
+  <node name="diagnostics_node" pkg="diagnostic" type="diagnostics_node.py">
+    <rosparam>
+    </rosparam>
+  </node>
+</launch>

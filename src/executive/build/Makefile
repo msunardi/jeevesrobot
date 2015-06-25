@@ -241,134 +241,134 @@ gtest_main/fast:
 .PHONY : gtest_main/fast
 
 #=============================================================================
-# Target rules for targets named _diagnostics_generate_messages_check_deps_Feedback
+# Target rules for targets named _diagnostic_generate_messages_check_deps_Feedback
 
 # Build rule for target.
-_diagnostics_generate_messages_check_deps_Feedback: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 _diagnostics_generate_messages_check_deps_Feedback
-.PHONY : _diagnostics_generate_messages_check_deps_Feedback
+_diagnostic_generate_messages_check_deps_Feedback: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 _diagnostic_generate_messages_check_deps_Feedback
+.PHONY : _diagnostic_generate_messages_check_deps_Feedback
 
 # fast build rule for target.
-_diagnostics_generate_messages_check_deps_Feedback/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Feedback.dir/build
-.PHONY : _diagnostics_generate_messages_check_deps_Feedback/fast
+_diagnostic_generate_messages_check_deps_Feedback/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Feedback.dir/build
+.PHONY : _diagnostic_generate_messages_check_deps_Feedback/fast
 
 #=============================================================================
-# Target rules for targets named _diagnostics_generate_messages_check_deps_LaserScan
+# Target rules for targets named _diagnostic_generate_messages_check_deps_LaserScan
 
 # Build rule for target.
-_diagnostics_generate_messages_check_deps_LaserScan: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 _diagnostics_generate_messages_check_deps_LaserScan
-.PHONY : _diagnostics_generate_messages_check_deps_LaserScan
+_diagnostic_generate_messages_check_deps_LaserScan: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 _diagnostic_generate_messages_check_deps_LaserScan
+.PHONY : _diagnostic_generate_messages_check_deps_LaserScan
 
 # fast build rule for target.
-_diagnostics_generate_messages_check_deps_LaserScan/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_LaserScan.dir/build
-.PHONY : _diagnostics_generate_messages_check_deps_LaserScan/fast
+_diagnostic_generate_messages_check_deps_LaserScan/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_LaserScan.dir/build
+.PHONY : _diagnostic_generate_messages_check_deps_LaserScan/fast
 
 #=============================================================================
-# Target rules for targets named _diagnostics_generate_messages_check_deps_Status
+# Target rules for targets named _diagnostic_generate_messages_check_deps_Status
 
 # Build rule for target.
-_diagnostics_generate_messages_check_deps_Status: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 _diagnostics_generate_messages_check_deps_Status
-.PHONY : _diagnostics_generate_messages_check_deps_Status
+_diagnostic_generate_messages_check_deps_Status: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 _diagnostic_generate_messages_check_deps_Status
+.PHONY : _diagnostic_generate_messages_check_deps_Status
 
 # fast build rule for target.
-_diagnostics_generate_messages_check_deps_Status/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/build.make diagnostics/CMakeFiles/_diagnostics_generate_messages_check_deps_Status.dir/build
-.PHONY : _diagnostics_generate_messages_check_deps_Status/fast
+_diagnostic_generate_messages_check_deps_Status/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/build.make diagnostic/CMakeFiles/_diagnostic_generate_messages_check_deps_Status.dir/build
+.PHONY : _diagnostic_generate_messages_check_deps_Status/fast
 
 #=============================================================================
-# Target rules for targets named diagnostics_gencpp
+# Target rules for targets named diagnostic_gencpp
 
 # Build rule for target.
-diagnostics_gencpp: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics_gencpp
-.PHONY : diagnostics_gencpp
+diagnostic_gencpp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic_gencpp
+.PHONY : diagnostic_gencpp
 
 # fast build rule for target.
-diagnostics_gencpp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_gencpp.dir/build.make diagnostics/CMakeFiles/diagnostics_gencpp.dir/build
-.PHONY : diagnostics_gencpp/fast
+diagnostic_gencpp/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_gencpp.dir/build.make diagnostic/CMakeFiles/diagnostic_gencpp.dir/build
+.PHONY : diagnostic_gencpp/fast
 
 #=============================================================================
-# Target rules for targets named diagnostics_generate_messages
+# Target rules for targets named diagnostic_generate_messages
 
 # Build rule for target.
-diagnostics_generate_messages: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics_generate_messages
-.PHONY : diagnostics_generate_messages
+diagnostic_generate_messages: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic_generate_messages
+.PHONY : diagnostic_generate_messages
 
 # fast build rule for target.
-diagnostics_generate_messages/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages.dir/build
-.PHONY : diagnostics_generate_messages/fast
+diagnostic_generate_messages/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages.dir/build
+.PHONY : diagnostic_generate_messages/fast
 
 #=============================================================================
-# Target rules for targets named diagnostics_generate_messages_cpp
+# Target rules for targets named diagnostic_generate_messages_cpp
 
 # Build rule for target.
-diagnostics_generate_messages_cpp: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics_generate_messages_cpp
-.PHONY : diagnostics_generate_messages_cpp
+diagnostic_generate_messages_cpp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic_generate_messages_cpp
+.PHONY : diagnostic_generate_messages_cpp
 
 # fast build rule for target.
-diagnostics_generate_messages_cpp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_cpp.dir/build
-.PHONY : diagnostics_generate_messages_cpp/fast
+diagnostic_generate_messages_cpp/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_cpp.dir/build
+.PHONY : diagnostic_generate_messages_cpp/fast
 
 #=============================================================================
-# Target rules for targets named diagnostics_generate_messages_lisp
+# Target rules for targets named diagnostic_generate_messages_lisp
 
 # Build rule for target.
-diagnostics_generate_messages_lisp: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics_generate_messages_lisp
-.PHONY : diagnostics_generate_messages_lisp
+diagnostic_generate_messages_lisp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic_generate_messages_lisp
+.PHONY : diagnostic_generate_messages_lisp
 
 # fast build rule for target.
-diagnostics_generate_messages_lisp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_lisp.dir/build
-.PHONY : diagnostics_generate_messages_lisp/fast
+diagnostic_generate_messages_lisp/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_lisp.dir/build
+.PHONY : diagnostic_generate_messages_lisp/fast
 
 #=============================================================================
-# Target rules for targets named diagnostics_generate_messages_py
+# Target rules for targets named diagnostic_generate_messages_py
 
 # Build rule for target.
-diagnostics_generate_messages_py: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics_generate_messages_py
-.PHONY : diagnostics_generate_messages_py
+diagnostic_generate_messages_py: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic_generate_messages_py
+.PHONY : diagnostic_generate_messages_py
 
 # fast build rule for target.
-diagnostics_generate_messages_py/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/build.make diagnostics/CMakeFiles/diagnostics_generate_messages_py.dir/build
-.PHONY : diagnostics_generate_messages_py/fast
+diagnostic_generate_messages_py/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/build.make diagnostic/CMakeFiles/diagnostic_generate_messages_py.dir/build
+.PHONY : diagnostic_generate_messages_py/fast
 
 #=============================================================================
-# Target rules for targets named diagnostics_genlisp
+# Target rules for targets named diagnostic_genlisp
 
 # Build rule for target.
-diagnostics_genlisp: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics_genlisp
-.PHONY : diagnostics_genlisp
+diagnostic_genlisp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic_genlisp
+.PHONY : diagnostic_genlisp
 
 # fast build rule for target.
-diagnostics_genlisp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_genlisp.dir/build.make diagnostics/CMakeFiles/diagnostics_genlisp.dir/build
-.PHONY : diagnostics_genlisp/fast
+diagnostic_genlisp/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_genlisp.dir/build.make diagnostic/CMakeFiles/diagnostic_genlisp.dir/build
+.PHONY : diagnostic_genlisp/fast
 
 #=============================================================================
-# Target rules for targets named diagnostics_genpy
+# Target rules for targets named diagnostic_genpy
 
 # Build rule for target.
-diagnostics_genpy: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 diagnostics_genpy
-.PHONY : diagnostics_genpy
+diagnostic_genpy: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 diagnostic_genpy
+.PHONY : diagnostic_genpy
 
 # fast build rule for target.
-diagnostics_genpy/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/diagnostics_genpy.dir/build.make diagnostics/CMakeFiles/diagnostics_genpy.dir/build
-.PHONY : diagnostics_genpy/fast
+diagnostic_genpy/fast:
+	$(MAKE) -f diagnostic/CMakeFiles/diagnostic_genpy.dir/build.make diagnostic/CMakeFiles/diagnostic_genpy.dir/build
+.PHONY : diagnostic_genpy/fast
 
 #=============================================================================
 # Target rules for targets named roscpp_generate_messages_cpp
@@ -380,7 +380,7 @@ roscpp_generate_messages_cpp: cmake_check_build_system
 
 # fast build rule for target.
 roscpp_generate_messages_cpp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_cpp.dir/build
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_cpp.dir/build
 .PHONY : roscpp_generate_messages_cpp/fast
 
 #=============================================================================
@@ -393,7 +393,7 @@ roscpp_generate_messages_lisp: cmake_check_build_system
 
 # fast build rule for target.
 roscpp_generate_messages_lisp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_lisp.dir/build
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_lisp.dir/build
 .PHONY : roscpp_generate_messages_lisp/fast
 
 #=============================================================================
@@ -406,7 +406,7 @@ roscpp_generate_messages_py: cmake_check_build_system
 
 # fast build rule for target.
 roscpp_generate_messages_py/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/build.make diagnostics/CMakeFiles/roscpp_generate_messages_py.dir/build
+	$(MAKE) -f diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/build.make diagnostic/CMakeFiles/roscpp_generate_messages_py.dir/build
 .PHONY : roscpp_generate_messages_py/fast
 
 #=============================================================================
@@ -419,7 +419,7 @@ rosgraph_msgs_generate_messages_cpp: cmake_check_build_system
 
 # fast build rule for target.
 rosgraph_msgs_generate_messages_cpp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build
 .PHONY : rosgraph_msgs_generate_messages_cpp/fast
 
 #=============================================================================
@@ -432,7 +432,7 @@ rosgraph_msgs_generate_messages_lisp: cmake_check_build_system
 
 # fast build rule for target.
 rosgraph_msgs_generate_messages_lisp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build
 .PHONY : rosgraph_msgs_generate_messages_lisp/fast
 
 #=============================================================================
@@ -445,7 +445,7 @@ rosgraph_msgs_generate_messages_py: cmake_check_build_system
 
 # fast build rule for target.
 rosgraph_msgs_generate_messages_py/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make diagnostics/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build
+	$(MAKE) -f diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make diagnostic/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build
 .PHONY : rosgraph_msgs_generate_messages_py/fast
 
 #=============================================================================
@@ -458,7 +458,7 @@ std_msgs_generate_messages_cpp: cmake_check_build_system
 
 # fast build rule for target.
 std_msgs_generate_messages_cpp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
 .PHONY : std_msgs_generate_messages_cpp/fast
 
 #=============================================================================
@@ -471,7 +471,7 @@ std_msgs_generate_messages_lisp: cmake_check_build_system
 
 # fast build rule for target.
 std_msgs_generate_messages_lisp/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
 .PHONY : std_msgs_generate_messages_lisp/fast
 
 #=============================================================================
@@ -484,7 +484,7 @@ std_msgs_generate_messages_py: cmake_check_build_system
 
 # fast build rule for target.
 std_msgs_generate_messages_py/fast:
-	$(MAKE) -f diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/build.make diagnostics/CMakeFiles/std_msgs_generate_messages_py.dir/build
+	$(MAKE) -f diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/build.make diagnostic/CMakeFiles/std_msgs_generate_messages_py.dir/build
 .PHONY : std_msgs_generate_messages_py/fast
 
 # Help Target
@@ -507,16 +507,16 @@ help:
 	@echo "... tests"
 	@echo "... gtest"
 	@echo "... gtest_main"
-	@echo "... _diagnostics_generate_messages_check_deps_Feedback"
-	@echo "... _diagnostics_generate_messages_check_deps_LaserScan"
-	@echo "... _diagnostics_generate_messages_check_deps_Status"
-	@echo "... diagnostics_gencpp"
-	@echo "... diagnostics_generate_messages"
-	@echo "... diagnostics_generate_messages_cpp"
-	@echo "... diagnostics_generate_messages_lisp"
-	@echo "... diagnostics_generate_messages_py"
-	@echo "... diagnostics_genlisp"
-	@echo "... diagnostics_genpy"
+	@echo "... _diagnostic_generate_messages_check_deps_Feedback"
+	@echo "... _diagnostic_generate_messages_check_deps_LaserScan"
+	@echo "... _diagnostic_generate_messages_check_deps_Status"
+	@echo "... diagnostic_gencpp"
+	@echo "... diagnostic_generate_messages"
+	@echo "... diagnostic_generate_messages_cpp"
+	@echo "... diagnostic_generate_messages_lisp"
+	@echo "... diagnostic_generate_messages_py"
+	@echo "... diagnostic_genlisp"
+	@echo "... diagnostic_genpy"
 	@echo "... roscpp_generate_messages_cpp"
 	@echo "... roscpp_generate_messages_lisp"
 	@echo "... roscpp_generate_messages_py"

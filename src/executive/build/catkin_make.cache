@@ -1,2 +1,2 @@
-diagnostics
+diagnostic
 -DCATKIN_DEVEL_PREFIX=/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/devel -DCMAKE_INSTALL_PREFIX=/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install -G Unix Makefiles
