@@ -1,7 +1,0 @@
-<launch>
-  <node name="diagnostics_node" pkg="diagnostics" type="diagnostics_node.py">
-    <rosparam>
-       device: /dev/ttyACM0
-    </rosparam>
-  </node>
-</launch>

@@ -1,6 +1,0 @@
-<launch>
-  <node name="diagnostics_node" pkg="diagnostic" type="diagnostics_node.py">
-    <rosparam>
-    </rosparam>
-  </node>
-</launch>
