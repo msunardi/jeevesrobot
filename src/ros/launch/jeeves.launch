@@ -18,10 +18,10 @@
   <include file="$(arg JEEVES_LAUNCH_DIR)/roboteq_controllers.launch" />
 
   <!-- waist -->
-  <include file="$(arg JEEVES_LAUNCH_DIR)/waist_control.launch" />
+<!--  <include file="$(arg JEEVES_LAUNCH_DIR)/waist_control.launch" /> -->
 
   <!-- imu -->
-  <!--  <include file="$(arg JEEVES_LAUNCH_DIR)/imu.launch" /> -->
+<!--  <include file="$(arg JEEVES_LAUNCH_DIR)/imu.launch" /> -->
 
   <!-- laser scanner -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/sick_lms_200.launch" />
@@ -34,7 +34,7 @@
   <node name="joystick" pkg="joy" type="joy_node" />
   <node name="joy_controller" pkg="base_control" type="joy_controller_node.py" />
   <node name="base_control" pkg="base_control" type="base_control_node.py" />
-  <node name="waypoint_manager" pkg="jeeves_2d_nav" type="waypoint_manager.py" />
+  <include file="$(arg JEEVES_LAUNCH_DIR)/waypoint_manager.launch" />
 
   <!-- Nav stack -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/map_server.launch" />

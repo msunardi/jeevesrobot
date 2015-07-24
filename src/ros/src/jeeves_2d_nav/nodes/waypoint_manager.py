@@ -113,9 +113,9 @@ class WaypointManager(threading.Thread):
             return RESULT_DNE
 
     def handle_save_current_pose(self, req):
-        if self.tl.frameExists(self.base_frame) and self.tl.frameExists("/map"):
-            t = self.tl.getLatestCommonTime("/map", self.base_frame)
-            p, q = self.tl.lookupTransform("/map", self.base_frame, t)
+        if self.tl.frameExists(self.base_frame) and self.tl.frameExists("map"):
+            t = self.tl.getLatestCommonTime("map", self.base_frame)
+            p, q = self.tl.lookupTransform("map", self.base_frame, t)
             theta = tf.transformations.euler_from_quaternion(q)[2]
             wp = {'name': req.name, 'x': p[0], 'y': p[1], 'theta': theta}
             return self.add_waypoint(wp)
@@ -126,6 +126,6 @@ if __name__ == '__main__':
     rospy.init_node('waypoint_manager_node')
     mgr = WaypointManager(
         rospy.get_param('/waypoint_manager/waypoint_file', 'waypoints.yaml'),
-        rospy.get_param('base_frame', '/base_footprint'))
+        rospy.get_param('base_frame', 'base_footprint'))
     mgr.start()
     rospy.spin()

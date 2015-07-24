@@ -80,9 +80,9 @@ class NavTest(threading.Thread):
                 self.sleeper.sleep()
 
     def get_current_pose(self):
-        if self.tf.frameExists("/base_link") and self.tf.frameExists("/map"):
-            t = self.tf.getLatestCommonTime("/base_link", "/map")
-            pos, q = self.tf.lookupTransform("/base_link", "/map", t)
+        if self.tf.frameExists("base_footprint") and self.tf.frameExists("map"):
+            t = self.tf.getLatestCommonTime("base_footprint", "map")
+            pos, q = self.tf.lookupTransform("base_footprint", "map", t)
             return Pose(pos, q)
 
     def cmd_callback(self, cmd_msg):

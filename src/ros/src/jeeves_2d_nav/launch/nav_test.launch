@@ -1,6 +1,6 @@
 <launch>
-  <!-- waypoint_manager -->
-  <include file="$(find jeeves_2d_nav)/launch/waypoint_manager.launch" />
+  <!-- We assume that waypoint_manager is running, but will leave this entry here for convenience -->
+<!--  <include file="$(find jeeves_2d_nav)/launch/waypoint_manager.launch" /> -->
 
   <!-- main node -->
   <node name="nav_test" pkg="jeeves_2d_nav" type="nav_test.py" />
