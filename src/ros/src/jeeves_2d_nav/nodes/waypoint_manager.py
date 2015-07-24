@@ -9,13 +9,14 @@ from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import rospy
 import tf
-
+from tf import TransformListener
 from jeeves_2d_nav.srv import *
 
 DEFAULT_WAYPOINT_FILENAME = 'waypoints.yaml'
 RESULT_OK = 0
-RESULT_DUPLICATE_WAYPOINT = 1
-RESULT_DNE = 2
+RESULT_DUPLICATE_WAYPOINT = -1
+RESULT_DNE = -2
+RESULT_POSE_NOT_AVAILABLE = -3
 
 # EDIT THIS: default initial pose
 HOME_X = 26.033
@@ -24,8 +25,11 @@ HOME_THETA = 1.528
 
 
 class WaypointManager(threading.Thread):
-    def __init__(self, waypoint_file):
+    def __init__(self, waypoint_file, base_frame):
         self.sleeper = rospy.Rate(1)
+        self.sleeper.sleep()
+        self.tl = TransformListener()
+        self.base_frame = base_frame
         self.waypoint_file = waypoint_file
         self.waypoints = []
         self.load_waypoints_from_file(waypoint_file)
@@ -38,6 +42,9 @@ class WaypointManager(threading.Thread):
         rospy.Service('/waypoint_manager/delete_waypoint',
                       DeleteWaypoint,
                       self.handle_delete_waypoint)
+        rospy.Service('/waypoint_manager/save_current_pose',
+                      SaveCurrentPose,
+                      self.handle_save_current_pose)
         threading.Thread.__init__(self)
 
     def load_waypoints_from_file(self, f):
@@ -56,26 +63,34 @@ class WaypointManager(threading.Thread):
             rospy.logerr(msg)
             return
 
+        msg = "waypoints: "
+        for wp in self.waypoints:
+            msg += wp['name'] + ', '
+        rospy.loginfo(msg)
+
     def run(self):
         self.sleeper.sleep()
         while not rospy.is_shutdown():
-            msg = "waypoints: "
-            for wp in self.waypoints:
-                msg += wp['name'] + ','
-            rospy.loginfo(msg)
-            self.sleeper.sleep()
-        file(self.waypoint_file, 'w').write(yaml.dump(self.waypoints,
-                                                    default_flow_style=False))
+            try:
+                self.sleeper.sleep()
+            except Exception:
+                pass
+        self.save_waypoints()
 
     def add_waypoint(self, wp):
         names = [p['name'] for p in self.waypoints]
         if wp['name'] not in names:
-            rospy.loginfo("Adding new waypoing name: " + wp['name'])
+            rospy.logdebug("Adding new waypoint name: " + wp['name'])
             self.waypoints.append(wp)
+            self.save_waypoints()
             return RESULT_OK
         else:
             rospy.logwarn("Ignoring duplicate waypoint name: " + wp['name'])
             return RESULT_DUPLICATE_WAYPOINT
+
+    def save_waypoints(self):
+        file(self.waypoint_file, 'w').write(yaml.dump(self.waypoints,
+                                                      default_flow_style=False))
 
     def handle_get_waypoints(self, req):
         rospy.logdebug("waypoint_manager.handle_get_waypoints()")
@@ -92,13 +107,25 @@ class WaypointManager(threading.Thread):
         try:
             found = next(x for x in self.waypoints if x['name'] == req.name)
             self.waypoints.remove(found)
+            self.save_waypoints()
             return RESULT_OK
         except StopIteration:
             return RESULT_DNE
 
+    def handle_save_current_pose(self, req):
+        if self.tl.frameExists(self.base_frame) and self.tl.frameExists("map"):
+            t = self.tl.getLatestCommonTime("map", self.base_frame)
+            p, q = self.tl.lookupTransform("map", self.base_frame, t)
+            theta = tf.transformations.euler_from_quaternion(q)[2]
+            wp = {'name': req.name, 'x': p[0], 'y': p[1], 'theta': theta}
+            return self.add_waypoint(wp)
+        else:
+            return RESULT_POSE_NOT_AVAILABLE
 
 if __name__ == '__main__':
-    rospy.init_node('waypoint_manager')
-    mgr = WaypointManager(rospy.get_param('waypoint_file', 'waypoints.yaml'))
+    rospy.init_node('waypoint_manager_node')
+    mgr = WaypointManager(
+        rospy.get_param('/waypoint_manager/waypoint_file', 'waypoints.yaml'),
+        rospy.get_param('base_frame', 'base_footprint'))
     mgr.start()
     rospy.spin()

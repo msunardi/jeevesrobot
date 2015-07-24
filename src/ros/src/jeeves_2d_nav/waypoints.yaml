@@ -1,24 +1,12 @@
-- name: home
-  theta: 3.0
-  x: 1.0
-  y: 2.0
-- name: stairs
-  theta: 3.0
-  x: 1.0
-  y: 2.0
-- name: ece_dept_door
-  theta: 1.399999976158142
-  x: 3.0
-  y: 4.0
-- name: Circuit Lounge
-  theta: 1.399999976158142
-  x: 3.0
-  y: 4.0
-- name: the moon
-  theta: 0.0
-  x: 0.0
-  y: 0.0
-- name: the moonie
-  theta: 0.0
-  x: 0.0
-  y: 0.0
+- name: wp0
+  theta: 0.9645139855380939
+  x: 19.847863177730964
+  y: 34.30564149423684
+- name: wp1
+  theta: -2.221712547694959
+  x: 24.517909543876144
+  y: 39.73979227303854
+- name: wp2
+  theta: -2.9203361014548785
+  x: 23.567307333023162
+  y: 35.66894550998318
