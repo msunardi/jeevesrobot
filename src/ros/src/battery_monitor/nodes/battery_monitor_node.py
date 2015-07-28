@@ -17,13 +17,25 @@ import numpy as np
 import rospy
 
 from battery_monitor.msg import BatteryStatus
-
+UPDATE_INTERVAL_ms = 100  # time between updates from the sensor 
 FILTER_LEN = 50
+
+def to_amp_hours(amps):
+    """Return instantaneous amps converted to amp-hours.
+    Formula:
+        (amps * UPDATE_INTERVAL_ms) * (1 s / 1000 ms) * (1 min / 60 s) * (1 hr / 60 min)
+    """
+    Ah = amps * UPDATE_INTERVAL_ms * (1. / 1000) * (1. / 60) * (1. / 60)
+    return Ah
+
+
 class BatteryMonitor(threading.Thread):
     def __init__(self):
         self.serial_port = serial.Serial('/dev/battery_monitor', baudrate=115200, timeout=1)
         self.publisher = rospy.Publisher("/battery_status", BatteryStatus, queue_size=5)
         self.A_buffer = deque()
+        self.amps = 0.0
+        self.amp_hours = 0.0
         threading.Thread.__init__(self)
 
     def __del__(self):
@@ -42,15 +54,20 @@ class BatteryMonitor(threading.Thread):
                 rospy.logwarn("Warning: exception while parsing string from current sensor.")        
                 continue
             
+            # buffer
             self.A_buffer.append(amps)
             if len(self.A_buffer) < FILTER_LEN:
                 continue
             self.A_buffer.popleft()
             
+            # filter
+            self.amps = np.mean(self.A_buffer)
+            self.amp_hours += to_amp_hours(self.amps)
+            
             # publish
             battery_status = BatteryStatus()
-            battery_status.amps = np.mean(self.A_buffer)
-            battery_status.volts = 0.0  # not used
+            battery_status.amps = self.amps
+            battery_status.amp_hours = self.amp_hours
             self.publisher.publish(battery_status)
             
 def main(args):

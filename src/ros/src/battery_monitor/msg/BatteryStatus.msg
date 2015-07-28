@@ -1,5 +1,5 @@
 # total instantaneous current 
 float32 amps
 
-# battery voltage
-float32 volts
+# total current drawn since startup
+float32 amp_hours
