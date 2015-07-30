@@ -35,10 +35,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/src
+CMAKE_SOURCE_DIR = /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build
+CMAKE_BINARY_DIR = /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build
 
 # Utility rule file for doxygen.
 
@@ -60,6 +60,6 @@ CMakeFiles/doxygen.dir/clean:
 .PHONY : CMakeFiles/doxygen.dir/clean
 
 CMakeFiles/doxygen.dir/depend:
-	cd /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/src /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/src /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/CMakeFiles/doxygen.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/src /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/src /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/CMakeFiles/doxygen.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/doxygen.dir/depend
 

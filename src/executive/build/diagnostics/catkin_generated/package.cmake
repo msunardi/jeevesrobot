@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "diagnostics")
+set(diagnostics_MAINTAINER "mcecsbot <mcecsbot@todo.todo>")
+set(diagnostics_DEPRECATED "")
+set(diagnostics_VERSION "0.0.0")
+set(diagnostics_BUILD_DEPENDS "message_generation" "roscpp" "rospy" "std_msgs")
+set(diagnostics_RUN_DEPENDS "message_runtime" "roscpp" "rospy" "std_msgs")
+set(diagnostics_BUILDTOOL_DEPENDS "catkin")

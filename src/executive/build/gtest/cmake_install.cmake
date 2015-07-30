@@ -2,7 +2,7 @@
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  SET(CMAKE_INSTALL_PREFIX "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install")
+  SET(CMAKE_INSTALL_PREFIX "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install")
 ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
 STRING(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

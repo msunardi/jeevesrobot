@@ -1,2 +1,2 @@
 - setup-file:
-    local-name: /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/devel/setup.sh
+    local-name: /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/devel/setup.sh

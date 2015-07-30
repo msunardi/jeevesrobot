@@ -1,8 +1,8 @@
-# Install script for directory: /home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/src
+# Install script for directory: /home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/src
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  SET(CMAKE_INSTALL_PREFIX "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install")
+  SET(CMAKE_INSTALL_PREFIX "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install")
 ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
 STRING(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -44,80 +44,88 @@ ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unsp
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install/_setup_util.py")
+   "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install/_setup_util.py")
   IF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
   IF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
-FILE(INSTALL DESTINATION "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install" TYPE PROGRAM FILES "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/_setup_util.py")
+FILE(INSTALL DESTINATION "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install" TYPE PROGRAM FILES "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/_setup_util.py")
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install/env.sh")
+   "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install/env.sh")
   IF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
   IF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
-FILE(INSTALL DESTINATION "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install" TYPE PROGRAM FILES "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/env.sh")
+FILE(INSTALL DESTINATION "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install" TYPE PROGRAM FILES "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/env.sh")
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install/setup.bash")
+   "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install/setup.bash")
   IF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
   IF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
-FILE(INSTALL DESTINATION "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install" TYPE FILE FILES "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/setup.bash")
+FILE(INSTALL DESTINATION "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install" TYPE FILE FILES "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/setup.bash")
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install/setup.sh")
+   "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install/setup.sh")
   IF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
   IF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
-FILE(INSTALL DESTINATION "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install" TYPE FILE FILES "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/setup.sh")
+FILE(INSTALL DESTINATION "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install" TYPE FILE FILES "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/setup.sh")
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install/setup.zsh")
+   "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install/setup.zsh")
   IF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
   IF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
-FILE(INSTALL DESTINATION "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install" TYPE FILE FILES "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/setup.zsh")
+FILE(INSTALL DESTINATION "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install" TYPE FILE FILES "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/setup.zsh")
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install/.rosinstall")
+   "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install/.rosinstall")
   IF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
   IF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   ENDIF (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
-FILE(INSTALL DESTINATION "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/install" TYPE FILE FILES "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/.rosinstall")
+FILE(INSTALL DESTINATION "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/install" TYPE FILE FILES "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/catkin_generated/installspace/.rosinstall")
+ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+
+IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/etc/catkin/profile.d" TYPE FILE FILES "/opt/ros/indigo/share/catkin/cmake/env-hooks/05.catkin_make.bash")
+ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+
+IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/etc/catkin/profile.d" TYPE FILE FILES "/opt/ros/indigo/share/catkin/cmake/env-hooks/05.catkin_make_isolated.bash")
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
 
 IF(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  INCLUDE("/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/gtest/cmake_install.cmake")
-  INCLUDE("/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/diagnostic/cmake_install.cmake")
+  INCLUDE("/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/gtest/cmake_install.cmake")
+  INCLUDE("/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/diagnostics/cmake_install.cmake")
 
 ENDIF(NOT CMAKE_INSTALL_LOCAL_ONLY)
 
@@ -127,7 +135,7 @@ ELSE(CMAKE_INSTALL_COMPONENT)
   SET(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
 ENDIF(CMAKE_INSTALL_COMPONENT)
 
-FILE(WRITE "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/${CMAKE_INSTALL_MANIFEST}" "")
+FILE(WRITE "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/${CMAKE_INSTALL_MANIFEST}" "")
 FOREACH(file ${CMAKE_INSTALL_MANIFEST_FILES})
-  FILE(APPEND "/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
+  FILE(APPEND "/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
 ENDFOREACH(file)

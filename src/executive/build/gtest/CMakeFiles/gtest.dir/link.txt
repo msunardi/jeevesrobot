@@ -1,1 +1,1 @@
-/usr/bin/c++  -fPIC    -shared -Wl,-soname,libgtest.so -o libgtest.so CMakeFiles/gtest.dir/src/gtest-all.cc.o  -L/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/gtest/src -lpthread -Wl,-rpath,/home/sr/catkin_make/roboticsclub-mcecsbot/src/executive/build/gtest/src 
+/usr/bin/c++  -fPIC    -shared -Wl,-soname,libgtest.so -o libgtest.so CMakeFiles/gtest.dir/src/gtest-all.cc.o  -L/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/gtest/src -lpthread -Wl,-rpath,/home/mcecsbot/src/roboticsclub-mcecsbot/src/executive/build/gtest/src 
