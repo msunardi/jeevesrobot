@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from diagnostic.msg import LaserScan
+from diagnostics.msg import LaserScan
 
 def laser_pub():
 	

@@ -5,9 +5,9 @@ import smach
 import smach_ros
 from diagnostic.msg import Feedback
 
-from diag import sleep_time
-from diag import motor_hz
-from diag import retry_times
+from diagnostics_node import sleep_time
+from diagnostics_node import motor_hz
+from diagnostics_node import retry_times
 
 
 #define state for motor check

@@ -5,7 +5,7 @@ import smach
 import smach_ros
 from diagnostic.msg import Status
 
-import diag
+import diagnostics_node
 
 
 
@@ -21,9 +21,9 @@ class status_front_check(smach.State):
 		self.lastn = 0
 		self.retry = 0
 		self.s = 0
-		self.sleep_time = diag.sleep_time
-		self.status_hz = diag.status_hz
-		self.retry_times = diag.retry_times
+		self.sleep_time = diagnostics_node.sleep_time
+		self.status_hz = diagnostics_node.status_hz
+		self.retry_times = diagnostics_node.retry_times
 
 				
         def execute(self,userdata):
@@ -66,9 +66,9 @@ class status_rear_check(smach.State):
 		self.lastn = 0
 		self.retry = 0
 		self.s = 0
-		self.sleep_time = diag.sleep_time
-		self.status_hz = diag.status_hz
-		self.retry_times = diag.retry_times
+		self.sleep_time = diagnostics_node.sleep_time
+		self.status_hz = diagnostics_node.status_hz
+		self.retry_times = diagnostics_node.retry_times
 
         def execute(self,userdata):
                 rospy.loginfo(' Executing sub-state status_front_check')
