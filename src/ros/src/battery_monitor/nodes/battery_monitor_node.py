@@ -44,6 +44,7 @@ class BatteryMonitor(threading.Thread):
         self.serial_port.close()
         
     def run(self):
+        loop_count = 0
         while not rospy.is_shutdown():
             # a line looks like this:
             # "\rAMPS: 4.35 A\n"
@@ -72,6 +73,12 @@ class BatteryMonitor(threading.Thread):
             battery_status.amp_hours = self.amp_hours
             self.publisher.publish(battery_status)
             
+            # log amp-hours once per minute
+            if (loop_count % 600) == 0:
+                rospy.loginfo(str(self.amp_hours))
+            loop_count += 1
+
+
 def main(args):
     reset_teensy()
     rospy.init_node('battery_monitor_node', anonymous=True, log_level=rospy.INFO)
