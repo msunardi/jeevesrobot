@@ -17,6 +17,8 @@ import numpy as np
 import rospy
 
 from battery_monitor.msg import BatteryStatus
+from reset_teensy_usb import reset_teensy
+
 UPDATE_INTERVAL_ms = 100  # time between updates from the sensor 
 FILTER_LEN = 50
 
@@ -71,6 +73,7 @@ class BatteryMonitor(threading.Thread):
             self.publisher.publish(battery_status)
             
 def main(args):
+    reset_teensy()
     rospy.init_node('battery_monitor_node', anonymous=True, log_level=rospy.INFO)
     monitor = BatteryMonitor()
     monitor.start()
