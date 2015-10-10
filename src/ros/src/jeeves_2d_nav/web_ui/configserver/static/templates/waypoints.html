@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Waypoints{% endblock %}
+{% block waypointsActive %}active{% endblock %}
+
+{% block content %}
+    <div class="chapterTitle">Waypoints</div>
+    {% for wp in waypoints %}
+            <div class="dottedListItem"><b>{{ wp.name }}</b>, x: {{ wp.x }}, y: {{ wp.y }}, theta: {{ wp.theta }}</div>
+    {% endfor %}    
+{% endblock %}
