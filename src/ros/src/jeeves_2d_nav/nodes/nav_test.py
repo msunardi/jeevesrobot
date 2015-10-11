@@ -51,6 +51,7 @@ class NavTest(threading.Thread):
 
         while not rospy.is_shutdown():
             if not self.halt:
+                self.waypoints = yaml.load(self.get_waypoints().waypoints)
                 idx = np.random.randint(0, len(self.waypoints))
                 wp = self.waypoints[idx]
                 name = wp['name']

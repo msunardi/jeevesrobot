@@ -7,8 +7,10 @@ __author__    = 'Jovan Brakus <jovan@brakus.rs>'
 __contact__   = 'jovan@brakus.rs'
 __date__      = '31 May 2012'
 
+import logging
 import sys
-import logging 
+
+import rospy
 
 #Set logging handlers for the first time
 import logconfig
@@ -19,6 +21,7 @@ log = logging.getLogger(__name__)
 
 def main():
 	try:
+		rospy.init_node('jeeves_2d_nav_web_ui')
 		webConfigServer = ConfigServer()
 		webConfigServer.start()
 		return 0

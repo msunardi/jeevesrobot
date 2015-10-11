@@ -15,6 +15,7 @@ from iniconfig import IniConfigServer
 from logs import LogsServer
 from root import RootServer
 from waypoints import WaypointServer
+from nav_test import NavTestServer
 
 def encrypt_pw(pw):
     return sha(pw).hexdigest()
@@ -46,6 +47,7 @@ class ConfigServer:
         self.rootServer.ini = IniConfigServer()
         self.rootServer.logs = LogsServer()
         self.rootServer.waypoints = WaypointServer()
+        self.rootServer.nav_test = NavTestServer()
         
     def start(self):
         global_conf = {'global': {'server.socket_host': settings.WEBSERVER_HOST,
