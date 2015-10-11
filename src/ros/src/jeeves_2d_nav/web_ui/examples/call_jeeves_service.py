@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+"""Some examples of calling services on Jeeves."""
 import pdb
-import sys
 import rospy
+import sys
+import yaml
 
 import jeeves_2d_nav
 from jeeves_2d_nav.srv import *
@@ -20,5 +22,15 @@ def get_waypoints():
         return "ServiceException: %s"%e
 
 if __name__ == "__main__":
+    
+    # returns a jeeves_2d_nav.srv._GetWaypoints.GetWaypointsResponse 
     wp = get_waypoints()
-    pdb.set_trace()
+       
+    # wp.waypoints is a yaml string representing a list 
+    # of the current set of waypoints. Parsing the yaml
+    # string gets a list of dicts, with each dict
+    # representing one waypoint (name, x, y, theta).
+    # See jeeves_2d_nav/srv/GetWaypoints.srv and
+    # jeeves_2d_nav/nodes/waypoint_manager.py.
+    print "YAML representation:\n", wp.waypoints
+    print "Parsed:\n", yaml.load(wp.waypoints)
