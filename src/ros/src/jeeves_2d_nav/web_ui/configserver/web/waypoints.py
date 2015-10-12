@@ -1,7 +1,12 @@
 import pdb
-import rospy
 import sys
 import yaml
+
+import actionlib
+from geometry_msgs.msg import Pose, Point, Quaternion
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+import rospy
+import tf
 
 import platform
 import cherrypy
@@ -22,6 +27,7 @@ class WaypointServer:
         self.mgr_delete_waypoint = rospy.ServiceProxy(
             'waypoint_manager/delete_waypoint',
             jeeves_2d_nav.srv.DeleteWaypoint)
+        self.mbc = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         
     @cherrypy.expose
     def index(self, **kwargs):
@@ -57,6 +63,28 @@ class WaypointServer:
         self.mgr_delete_waypoint(waypoint_name)
         raise cherrypy.HTTPRedirect("/waypoints")
     
+    @cherrypy.expose
+    def goto_waypoint(self, name):
+        wp = [wp for wp in self.get_waypoints() if wp['name'] == name][0]
+        x = wp['x']
+        y = wp['y']
+        q = tf.transformations.quaternion_from_euler(0.0, 0.0, wp['theta'])
+        goal = MoveBaseGoal()
+        goal.target_pose.pose = Pose(Point(x, y, 0.0),
+                                     Quaternion(q[0], q[1], q[2], q[3]))
+        goal.target_pose.header.frame_id = 'map'
+        goal.target_pose.header.stamp = rospy.Time.now()
+        self.mbc.send_goal(goal)
+        return "Proceeding to waypoint <b>" + name + "</b>" + \
+            "<br><a href='/waypoints'>Back to waypoints</a>"
+
+    @cherrypy.expose
+    def cancel_current_goal(self):
+        self.mbc.cancel_goal()
+        return "Navigation canceled.<br><a href='/waypoints'>Back to waypoints</a>"
+        
     def get_waypoints(self):
         return yaml.load(self.mgr_get_waypoints().waypoints)
+    
+
         

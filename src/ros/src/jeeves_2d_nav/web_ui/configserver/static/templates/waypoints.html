@@ -6,9 +6,10 @@
     <div class="chapterTitle">Waypoints</div>
     {% if waypoints is defined %}
         {% for wp in waypoints %}
-                <div class="dottedListItem"><b>{{ wp.name }}</b>, x: {{ wp.x }}, y: {{ wp.y }}, theta: {{ wp.theta }}   <a href="./delete_waypoint/{{ wp.name  }}">delete</a></div>
+                <div class="dottedListItem"><a href="./goto_waypoint/{{ wp.name}}"><b>{{ wp.name }}</b></a>, x: {{ wp.x }}, y: {{ wp.y }}, theta: {{ wp.theta }}   <a href="./delete_waypoint/{{ wp.name  }}">delete</a></div>
         {% endfor %}
-        <a href="./save_current_pose">Save current pose</a>
+        <a href="./save_current_pose">Save current pose</a><br>
+        <a href="./cancel_current_goal">Cancel current nav goal</a>
     {% else %}
         <b>Waypoint manager is currently offline.</b>
     {% endif %}
