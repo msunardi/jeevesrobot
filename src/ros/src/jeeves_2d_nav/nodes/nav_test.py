@@ -27,9 +27,13 @@ class NavTest(threading.Thread):
         self.waypoints = {}
         self.breadcrumbs = []
         self.total_distance_traveled_m = 0.0
-        self.mbc = actionlib.SimpleActionClient("move_base", MoveBaseAction)
-        self.cmd_subscriber = rospy.Subscriber("/nav_test/cmd", String,
+        self.mbc = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        self.cmd_subscriber = rospy.Subscriber('/nav_test/cmd', String,
                                                self.cmd_callback)
+        self.msg_pub = rospy.Publisher('/nav_test/last_message',
+                                           String, latch=True, queue_size=10)
+        self.progress_pub = rospy.Publisher('/nav_test/progress',
+                                           String, latch=True, queue_size=10)        
         self.tf = TransformListener()
         threading.Thread.__init__(self)
         self.get_waypoints = rospy.ServiceProxy(
@@ -63,19 +67,30 @@ class NavTest(threading.Thread):
                                              Quaternion(q[0], q[1], q[2], q[3]))
                 goal.target_pose.header.frame_id = 'map'
                 goal.target_pose.header.stamp = rospy.Time.now()
-                rospy.loginfo("Proceeding to waypoint: " + name)
+                msg = "Proceeding to waypoint: " + name
+                rospy.loginfo(msg)
+                self.msg_pub.publish(msg)
                 trip_start_idx = len(self.breadcrumbs)
                 self.mbc.send_goal(goal,
                                    feedback_cb=self.move_base_feedback_callback)
                 result = self.mbc.wait_for_result(rospy.Duration(300))
                 if result:
-                    rospy.loginfo("Arrived at waypoint: " + name)
                     tl = trip_length(self.breadcrumbs[trip_start_idx:])
                     self.total_distance_traveled_m += tl
+                    msg = "Arrived at waypoint: " + name
+                    self.msg_pub.publish(msg)
+                    rospy.loginfo(msg)
                     rospy.loginfo("trip length: " + str(tl))
                     rospy.loginfo("total_distance_traveled_m: " +
                                   str(self.total_distance_traveled_m))
                     rospy.logdebug("breadcrumbs: " + str(len(self.breadcrumbs)))
+                    
+                    # publish summary
+                    msg = "last trip length: " + str(tl) + '\n'
+                    msg += ("total_distance_traveled_m: " +
+                                  str(self.total_distance_traveled_m))
+                    self.progress_pub.publish(msg)
+
                 self.sleeper.sleep()
             else:
                 self.sleeper.sleep()

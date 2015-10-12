@@ -4,5 +4,9 @@
 
 {% block content %}
     <div class="chapterTitle">Nav Test</div>
-    Nav Test Status: {{ status }}
+    Status: {{ cmd }} <br>
+    Last message: {{ last_message }} <br>
+    Progress: {{ progress }} <br>
+    <a href="./cmd_nav_test/HALT">halt nav test</a> <br>
+    <a href="./cmd_nav_test/RUN">run nav test</a> <br>
 {% endblock %}
