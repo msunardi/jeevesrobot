@@ -14,6 +14,7 @@ import sys
 import threading
 
 import numpy as np
+from numpy import random
 import rospy
 
 from battery_monitor.msg import BatteryStatus
@@ -32,8 +33,11 @@ def to_amp_hours(amps):
 
 
 class BatteryMonitor(threading.Thread):
-    def __init__(self):
-        self.serial_port = serial.Serial('/dev/battery_monitor', baudrate=115200, timeout=1)
+    def __init__(self, simulate):
+        self.simulate = simulate
+        if not self.simulate:
+            self.serial_port = serial.Serial('/dev/battery_monitor',
+                                             baudrate=115200, timeout=1)
         self.publisher = rospy.Publisher("/battery_status", BatteryStatus, queue_size=5)
         self.A_buffer = deque()
         self.amps = 0.0
@@ -41,14 +45,20 @@ class BatteryMonitor(threading.Thread):
         threading.Thread.__init__(self)
 
     def __del__(self):
-        self.serial_port.close()
+        if not self.simulate:
+            self.serial_port.close()
         
     def run(self):
         loop_count = 0
         while not rospy.is_shutdown():
             # a line looks like this:
             # "\rAMPS: 4.35 A\n"
-            line = self.serial_port.readline()
+            if not self.simulate:
+                line = self.serial_port.readline()
+            else:
+                err = random.rand()
+                fake_amps = 5.0 + err
+                line = "\rAMPS: " + str(fake_amps) + " A\n"
 
             # parse
             try:
@@ -80,9 +90,11 @@ class BatteryMonitor(threading.Thread):
 
 
 def main(args):
-    reset_teensy()
     rospy.init_node('battery_monitor_node', anonymous=True, log_level=rospy.INFO)
-    monitor = BatteryMonitor()
+    simulate = rospy.get_param('/battery_monitor_node/simulate', False)
+    if not simulate:
+        reset_teensy()      
+    monitor = BatteryMonitor(simulate)
     monitor.start()
     rospy.spin()
     

@@ -1,3 +1,5 @@
 <launch>
-  <node name="battery_monitor_node" pkg="battery_monitor" type="battery_monitor_node.py" />
+  <node name="battery_monitor_node" pkg="battery_monitor" type="battery_monitor_node.py">
+    <param name="simulate" value="false" />
+  </node>
 </launch>
