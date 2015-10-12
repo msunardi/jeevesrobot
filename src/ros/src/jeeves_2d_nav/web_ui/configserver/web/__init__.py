@@ -11,7 +11,6 @@ import cherrypy
 from sha import sha
 
 from configserver import settings
-from iniconfig import IniConfigServer
 from logs import LogsServer
 from root import RootServer
 from waypoints import WaypointServer
@@ -44,7 +43,6 @@ class ConfigServer:
                         '/static/img': {'tools.staticdir.dir': 'images'}}
 
         self.rootServer = RootServer()        
-        self.rootServer.ini = IniConfigServer()
         self.rootServer.logs = LogsServer()
         self.rootServer.waypoints = WaypointServer()
         self.rootServer.nav_test = NavTestServer()

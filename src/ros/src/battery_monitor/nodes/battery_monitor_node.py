@@ -59,6 +59,7 @@ class BatteryMonitor(threading.Thread):
                 err = random.rand()
                 fake_amps = 5.0 + err
                 line = "\rAMPS: " + str(fake_amps) + " A\n"
+                rospy.sleep(UPDATE_INTERVAL_ms / 1000.0)
 
             # parse
             try:
