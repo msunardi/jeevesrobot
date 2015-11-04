@@ -1,0 +1,3 @@
+<launch>
+  <node name="web_ui" pkg="jeeves_2d_nav" type="config_server.py"/>
+</launch>
