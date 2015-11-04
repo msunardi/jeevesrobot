@@ -35,6 +35,7 @@
   <node name="joy_controller" pkg="base_control" type="joy_controller_node.py" />
   <node name="base_control" pkg="base_control" type="base_control_node.py" />
   <include file="$(arg JEEVES_LAUNCH_DIR)/waypoint_manager.launch" />
+  <include file="$(arg JEEVES_LAUNCH_DIR)/nav_test.launch" />
 
   <!-- Nav stack -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/map_server.launch" />

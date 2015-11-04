@@ -9,6 +9,7 @@
    the main battery.
 """
 from collections import deque
+import pdb
 import serial
 import sys
 import threading
@@ -36,8 +37,7 @@ class BatteryMonitor(threading.Thread):
     def __init__(self, simulate):
         self.simulate = simulate
         if not self.simulate:
-            self.serial_port = serial.Serial('/dev/battery_monitor',
-                                             baudrate=115200, timeout=1)
+            self.serial_port = serial.Serial('/dev/battery_monitor', baudrate=115200, timeout=1)
         self.publisher = rospy.Publisher("/battery_status", BatteryStatus, queue_size=5)
         self.A_buffer = deque()
         self.amps = 0.0
@@ -94,7 +94,8 @@ def main(args):
     rospy.init_node('battery_monitor_node', anonymous=True, log_level=rospy.INFO)
     simulate = rospy.get_param('/battery_monitor_node/simulate', False)
     if not simulate:
-        reset_teensy()      
+        reset_teensy()
+        rospy.sleep(3)
     monitor = BatteryMonitor(simulate)
     monitor.start()
     rospy.spin()
