@@ -12,6 +12,7 @@ from sensor_msgs.msg import Joy
 UPDATE_RATE_Hz = 5
 NAV_INACTIVE = 0
 NAV_ACTIVE = 1
+NAV_GOAL_REACHED = 3
 
 class JoyController(threading.Thread):
     
@@ -86,10 +87,10 @@ class JoyController(threading.Thread):
 
     def nav_status_callback(self, data):
         if len(data.status_list) > 0:
-            self.nav_status = data.status_list[0].status
+            self.nav_status = data.status_list[-1].status
             
 def main(args):
-    rospy.init_node('joy_controller_node', anonymous=True)
+    rospy.init_node('joy_controller_node')
     controller = JoyController()
     controller.start()
     rospy.spin()
