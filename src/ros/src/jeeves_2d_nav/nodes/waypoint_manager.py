@@ -45,6 +45,9 @@ class WaypointManager(threading.Thread):
         rospy.Service('/waypoint_manager/save_current_pose',
                       SaveCurrentPose,
                       self.handle_save_current_pose)
+        rospy.Service('/waypoint_manager/set_current_pose_to_waypoint',
+                      SetCurrentPoseToWaypoint,
+                      self.handle_set_current_pose_to_waypoint)
         threading.Thread.__init__(self)
 
     def load_waypoints_from_file(self, f):
