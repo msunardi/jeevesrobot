@@ -18,15 +18,18 @@ from jeeves_2d_nav.srv import *
 
 class WaypointServer:
     def __init__(self):
-        self.mgr_get_waypoints = rospy.ServiceProxy(
+        self.prxy_get_waypoints = rospy.ServiceProxy(
             'waypoint_manager/get_waypoints',
             jeeves_2d_nav.srv.GetWaypoints)
-        self.mgr_save_current_pose = rospy.ServiceProxy(
+        self.prxy_save_current_pose = rospy.ServiceProxy(
             'waypoint_manager/save_current_pose',
             jeeves_2d_nav.srv.SaveCurrentPose)
-        self.mgr_delete_waypoint = rospy.ServiceProxy(
+        self.prxy_delete_waypoint = rospy.ServiceProxy(
             'waypoint_manager/delete_waypoint',
             jeeves_2d_nav.srv.DeleteWaypoint)
+        self.prxy_set_current_pose_to_waypoint = rospy.ServiceProxy(
+            'waypoint_manager/set_current_pose_to_waypoint',
+            jeeves_2d_nav.srv.SetCurrentPoseToWaypoint)        
         self.mbc = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         
     @cherrypy.expose
@@ -45,7 +48,7 @@ class WaypointServer:
                 rospy.wait_for_service('waypoint_manager/save_current_pose', timeout=3)
             except rospy.ROSException, e:
                 pass
-            rc = self.mgr_save_current_pose(kwargs['waypoint_name']).result
+            rc = self.prxy_save_current_pose(kwargs['waypoint_name']).result
             if rc !=0:
                 msg = "waypoint_manager/save_current_pose() \
                       returned error code: " + str(rc) + ' '
@@ -60,7 +63,7 @@ class WaypointServer:
             rospy.wait_for_service('waypoint_manager/delete_waypoint', timeout=3)
         except rospy.ROSException, e:
             pass
-        self.mgr_delete_waypoint(waypoint_name)
+        self.prxy_delete_waypoint(waypoint_name)
         raise cherrypy.HTTPRedirect("/waypoints")
     
     @cherrypy.expose
@@ -82,9 +85,18 @@ class WaypointServer:
     def cancel_current_goal(self):
         self.mbc.cancel_goal()
         return "Navigation canceled.<br><a href='/waypoints'>Back to waypoints</a>"
-        
+
+    @cherrypy.expose
+    def set_current_pose_to_waypoint(self, waypoint_name):
+        try:
+            rospy.wait_for_service('waypoint_manager/set_current_pose_to_waypoint', timeout=3)
+        except rospy.ROSException, e:
+            pass
+        self.prxy_set_current_pose_to_waypoint(waypoint_name)
+        raise cherrypy.HTTPRedirect("/waypoints")
+
     def get_waypoints(self):
-        return yaml.load(self.mgr_get_waypoints().waypoints)
+        return yaml.load(self.prxy_get_waypoints().waypoints)
     
 
         
