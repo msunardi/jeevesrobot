@@ -7,9 +7,12 @@ import yaml
 import actionlib
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion, Twist
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+import numpy as np
 import rospy
 import tf
+from tf import transformations
 from tf import TransformListener
+
 from jeeves_2d_nav.srv import *
 
 DEFAULT_WAYPOINT_FILENAME = 'waypoints.yaml'
@@ -17,11 +20,6 @@ RESULT_OK = 0
 RESULT_DUPLICATE_WAYPOINT = -1
 RESULT_DNE = -2
 RESULT_POSE_NOT_AVAILABLE = -3
-
-# EDIT THIS: default initial pose
-HOME_X = 26.033
-HOME_Y = 10.657
-HOME_THETA = 1.528
 
 
 class WaypointManager(threading.Thread):
@@ -48,9 +46,14 @@ class WaypointManager(threading.Thread):
         rospy.Service('/waypoint_manager/set_current_pose_to_waypoint',
                       SetCurrentPoseToWaypoint,
                       self.handle_set_current_pose_to_waypoint)
+        self.pose_pub = rospy.Publisher('initialpose',
+                                       PoseWithCovarianceStamped,
+                                       latch=True,
+                                       queue_size=10)        
         threading.Thread.__init__(self)
 
     def load_waypoints_from_file(self, f):
+        """ See waypoints.yaml for examples of the waypoint format."""
         rospy.loginfo("Loading waypoints from " + f)
         try:
             wp = yaml.load(file(f))
@@ -124,6 +127,35 @@ class WaypointManager(threading.Thread):
             return self.add_waypoint(wp)
         else:
             return RESULT_POSE_NOT_AVAILABLE
+
+    def handle_set_current_pose_to_waypoint(self, req):
+        """Set initialpose to pose described by req.name"""
+        wp = None
+        try:
+            wp = next(wp for wp in self.waypoints if wp['name'] == req.name)
+        except StopIteration:
+            msg = "KeyError: waypoint '" + req.name + "' not found."
+            rospy.logerr(msg)
+            return RESULT_DNE
+
+        # Instantiate a pose from the waypoint.
+        # Covariance numbers copy/pasted from navigation/amcl/test/set_pose.py
+        p = PoseWithCovarianceStamped()
+        p.header.frame_id = "map"
+        p.header.stamp = rospy.Time.now()
+        p.pose.pose.position.x = wp['x']
+        p.pose.pose.position.y = wp['y']
+        (p.pose.pose.orientation.x,
+         p.pose.pose.orientation.y,
+         p.pose.pose.orientation.z,
+         p.pose.pose.orientation.w) = transformations.quaternion_from_euler(0, 0, wp['theta'])
+        p.pose.covariance[6*0+0] = 0.5 * 0.5
+        p.pose.covariance[6*1+1] = 0.5 * 0.5
+        p.pose.covariance[6*3+3] = np.pi/12.0 * np.pi/12.0
+        msg = "Setting initialpose to waypoint " + wp['name']
+        rospy.loginfo(msg)
+        self.pose_pub.publish(p)
+        return RESULT_OK
 
 if __name__ == '__main__':
     rospy.init_node('waypoint_manager_node')
