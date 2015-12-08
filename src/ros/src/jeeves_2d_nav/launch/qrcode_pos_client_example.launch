@@ -1,0 +1,4 @@
+<launch>
+  <node name="qrcode_pos_client_example" pkg="jeeves_2d_nav" type="qrcode_pos_client_example.py" />
+</launch>
+
