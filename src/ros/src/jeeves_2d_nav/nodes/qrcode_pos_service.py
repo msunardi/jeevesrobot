@@ -3,6 +3,7 @@
 # ---------------------------------------------------------------------
 #                           Python Modules
 # ---------------------------------------------------------------------
+import sys
 import rospy
 import freenect
 from qrcode_pos.srv import *     # Import qrcode_pos package
@@ -12,6 +13,13 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 import zbar
 import json
+
+# Add "modules" dir to path
+abs_node_path = sys.argv[0].split('/')
+abs_node_path = '/'.join(abs_node_path[0:len(abs_node_path)-1]) + '/../modules'
+sys.path.append(abs_node_path)
+print abs_node_path
+
 from camera import *
 
 # ---------------------------------------------------------------------
@@ -19,6 +27,9 @@ from camera import *
 # ---------------------------------------------------------------------
 def get_position_h(req):
 
+   # First calibrate the camera
+   camera_inst = camera(verbosity=True)
+   
    # Local variables to thread
    x = 0
    y = 0
@@ -44,7 +55,7 @@ def get_position_h(req):
 
       # Decode QR code if exists
       if image:
-         valid, json_resp = proc_image(image)
+         valid, json_resp = proc_image(camera_inst, image)
 
          if valid:
             print "Successfully decoded QR code in image!"
@@ -61,13 +72,14 @@ def get_position_h(req):
    if not valid:
       print "Returning exception..."
    
+   camera_inst = None
    return qrcode_posResponse(json_resp)
    
    
 # ---------------------------------------------------------------------
 #                           proc_image()
 # ---------------------------------------------------------------------
-def proc_image(ros_image, print_data=False):
+def proc_image(camera_inst, ros_image, print_data=False):
 
    # Local variables to thread
    data = False
@@ -112,10 +124,9 @@ def proc_image(ros_image, print_data=False):
 
    # If a valid string was extracted from the QR code
    if data:
-     
+
       # Make sure the QR code was meant for use with the project specified
       if data.find('project=%s' % str(PROJECT_VALUE)) != -1:
-
          split_data = data.split(",")
          x = int(split_data[0].replace('x=', ''))
          y = int(split_data[1].replace('y=', ''))
@@ -126,41 +137,13 @@ def proc_image(ros_image, print_data=False):
          if not camera_inst.find_qr_homography(cv_image_color):
             # Could not successfully calculate homography, return invalid
             return [False,json.dumps({"valid":False})]
-
+         
          # Print Jeeves QR code data extracted from image
          if print_data:
             print data
-            
-         cameraMatrix = None
-         rotMatrix = None
-         transVect = None
-         rotMatrixX = None
-         rotMatrixY = None
-         rotMatrixZ = None
-         eulerAngles = None
-         proj_mtx = np.append(camera_inst.homography_mtx, np.array([[480],[360],[1]]), 1)
-         print "-------- projection matrix ----------"
-         print proj_mtx
-         
-         cameraMatrix, rotMatrix, transVect, rotMatrixX, rotMatrixY, rotMatrixZ, eulerAngles = cv2.decomposeProjectionMatrix(proj_mtx)
 
-         print "-------- cameraMatrix -----------"
-         print cameraMatrix
-         
-         print "-------- rotMatrix -----------"
-         print rotMatrix
-         
-         print "-------- rotMatrix X -----------"
-         print rotMatrixX
-         
-         print "-------- rotMatrix Y -----------"
-         print rotMatrixY
-         
-         print "-------- rotMatrix Z -----------"
-         print rotMatrixZ
-         
-         print "-------- eulerAngles -----------"
-         print eulerAngles
+         # solvPnP
+#         camera_inst.solvePnP()
          
          # Return success
          return [True,json.dumps({"valid":True,"x":x,"y":y,"z":z,"theta":theta})]
@@ -181,15 +164,12 @@ def qrcode_pos_service():
 #                       Application Entry Point
 # ---------------------------------------------------------------------
 if __name__ == "__main__":
-   # First calibrate the camera
-   camera_inst = camera(verbosity=True)
-
    
    rospy.init_node('qrcode_pos')                                           # Initialize ROS node
-   SEC_CNT_TIMEOUT = rospy.get_param('~timeout_value')                     # Number of seconds before timeout
-   PROJECT_VALUE = rospy.get_param('~project')                             # Project that this service should look for in QR codes found
-#   SEC_CNT_TIMEOUT = 10                     # Number of seconds before timeout
-#   PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
+#   SEC_CNT_TIMEOUT = rospy.get_param('~timeout_value')                     # Number of seconds before timeout
+#   PROJECT_VALUE = rospy.get_param('~project')                             # Project that this service should look for in QR codes found
+   SEC_CNT_TIMEOUT = 10                     # Number of seconds before timeout
+   PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
    qrcode_pos_service()                                                    # Start the qrcode_pos_srv service
    
    

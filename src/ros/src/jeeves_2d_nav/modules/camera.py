@@ -25,7 +25,12 @@ import numpy as np
 import cv2
 import glob
 import inspect
+import matplotlib
+matplotlib.use('GTKAgg')
+print matplotlib.rcsetup.interactive_bk
 from matplotlib import pyplot as plt
+import time
+
 
 
 # =======================================================================================
@@ -38,7 +43,7 @@ abs_node_path = '/'.join(abs_node_path[0:len(abs_node_path)-1]) + '/'
 
 FLANN_INDEX_LSH  = 6        # For FLANN matching when using OpenCV ORB
 RATIO_TEST_PARAM = 0.75     # Maximum distance point n can be from point m when determing good FLANN matches
-MIN_MATCH_COUNT  = 100       # Minimum number of good matches detected by ratio test
+MIN_MATCH_COUNT  = 35       # Minimum number of good matches detected by ratio test
 NUM_TREE_CHECKS  = 50       # Number of times trees are recursively checked. Higher value results in better results, but takes longer
 
 src_img = cv2.imread(abs_node_path + '../images/qrcode_query_image.jpg',0)    # Template for detecting qr code in random image
@@ -74,6 +79,18 @@ class camera():
    h_tar_pts      = None
    homography_mtx = None
    h_mask         = None
+   
+   rot_mtx        = None
+   q_mtx          = None
+   qx_vec         = None
+   qy_vec         = None
+   qz_vec         = None
+   
+   euler_x_deg    = None
+   euler_y_deg    = None
+   euler_z_deg    = None
+   
+   
 
    '''
       --------------------------------------------
@@ -161,14 +178,19 @@ class camera():
             if self.verbosity:
                # Draw and display the corners
                cv2.drawChessboardCorners(img, (7,6), self.corners,self.ret)
-               cv2.imshow('img',img)
-               cv2.waitKey(5000)
-               cv2.destroyAllWindows()
+#               plt.imshow(img),plt.show();
+
             
       # Calibrate the camera
       try:
          ret, camera_mtx, dist, rvecs, tvecs = cv2.calibrateCamera(self.objpoints, self.imgpoints, gray.shape[::-1],None,None)
 
+         # Store calibrated data for future use
+         self.camera_mtx = camera_mtx
+         self.dist       = dist
+         self.rvecs      = rvecs
+         self.tvecs      = tvecs
+         
          # If verbose
          if self.verbosity:
             print "------ RET -----------"
@@ -186,7 +208,7 @@ class camera():
             print "------- tvecs ----------"
             print np.shape(self.tvecs)
             print tvecs
-
+            
             print "\nCamera calibration successful!\n"
       except Exception as e:
          print "\nFailed to calibrate camera. Chessboard pattern not detected...\n"
@@ -255,7 +277,7 @@ class camera():
       # Create list of source points and list of target/destination points from good matches
       self.h_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in good_matches ]).reshape(-1,1,2)
       self.h_tar_pts = np.float32([ tar_kp[m.trainIdx].pt for m in good_matches ]).reshape(-1,1,2)
-
+      
       # Find homography
       self.homography_mtx, self.h_mask = cv2.findHomography(self.h_src_pts, self.h_tar_pts, cv2.RANSAC,5.0)
 
@@ -270,17 +292,128 @@ class camera():
          tar_kp_img = cv2.drawKeypoints(target_cv2_image,tar_kp,color=(0,255,0), flags=0)
 
          # Merge images for dual display
-         vis = np.concatenate((src_kp_img, tar_kp_img), axis=1)
+         self.vis = np.concatenate((src_kp_img, tar_kp_img), axis=1);
+#         plt.imshow(self.vis)
+#         plt.show()
 
-         # Display images
-         plt.imshow(vis),plt.show()
+         # Decompose homography matrix
+         eulerAngles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(self.homography_mtx)
 
-         print "------- Print Homography Matrix ------------"
-         print self.homography_mtx
+         # Rotation matricies
+         self.rot_mtx = mtxR
+         if self.verbosity:
+            print "---------- Rotation Matricies ------------"
+            print self.rot_mtx
+      
+         # Extract euler angles
+         self.euler_x_deg = eulerAngles[0]
+         self.euler_y_deg = eulerAngles[1]
+         self.euler_z_deg = eulerAngles[2]
+         if self.verbosity:
+            print "---------- Euler Angles ------------"
+            print "Degrees:  X = %f" % self.euler_x_deg
+            print "Degrees:  Y = %f" % self.euler_y_deg
+            print "Degrees:  Z = %f" % self.euler_z_deg
+         
+         # Store Q matrix
+         self.q_mtx = mtxQ
+         if self.verbosity:
+            print "---------- Q Matrix ------------"
+            print self.q_mtx
+         
+         # Store translation vectors
+         self.qx_vec = self.q_mtx[0]
+         self.qy_vec = self.q_mtx[1]
+         self.qz_vec = self.q_mtx[2]
+         if self.verbosity:
+            print "---------- Translation Vectors ------------"
+            print self.qx_vec
+            print self.qy_vec
+            print self.qz_vec
+
          return True
 
+   '''
+      --------------------------------------------
+                      solvePnP()
+      --------------------------------------------
+   '''
+   def solvePnP(self):
+      
+      # Put matched source points into objPoints format for solvePnP()
+      tmp_mtx = []
+      i = 0
+      for point in self.h_src_pts:
+         tmp_mtx.append( np.append(point[0], np.float32( [0]), 1) )
+         i += 1
+      tmp_h_src_obj_pts = np.float32(tmp_mtx)
+      
+      # Put matched target points into imgPoints format for solvePnP()
+      tmp_mtx = []
+      i = 0
+      for point in self.h_tar_pts:
+         tmp_mtx.append( point[0] )
+         i += 1
+      tmp_h_tar_img_pts = np.float32(tmp_mtx)
+      
+      # Scan through good points and detect upper left, upper right, lower left, and lower right corners of surface
+#      for point in self.h_src_pts:
+#         tmp_mtx.append(point[0])
 
+#      print tmp_mtx
+#      sys.exit()
+   
+      # solvePnP()
+      self.img_retval, self.img_rvec, self.img_tvec = cv2.solvePnP(tmp_h_src_obj_pts, tmp_h_tar_img_pts, self.camera_mtx, self.dist, np.float32(self.rvecs), np.float32(self.tvecs),useExtrinsicGuess=1)
+      
+      # Make scaled version of camera matrix so we can multiply it with the scaled 3x4 identity matrix
+      tmp_cam_mtx = np.concatenate((self.camera_mtx, [[0],[0],[0]]), axis=1)
+      tmp_cam_mtx = np.append(  tmp_cam_mtx, [[0,0,0,0]] , axis=0  )
+      
+      print "------------ cam_mtx -----------"
+      print tmp_cam_mtx
+      
+      
+      # Compute rotation matrix from rotation vector
+      self.rot_mtx, self.img_jacobian = cv2.Rodrigues(self.img_rvec)
 
+      if self.verbosity:
+         print "---------- solvePnP retVal -----------"
+         print self.img_retval
+         print "---------- solvePnP rvec -----------"
+         print self.img_rvec
+         print "---------- solvePnP tvec -----------"
+         print self.img_tvec
+         print "------------ Rotation Matrix ------------"
+         print self.rot_mtx
+      
+      # Create 3x3 identity matrix with extra column for projection matrix calculation
+      id_3x4 = np.zeros(shape=(4,4))
+      id_3x4[0][0] = 1
+      id_3x4[1][1] = 1
+      id_3x4[2][2] = 1
+      id_3x4 = np.float32(id_3x4)
+      print "--------------- Identity 3x4 matrix --------------"
+      print np.float32(id_3x4)
+      
+      print "--------------- cam_mtx * id_3x4 -----------------"
+      cam_id = tmp_cam_mtx*id_3x4
+      print cam_id
+      
+      # Concatenate rotation matrix with translation matrix, 0's, and a 1, yields a 4x4 matrix
+      rot_tv = np.concatenate((self.rot_mtx, self.img_tvec), axis=1)
+      rot_tv = np.append(  rot_tv, [[0,0,0,1]] , axis=0  )
+      
+      print rot_tv
+      cam_rot_tv = tmp_cam_mtx*rot_tv
+      print "----------- cam_rot_tv -----------"
+      print cam_rot_tv
+      
+      # Expand translation vector
+
+      
+      
+      
 
 
 
