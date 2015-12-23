@@ -278,6 +278,41 @@ class camera():
       self.h_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in good_matches ]).reshape(-1,1,2)
       self.h_tar_pts = np.float32([ tar_kp[m.trainIdx].pt for m in good_matches ]).reshape(-1,1,2)
       
+      # Extract corner points of the detected plane
+      self.left_top_corner     = [65535,65535]
+      self.left_bottom_corner  = [65535,0]
+      self.right_top_corner    = [0,65535]
+      self.right_bottom_corner = [0,0]
+      for point in self.h_tar_pts:
+         
+         # Left top corner
+         if(point[0][0] <= self.left_top_corner[0] and point[0][1] <= self.left_top_corner[1]):
+            self.left_top_corner = point[0]
+            
+         # Left Bottom corner
+         if(point[0][0] <= self.left_bottom_corner[0] and point[0][1] >= self.left_bottom_corner[1]):
+            self.left_bottom_corner = point[0]
+
+         # Right top corner
+         if(point[0][0] >= self.right_top_corner[0] and point[0][1] <= self.right_top_corner[1]):
+            self.right_top_corner = point[0]
+            
+         # Right Bottom corner
+         if(point[0][0] >= self.right_bottom_corner[0] and point[0][1] >= self.right_bottom_corner[1]):
+            self.right_bottom_corner = point[0]
+
+      if self.verbosity:
+         print self.left_top_corner
+         print self.left_bottom_corner
+         print self.right_top_corner
+         print self.right_bottom_corner
+         
+         print "\n----------- Detected Plane Corners --------------"
+         print "Left top corner    :  %f , %f" % (self.left_top_corner[0],self.left_top_corner[1])
+         print "Left bottom corner :  %f , %f" % (self.left_bottom_corner[0],self.left_bottom_corner[1])
+         print "Right top corner   :  %f , %f" % (self.right_top_corner[0],self.right_top_corner[1])
+         print "Right bottom corner:  %f , %f" % (self.right_bottom_corner[0],self.right_bottom_corner[1])
+      
       # Find homography
       self.homography_mtx, self.h_mask = cv2.findHomography(self.h_src_pts, self.h_tar_pts, cv2.RANSAC,5.0)
 
@@ -294,44 +329,47 @@ class camera():
          # Merge images for dual display
          self.vis = np.concatenate((src_kp_img, tar_kp_img), axis=1);
 #         plt.imshow(self.vis)
+#         plt.imshow(target_cv2_image)
 #         plt.show()
 
-         # Decompose homography matrix
-         eulerAngles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(self.homography_mtx)
+      # Decompose homography matrix
+      eulerAngles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(self.homography_mtx)
 
-         # Rotation matricies
-         self.rot_mtx = mtxR
-         if self.verbosity:
-            print "---------- Rotation Matricies ------------"
-            print self.rot_mtx
-      
-         # Extract euler angles
-         self.euler_x_deg = eulerAngles[0]
-         self.euler_y_deg = eulerAngles[1]
-         self.euler_z_deg = eulerAngles[2]
-         if self.verbosity:
-            print "---------- Euler Angles ------------"
-            print "Degrees:  X = %f" % self.euler_x_deg
-            print "Degrees:  Y = %f" % self.euler_y_deg
-            print "Degrees:  Z = %f" % self.euler_z_deg
-         
-         # Store Q matrix
-         self.q_mtx = mtxQ
-         if self.verbosity:
-            print "---------- Q Matrix ------------"
-            print self.q_mtx
-         
-         # Store translation vectors
-         self.qx_vec = self.q_mtx[0]
-         self.qy_vec = self.q_mtx[1]
-         self.qz_vec = self.q_mtx[2]
-         if self.verbosity:
-            print "---------- Translation Vectors ------------"
-            print self.qx_vec
-            print self.qy_vec
-            print self.qz_vec
+      # Rotation matricies
+      self.rot_mtx = mtxR
+      if self.verbosity:
+         print "---------- Rotation Matricies ------------"
+         print self.rot_mtx
 
-         return True
+      # Extract euler angles
+      self.euler_x_deg = eulerAngles[0]
+      self.euler_y_deg = eulerAngles[1]
+      self.euler_z_deg = eulerAngles[2]
+      if self.verbosity:
+         print "---------- Euler Angles ------------"
+         print "Degrees:  X = %f" % self.euler_x_deg
+         print "Degrees:  Y = %f" % self.euler_y_deg
+         print "Degrees:  Z = %f" % self.euler_z_deg
+
+      # Store Q matrix
+      self.q_mtx = mtxQ
+      if self.verbosity:
+         print "---------- Q Matrix ------------"
+         print self.q_mtx
+
+      # Store translation vectors
+      self.qx_vec = self.q_mtx[0]
+      self.qy_vec = self.q_mtx[1]
+      self.qz_vec = self.q_mtx[2]
+      if self.verbosity:
+         print "---------- Translation Vectors ------------"
+         print self.qx_vec
+         print self.qy_vec
+         print self.qz_vec
+
+      self.calc_distance()
+         
+      return True
 
    '''
       --------------------------------------------
@@ -355,13 +393,6 @@ class camera():
          tmp_mtx.append( point[0] )
          i += 1
       tmp_h_tar_img_pts = np.float32(tmp_mtx)
-      
-      # Scan through good points and detect upper left, upper right, lower left, and lower right corners of surface
-#      for point in self.h_src_pts:
-#         tmp_mtx.append(point[0])
-
-#      print tmp_mtx
-#      sys.exit()
    
       # solvePnP()
       self.img_retval, self.img_rvec, self.img_tvec = cv2.solvePnP(tmp_h_src_obj_pts, tmp_h_tar_img_pts, self.camera_mtx, self.dist, np.float32(self.rvecs), np.float32(self.tvecs),useExtrinsicGuess=1)
@@ -412,6 +443,26 @@ class camera():
       # Expand translation vector
 
       
+   '''
+      --------------------------------------------
+                   calc_distance()
+      --------------------------------------------
+   '''
+   def calc_distance(self):
+      
+      # Determine longest side of rectangle and use it
+      lt_lb = float(self.left_bottom_corner[1]  - self.left_top_corner[1])
+      lt_rt = float(self.right_top_corner[0]    - self.left_top_corner[0])
+      rt_rb = float(self.right_bottom_corner[1] - self.right_top_corner[1])
+      lb_rb = float(self.right_bottom_corner[0] - self.left_bottom_corner[0])
+      
+      self.distance = float(max([lt_lb,lt_rt,rt_rb,lb_rb]))*((3.0)/(117.878))
+      
+      print lt_lb
+      print lt_rt
+      print rt_rb
+      print lb_rb
+      print "You are %f feet away!" % self.distance
       
       
 
