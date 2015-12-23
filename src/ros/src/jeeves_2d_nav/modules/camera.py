@@ -177,7 +177,7 @@ class camera():
 
             if self.verbosity:
                # Draw and display the corners
-               cv2.drawChessboardCorners(img, (7,6), self.corners,self.ret)
+#               cv2.drawChessboardCorners(img, (7,6), self.corners,self.ret)
 #               plt.imshow(img),plt.show();
 
             
