@@ -72,7 +72,7 @@ def get_position_h(req):
    if not valid:
       print "Returning exception..."
    
-   return qrcode_posResponse(json_resp)
+   return qrcode_pos_serviceResponse(json_resp)
    camera_inst = None
    
    
