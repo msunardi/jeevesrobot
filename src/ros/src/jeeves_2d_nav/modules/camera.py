@@ -26,7 +26,7 @@ import cv2
 import glob
 import inspect
 import matplotlib
-matplotlib.use('GTKAgg')
+#matplotlib.use('GTKAgg')
 print matplotlib.rcsetup.interactive_bk
 from matplotlib import pyplot as plt
 import time
