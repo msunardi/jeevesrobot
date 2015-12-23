@@ -6,7 +6,7 @@
 import sys
 import rospy
 import freenect
-from qrcode_pos.srv import *     # Import qrcode_pos package
+from qrcode_pos_service.srv import *     # Import qrcode_pos package
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 import cv2
@@ -72,8 +72,8 @@ def get_position_h(req):
    if not valid:
       print "Returning exception..."
    
-   camera_inst = None
    return qrcode_posResponse(json_resp)
+   camera_inst = None
    
    
 # ---------------------------------------------------------------------
@@ -156,7 +156,7 @@ def proc_image(camera_inst, ros_image, print_data=False):
 # ---------------------------------------------------------------------
 def qrcode_pos_service():
 #   rospy.Subscriber("/camera/rgb/image_color", Image, proc_image)         # Subscribe to the 'chatter' topic, creates a new thread.
-   s = rospy.Service('qrcode_pos_srv', qrcode_pos, get_position_h)         # Start the 'qrcode_pos_srv' service, of type 'scripts/qrcode_pos.srv', with handler function 'get_position_h'
+   s = rospy.Service('qrcode_pos_srv', qrcode_pos_service, get_position_h)         # Start the 'qrcode_pos_srv' service, of type 'scripts/qrcode_pos.srv', with handler function 'get_position_h'
    print "Ready to accept position requests..."
    rospy.spin()                                                            # Prevents script from terminating until service stops
 
