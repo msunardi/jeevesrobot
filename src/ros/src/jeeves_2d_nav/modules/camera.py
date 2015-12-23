@@ -25,10 +25,10 @@ import numpy as np
 import cv2
 import glob
 import inspect
-import matplotlib
+#import matplotlib
 #matplotlib.use('GTKAgg')
-print matplotlib.rcsetup.interactive_bk
-from matplotlib import pyplot as plt
+#print matplotlib.rcsetup.interactive_bk
+#from matplotlib import pyplot as plt
 import time
 
 
