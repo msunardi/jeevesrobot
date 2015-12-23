@@ -179,6 +179,7 @@ class camera():
                # Draw and display the corners
 #               cv2.drawChessboardCorners(img, (7,6), self.corners,self.ret)
 #               plt.imshow(img),plt.show();
+               pass
 
             
       # Calibrate the camera
