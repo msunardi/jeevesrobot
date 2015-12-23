@@ -6,7 +6,7 @@
 import sys
 import rospy
 import freenect
-from qrcode_pos_service.srv import *     # Import qrcode_pos package
+from jeeves_2d_nav.srv import *     # Import qrcode_pos package
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 import cv2
@@ -154,7 +154,7 @@ def proc_image(camera_inst, ros_image, print_data=False):
 # ---------------------------------------------------------------------
 #                        qrcode_pos_service()
 # ---------------------------------------------------------------------
-def qrcode_pos_service():
+def qrcode_pos_service_f():
 #   rospy.Subscriber("/camera/rgb/image_color", Image, proc_image)         # Subscribe to the 'chatter' topic, creates a new thread.
    s = rospy.Service('qrcode_pos_srv', qrcode_pos_service, get_position_h)         # Start the 'qrcode_pos_srv' service, of type 'scripts/qrcode_pos.srv', with handler function 'get_position_h'
    print "Ready to accept position requests..."
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 #   PROJECT_VALUE = rospy.get_param('~project')                             # Project that this service should look for in QR codes found
    SEC_CNT_TIMEOUT = 10                     # Number of seconds before timeout
    PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
-   qrcode_pos_service()                                                    # Start the qrcode_pos_srv service
+   qrcode_pos_service_f()                                                    # Start the qrcode_pos_srv service
    
    
    
