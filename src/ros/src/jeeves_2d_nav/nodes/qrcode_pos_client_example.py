@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------
 import sys
 import rospy
-from qrcode_pos.srv import *
+from jeeves_2d_nav.srv import *
 import json
 import string
 
