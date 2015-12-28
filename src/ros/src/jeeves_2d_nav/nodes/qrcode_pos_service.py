@@ -164,12 +164,12 @@ def qrcode_pos_service_f():
 #                       Application Entry Point
 # ---------------------------------------------------------------------
 if __name__ == "__main__":
-   
+
    rospy.init_node('qrcode_pos')                                           # Initialize ROS node
-#   SEC_CNT_TIMEOUT = rospy.get_param('~timeout_value')                     # Number of seconds before timeout
-#   PROJECT_VALUE = rospy.get_param('~project')                             # Project that this service should look for in QR codes found
-   SEC_CNT_TIMEOUT = 10                     # Number of seconds before timeout
-   PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
+   SEC_CNT_TIMEOUT = rospy.get_param('~timeout_value')                     # Number of seconds before timeout
+   PROJECT_VALUE = rospy.get_param('~project')                             # Project that this service should look for in QR codes found
+#   SEC_CNT_TIMEOUT = 10                     # Number of seconds before timeout
+#   PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
    qrcode_pos_service_f()                                                    # Start the qrcode_pos_srv service
    
    

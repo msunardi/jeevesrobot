@@ -362,11 +362,11 @@ class camera():
       self.qx_vec = self.q_mtx[0]
       self.qy_vec = self.q_mtx[1]
       self.qz_vec = self.q_mtx[2]
-      if self.verbosity:
-         print "---------- Translation Vectors ------------"
-         print self.qx_vec
-         print self.qy_vec
-         print self.qz_vec
+#      if self.verbosity:
+#         print "---------- Translation Vectors ------------"
+#         print self.qx_vec
+#         print self.qy_vec
+#         print self.qz_vec
 
       self.calc_distance()
          
