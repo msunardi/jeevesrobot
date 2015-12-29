@@ -31,10 +31,6 @@ def get_position_h(req):
    camera_inst = camera(verbosity=True)
    
    # Local variables to thread
-   x = 0
-   y = 0
-   z = 0
-   theta = 0
    i = 0
    
    valid = False
@@ -72,8 +68,8 @@ def get_position_h(req):
    if not valid:
       print "Returning exception..."
    
-   return qrcode_pos_serviceResponse(json_resp)
    camera_inst = None
+   return qrcode_pos_serviceResponse(json_resp)
    
    
 # ---------------------------------------------------------------------
@@ -128,10 +124,7 @@ def proc_image(camera_inst, ros_image, print_data=False):
       # Make sure the QR code was meant for use with the project specified
       if data.find('project=%s' % str(PROJECT_VALUE)) != -1:
          split_data = data.split(",")
-         x = int(split_data[0].replace('x=', ''))
-         y = int(split_data[1].replace('y=', ''))
-         z = int(split_data[2].replace('z=', ''))
-         theta = int(split_data[3].replace('theta=', ''))
+         qr_id = int(split_data[0].replace('id=', ''))
       
          # Get homography of QR code
          if not camera_inst.find_qr_homography(cv_image_color):
@@ -146,7 +139,7 @@ def proc_image(camera_inst, ros_image, print_data=False):
 #         camera_inst.solvePnP()
          
          # Return success
-         return [True,json.dumps({"valid":True,"x":x,"y":y,"z":z,"theta":theta})]
+         return [True,json.dumps({"valid":True,"r":camera_inst.distance,"theta":camera_inst.euler_z_deg,"id":qr_id})]
    
    # Could not successfully find/decode a QR code in image
    return [False,json.dumps({"valid":False})]

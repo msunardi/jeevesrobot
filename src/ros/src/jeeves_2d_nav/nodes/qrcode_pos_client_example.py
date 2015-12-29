@@ -20,7 +20,7 @@ def get_position():
 
    qrcode_pos_h = rospy.ServiceProxy('qrcode_pos_srv', qrcode_pos_service)              # Set handler to service
    resp_data = json.loads(qrcode_pos_h().json_resp)
-   return resp_data                                                             # Return positional data received from service
+   return resp_data                                                                     # Return positional data received from service
 
 
 # ---------------------------------------------------------------------
@@ -30,6 +30,6 @@ if __name__ == "__main__":
    print "Requesting position..."
    position = get_position()
    if position['valid']:
-      print "x = %d, y = %d, z = %d, theta = %d" % (position["x"], position["y"], position["z"], position["theta"])
+      print "id = %d, r = %d, theta = %d" % (position["id"], position["r"], position["theta"])
    else:
       print "Invalid coordinates received..."
