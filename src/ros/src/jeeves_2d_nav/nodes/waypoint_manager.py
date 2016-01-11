@@ -32,7 +32,7 @@ class Waypoint(object):
         self.theta = 0.0
         self.enabled = True
         
-        # load in anything from the incomfing dict that
+        # load in anything from the incoming dict that
         # matches one of our attributes
         for attr in self.__dict__.keys():
             if attr in wp_dict.keys():
