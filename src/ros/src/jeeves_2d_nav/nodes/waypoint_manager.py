@@ -22,6 +22,32 @@ RESULT_DNE = -2
 RESULT_POSE_NOT_AVAILABLE = -3
 
 
+class Waypoint(object):
+    def __init__(self, wp_dict):
+        """Construct from a dictionary."""
+        # first, sane defaults
+        self.name = 'default'
+        self.x = 0.0
+        self.y = 0.0
+        self.theta = 0.0
+        self.enabled = True
+        
+        # load in anything from the incomfing dict that
+        # matches one of our attributes
+        for attr in self.__dict__.keys():
+            if attr in wp_dict.keys():
+                self.__dict__[attr] = wp_dict[attr]
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
+    
+    def as_dict(self):
+        d = {}
+        for attr in self.__dict__.keys():
+            d[attr] = self.__dict__[attr]
+        return d
+
+    
 class WaypointManager(threading.Thread):
     def __init__(self, waypoint_file, base_frame):
         self.sleeper = rospy.Rate(1)
@@ -87,7 +113,7 @@ class WaypointManager(threading.Thread):
         names = [p['name'] for p in self.waypoints]
         if wp['name'] not in names:
             rospy.logdebug("Adding new waypoint name: " + wp['name'])
-            self.waypoints.append(wp)
+            self.waypoints.append(Waypoint(wp))
             self.save_waypoints()
             return RESULT_OK
         else:
@@ -95,12 +121,15 @@ class WaypointManager(threading.Thread):
             return RESULT_DUPLICATE_WAYPOINT
 
     def save_waypoints(self):
-        file(self.waypoint_file, 'w').write(yaml.dump(self.waypoints,
-                                                      default_flow_style=False))
+        s = yaml.dump([wp.as_dict() for wp in self.waypoints], default_flow_style=False)    
+        with open(self.waypoint_file, 'w') as f:
+            f.write(s)
 
     def handle_get_waypoints(self, req):
         rospy.logdebug("waypoint_manager.handle_get_waypoints()")
-        return yaml.dump(self.waypoints, default_flow_style=False)
+        return yaml.dump(
+            [wp.as_dict() for wp in self.waypoints],
+            default_flow_style=False)
 
     def handle_add_waypoint(self, req):
         wp = {'name': req.name,
