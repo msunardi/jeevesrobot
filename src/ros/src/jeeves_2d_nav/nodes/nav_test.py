@@ -55,9 +55,12 @@ class NavTest(threading.Thread):
 
         while not rospy.is_shutdown():
             if not self.halt:
+                # select a random waypoint that is enabled
                 self.waypoints = yaml.load(self.get_waypoints().waypoints)
                 idx = np.random.randint(0, len(self.waypoints))
                 wp = self.waypoints[idx]
+                if not wp['enabled']:
+                    continue
                 name = wp['name']
                 x = wp['x']
                 y = wp['y']
