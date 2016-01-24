@@ -25,13 +25,16 @@ import numpy as np
 import cv2
 import glob
 import inspect
-#import matplotlib
-#matplotlib.use('GTKAgg')
-#print matplotlib.rcsetup.interactive_bk
-#from matplotlib import pyplot as plt
+from qrcode_pos_service import DEV_ENV
+if DEV_ENV:
+   import matplotlib
+   matplotlib.use('GTKAgg')
+   print matplotlib.rcsetup.interactive_bk
+   from matplotlib import pyplot as plt
 import time
+import math
 
-
+SHOW_CALIB_IMAGES = False
 
 # =======================================================================================
 #                                 Global Variables
@@ -41,13 +44,19 @@ import time
 abs_node_path = sys.argv[0].split('/')
 abs_node_path = '/'.join(abs_node_path[0:len(abs_node_path)-1]) + '/'
 
-FLANN_INDEX_LSH  = 6        # For FLANN matching when using OpenCV ORB
-RATIO_TEST_PARAM = 0.75     # Maximum distance point n can be from point m when determing good FLANN matches
-MIN_MATCH_COUNT  = 35       # Minimum number of good matches detected by ratio test
-NUM_TREE_CHECKS  = 50       # Number of times trees are recursively checked. Higher value results in better results, but takes longer
-
-src_img = cv2.imread(abs_node_path + '../images/qrcode_query_image.jpg',0)    # Template for detecting qr code in random image
-#tar_img = cv2.imread(abs_node_path + '../images/camera_image.jpg',0)
+CAM_PIXEL_WIDTH              = 640      # Width in pixels of the camera being used.
+CAM_PIXEL_HEIGHT             = 480      # Height in pixels of the camera being used.
+N_ORB_FEATURES               = 10000    # Maximum number of orb features to detect
+FLANN_INDEX_LSH              = 6        # For FLANN matching when using OpenCV ORB
+RATIO_TEST_PARAM             = 0.8      # Maximum distance point n can be from point m when determing good FLANN matches
+MIN_MATCH_COUNT              = 150      # Minimum number of good matches detected by ratio test to determine if a good match
+NUM_TREE_CHECKS              = 100      # Number of times trees are recursively checked. Higher value results in better results, but takes longer
+MATCH_STD_DEVIATION_N_1      = 2.0      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images.
+                                        # Note that the std_deviation can be a floating point value, i.e. a fractional value
+MATCH_STD_DEVIATION_N_2      = 1.5      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images
+                                        # Note that the std_deviation can be a floating point value, i.e. a fractional value
+BORDER_KNOWN_DISTANCE        = 2.0      # Distance in feet from which BORDER_PIXELS_KNOWN_DISTANCE was calculated from.
+BORDER_PIXLES_KNOWN_DISTANCE = 134.0    # Lenght in pixels of a side of the feature rich border at 2ft away
 
 '''
 =========================================================================================
@@ -67,7 +76,7 @@ class camera():
    imgpoints      = []       # 2d points in image plane from all calibration images
    images         = None     # Stores list of ".jpg" image names found in images directory
    image_dir      = ''       # Image directory to look in for calibration jpegs
-   camera_mtx     = None # Calibrated camera matrix
+   camera_mtx     = None     # Calibrated camera matrix
    ret            = None
    dist           = None
    rvecs          = None
@@ -97,10 +106,21 @@ class camera():
                       Constructor
       --------------------------------------------
    '''
-   def __init__(self, image_dir='../images', verbosity=False):
-
+   def __init__(self, image_dir='../images', verbosity=False, src_image="../images/qrcode_query_image2.png"):
+      
       # Store verbosity
       self.verbosity = verbosity
+      self.objpoints = []
+      self.imgpoints = []
+      
+      if self.verbosity:
+         print "\n"
+         print "//////////////////////////////////////////////////////////////"
+         print "                     Camera: Constructor"
+         print "//////////////////////////////////////////////////////////////"
+      
+      # Open template image and store data
+      self.src_img = cv2.imread(abs_node_path + src_image,0)    # Template for detecting qr code in random image
       
       # Termination criteria
       self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -148,7 +168,11 @@ class camera():
       --------------------------------------------
    '''
    def __del__(self):
-      None
+      if self.verbosity:
+         print "\n"
+         print "//////////////////////////////////////////////////////////////"
+         print "                    Camera: Destructor"
+         print "//////////////////////////////////////////////////////////////"
 
       
    '''
@@ -159,7 +183,9 @@ class camera():
    def calibrate_camera(self):
       
       if self.verbosity:
-         print "Calibrating camera..."
+         print "//////////////////////////////////////////////////////////////"
+         print "               Camera: calibrate_camera()"
+         print "//////////////////////////////////////////////////////////////"
       
       # Process each filename in images
       for fname in (self.images):
@@ -167,19 +193,19 @@ class camera():
          gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
          # Find the chess board corners
-         self.ret, self.corners = cv2.findChessboardCorners(gray, (7,6),None)
+         calib_found, self.corners = cv2.findChessboardCorners(gray, (7,6),None)
 
          # If found, add object points, image points (after refining them)
-         if self.ret == True:
+         if calib_found == True:
             self.objpoints.append(self.objp)
             cv2.cornerSubPix(gray,self.corners,(11,11),(-1,-1),self.criteria)
             self.imgpoints.append(self.corners)
 
-            if self.verbosity:
+            if DEV_ENV and SHOW_CALIB_IMAGES:
                # Draw and display the corners
-#               cv2.drawChessboardCorners(img, (7,6), self.corners,self.ret)
-#               plt.imshow(img),plt.show();
-               pass
+               cv2.drawChessboardCorners(img, (7,6), self.corners,self.ret);
+               plt.imshow(img);
+               plt.show();
 
             
       # Calibrate the camera
@@ -212,9 +238,161 @@ class camera():
             
             print "\nCamera calibration successful!\n"
       except Exception as e:
-         print "\nFailed to calibrate camera. Chessboard pattern not detected...\n"
+         if self.verbosity:
+            print "\nFailed to calibrate camera. Chessboard pattern not detected...\n"
 
+   '''
+      --------------------------------------------
+                filter_ransac_matches()
+      --------------------------------------------
+   '''
+   def filter_ransac_matches(self, std_dev=2.0):
 
+      # Use mean and 2nd standard deviation to filter out outliers that corrupt distance calculations
+      self.good_match_list_pts     = [list(self.tar_kp[m.trainIdx].pt) for m in self.good_matches];
+      self.match_mean              = np.mean(self.good_match_list_pts, axis=0)             # Calculate the mean for X and Y separately
+      self.match_std_deviation     = np.std(self.good_match_list_pts,axis=0)
+      self.x_above_match_std_dev   = self.match_mean[0] + self.match_std_deviation[0]*std_dev
+      self.x_below_match_std_dev   = self.match_mean[0] - self.match_std_deviation[0]*std_dev
+      self.y_above_match_std_dev   = self.match_mean[1] + self.match_std_deviation[1]*std_dev
+      self.y_below_match_std_dev   = self.match_mean[1] - self.match_std_deviation[1]*std_dev
+      if self.verbosity:
+         print "-------- Matched Point Stat Data --------"
+         print "Standard Deviation:  %f" % std_dev
+         print "Match Point Means: X = %f , Y = %f" % (self.match_mean[0], self.match_mean[1])
+         print "Match Points Standard Deviations: X = %f , Y = %f" % (self.match_std_deviation[0], self.match_std_deviation[1])
+         print "X %dth Standard Deviation Range: %f , %f" % (std_dev, self.x_below_match_std_dev, self.x_above_match_std_dev)
+         print "Y %dth Standard Deviation Range: %f , %f" % (std_dev, self.y_below_match_std_dev, self.y_above_match_std_dev)
+         print "\n"
+
+      self.tar_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
+      # Filter out outlier points that were falsely identified as a "good match"
+      # If point is not within the nth x and y standard deviation ranges
+      self.good_matches[:] = [m for m in self.good_matches if(
+         self.tar_kp[m.trainIdx].pt[0] >= self.x_below_match_std_dev and
+         self.tar_kp[m.trainIdx].pt[0] <= self.x_above_match_std_dev and
+         self.tar_kp[m.trainIdx].pt[1] >= self.y_below_match_std_dev and
+         self.tar_kp[m.trainIdx].pt[1] <= self.y_above_match_std_dev
+      )]
+
+   '''
+      --------------------------------------------
+                  get_bounding_rect()
+      --------------------------------------------
+   '''
+   def get_bounding_rect(self, xy_pts):
+      x,y,w,h = cv2.boundingRect(xy_pts) # Create the rectangle that encompasses all xy points
+      ltc     = [x,y]                    # Left top corner
+      lbc     = [x, y+h]                 # Left bottom corner
+      rtc     = [x+w, y]                 # Right top corner
+      rbc     = [x+w,y+h]                # Right bottom corner
+      return x,y,w,h,ltc,lbc,rtc,rbc
+
+   '''
+      --------------------------------------------
+                    x_obj_center()
+      --------------------------------------------
+   '''
+   def x_obj_center(self, obj_left_edge, obj_right_edge):
+      # Determine center of object and whether or not it resides in the left or right hemisphere of the image
+      obj_center = (obj_left_edge + obj_right_edge)/2; # Calculate center of rectangle
+
+      if self.verbosity:
+         print "\n----------- Object Center --------------"
+         print "Object Center      :  %f" % obj_center
+      
+      return obj_center
+
+   '''
+      --------------------------------------------
+                  x_obj_hemisphere()
+      --------------------------------------------
+   '''
+   def x_obj_hemisphere(self, obj_center):
+      tar_img_hemisphere = ""
+      # If at the origin
+      if (obj_center == 0):
+         tar_img_hemisphere = "origin";
+      # If object center is in the left side of the picture
+      elif (obj_center < CAM_PIXEL_WIDTH/2.0):
+         tar_img_hemisphere = "left";
+      # If object center is in the right side of the picture
+      else:
+         tar_img_hemisphere = "right";
+         
+      if self.verbosity:
+         print "\n----------- Object Hemisphere in Image --------------"
+         print "Object Hemisphere  :  %s" % tar_img_hemisphere
+
+      return tar_img_hemisphere
+
+   '''
+      --------------------------------------------
+                     x_obj_angle()
+      --------------------------------------------
+   '''
+   def x_obj_angle(self, obj_center, r):
+      # Calculate angle of the center of the object relative to the center of the image.
+      # Assume that the center of the image is the origin (x=0)
+      obj_center_angle = (-1.0)*math.sin((obj_center - (CAM_PIXEL_WIDTH/2.0))/(r*BORDER_PIXLES_KNOWN_DISTANCE))*360.0/(2*math.pi)
+      
+      if self.verbosity:         
+         print "\n----------- Object Angle from Robot --------------"
+         print "Object Center      :  %f" % obj_center
+         print "Object Center Angle:  %f" % obj_center_angle
+         
+      return obj_center_angle
+
+   '''
+      --------------------------------------------
+                decompose_homography()
+      --------------------------------------------
+   '''
+   def decompose_homography(self, homography_mtx):
+      
+      if self.verbosity:
+         print "\n"
+         print "//////////////////////////////////////////////////////////////"
+         print "                Camera: decompose_homography()"
+         print "//////////////////////////////////////////////////////////////"
+      
+      # Decompose homography matrix
+      rqdecomp_euler_angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(homography_mtx)
+
+      # Rotation matricies
+      rot_mtx = mtxR
+      if self.verbosity:
+         print "---------- Rotation Matricies ------------"
+         print rot_mtx
+
+      # Extract euler angles
+      euler_x_deg = rqdecomp_euler_angles[0]
+      euler_y_deg = rqdecomp_euler_angles[1]
+      euler_z_deg = rqdecomp_euler_angles[2]
+      if self.verbosity:
+         print "---------- Euler Angles ------------"
+         print "Degrees:  X = %f" % euler_x_deg
+         print "Degrees:  Y = %f" % euler_y_deg
+         print "Degrees:  Z = %f" % euler_z_deg
+
+      # Store Q matrix
+      q_mtx = mtxQ
+      if self.verbosity:
+         print "---------- Q Matrix ------------"
+         print q_mtx
+
+      # Store translation vectors
+      qx_vec = q_mtx[0]
+      qy_vec = q_mtx[1]
+      qz_vec = q_mtx[2]
+      if self.verbosity:
+         print "---------- Translation Vectors ------------"
+         print qx_vec
+         print qy_vec
+         print qz_vec
+         
+      return rot_mtx,euler_x_deg,euler_y_deg,euler_z_deg,q_mtx
+   
    '''
       --------------------------------------------
                   find_qr_homography()
@@ -223,19 +401,22 @@ class camera():
    def find_qr_homography(self, target_cv2_image):
       
       if self.verbosity:
-         print "Detecting QR code homography..."
+         print "\n"
+         print "//////////////////////////////////////////////////////////////"
+         print "                Camera: find_qr_homography()"
+         print "//////////////////////////////////////////////////////////////"
          
-      # Initiate STAR detector for source and target images, detect up to 5000 features each
-      src_orb = cv2.ORB(5000)
-      tar_orb = cv2.ORB(5000)
+      # Initiate STAR detector for source and target images, detect up N_ORB_FEATURES
+      src_orb = cv2.ORB(N_ORB_FEATURES)
+      tar_orb = cv2.ORB(N_ORB_FEATURES)
 
       # Compute ORB descriptors for source image. Convert memory locations to coordinates in Python list?
-      src_kp, src_des = src_orb.detectAndCompute(src_img, None)
-      tar_kp, tar_des = tar_orb.detectAndCompute(target_cv2_image, None)
+      src_kp, src_des = src_orb.detectAndCompute(self.src_img, None)
+      self.tar_kp, tar_des = tar_orb.detectAndCompute(target_cv2_image, None)
       
       if self.verbosity:
          print "Source Features: %d" % (len(src_kp))
-         print "Target Features: %d" % (len(tar_kp))
+         print "Target Features: %d" % (len(self.tar_kp))
 
       # Setup FLANN matching algorithm for use with ORB
       index_params= dict(algorithm = FLANN_INDEX_LSH,
@@ -261,123 +442,119 @@ class camera():
       #             -> int imgIdx       , Train image index
       #             -> int queryIdx     , Query descriptor index
       #             -> int trainIdx     , Train descriptor index
-      good_matches = []
-      for m, n in matches:      
+      self.good_matches = []
+      for m, n in matches:
             # If the match passes the ratio test add it to the list of good matches
             if m.distance < RATIO_TEST_PARAM*n.distance:
-               good_matches.append(m)
+               self.good_matches.append(m)
       if self.verbosity:
-         print "Good Matches = %d" % len(good_matches)
+         print "RANSAC Good Matches = %d" % len(self.good_matches)
 
       # If not enough good matches alert and abort
-      if(not len(good_matches) >= MIN_MATCH_COUNT):
+      if(not len(self.good_matches) >= MIN_MATCH_COUNT):
          if self.verbosity:
             print "The number of good matches found is less than %d, aborting" % MIN_MATCH_COUNT
-         return False
-
-      # Create list of source points and list of target/destination points from good matches
-      self.h_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in good_matches ]).reshape(-1,1,2)
-      self.h_tar_pts = np.float32([ tar_kp[m.trainIdx].pt for m in good_matches ]).reshape(-1,1,2)
+         return False,False,False,False,False,False
       
-      # Extract corner points of the detected plane
-      self.left_top_corner     = [65535,65535]
-      self.left_bottom_corner  = [65535,0]
-      self.right_top_corner    = [0,65535]
-      self.right_bottom_corner = [0,0]
-      for point in self.h_tar_pts:
-         
-         # Left top corner
-         if(point[0][0] <= self.left_top_corner[0] and point[0][1] <= self.left_top_corner[1]):
-            self.left_top_corner = point[0]
-            
-         # Left Bottom corner
-         if(point[0][0] <= self.left_bottom_corner[0] and point[0][1] >= self.left_bottom_corner[1]):
-            self.left_bottom_corner = point[0]
+      # Keep a copy of the original matched points via RANSAC without additional filtering
+      # This is for visually comparing the difference between the RANSAC matches and the good matches that
+      # had additional filterting applied to them.
+      self.h_tar_pts_unfiltered = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
 
-         # Right top corner
-         if(point[0][0] >= self.right_top_corner[0] and point[0][1] <= self.right_top_corner[1]):
-            self.right_top_corner = point[0]
-            
-         # Right Bottom corner
-         if(point[0][0] >= self.right_bottom_corner[0] and point[0][1] >= self.right_bottom_corner[1]):
-            self.right_bottom_corner = point[0]
-
-      if self.verbosity:
-         print self.left_top_corner
-         print self.left_bottom_corner
-         print self.right_top_corner
-         print self.right_bottom_corner
-         
-         print "\n----------- Detected Plane Corners --------------"
-         print "Left top corner    :  %f , %f" % (self.left_top_corner[0],self.left_top_corner[1])
-         print "Left bottom corner :  %f , %f" % (self.left_bottom_corner[0],self.left_bottom_corner[1])
-         print "Right top corner   :  %f , %f" % (self.right_top_corner[0],self.right_top_corner[1])
-         print "Right bottom corner:  %f , %f" % (self.right_bottom_corner[0],self.right_bottom_corner[1])
+      # Apply additional filtering to RANSAC matches to get rid of outliers
+      self.filter_ransac_matches(MATCH_STD_DEVIATION_N_1);
+      self.filter_ransac_matches(MATCH_STD_DEVIATION_N_2);
+      
+      # Create list of source points and list of target/destination points from good matches
+      self.h_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.h_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.tar_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
       
       # Find homography
-      self.homography_mtx, self.h_mask = cv2.findHomography(self.h_src_pts, self.h_tar_pts, cv2.RANSAC,5.0)
-
+      homography_mtx, h_mask = cv2.findHomography(self.h_src_pts, self.h_tar_pts, cv2.RANSAC,5.0)
+      
       if self.verbosity:
          print "\nHomography Matrix:"
          print "-------------------------"
-         print self.homography_mtx
+         print homography_mtx
          print "-------------------------\n"
 
-         # Draw keypoint locations, not size and orientation
-         src_kp_img = cv2.drawKeypoints(src_img,src_kp,color=(0,255,0), flags=0)
-         tar_kp_img = cv2.drawKeypoints(target_cv2_image,tar_kp,color=(0,255,0), flags=0)
+      # Create a bounding rectangle and extract corner points for a rectangle that encompasses all filtered good matches
+      x_filt,y_filt,w_filt,h_filt,ltc_filt,lbc_filt,rtc_filt,rbc_filt = self.get_bounding_rect(self.h_tar_pts)
+      
+      # If in development mode, i.e. not running on Jeeves
+      if DEV_ENV:
+         # Create display images and display them for comparison
+         if self.verbosity:
+            # Draw keypoint locations, not size and orientation
+#            src_kp_img = cv2.drawKeypoints(self.src_img,src_kp,color=(0,255,0), flags=0)
+            self.tar_kp_filtered_img = cv2.drawKeypoints(target_cv2_image,self.tar_filtered_good_point_keys,color=(255,255,0), flags=0)
+            self.tar_kp_img = cv2.drawKeypoints(target_cv2_image,self.tar_good_point_keys,color=(255,255,0), flags=0)
 
-         # Merge images for dual display
-         self.vis = np.concatenate((src_kp_img, tar_kp_img), axis=1);
-#         plt.imshow(self.vis)
-#         plt.imshow(target_cv2_image)
-#         plt.show()
+            # Create a bounding rectangle that encompasses all un-filtered good matches
+            x_unfilt,y_unfilt,w_unfilt,h_unfilt,ltc_unfilt,lbc_unfilt,rtc_unfilt,rbc_unfilt     = self.get_bounding_rect(self.h_tar_pts_unfiltered)
 
-      # Decompose homography matrix
-      eulerAngles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(self.homography_mtx)
+            # Overlay the filtered and unfiltered rectangles
+            cv2.rectangle(self.tar_kp_img,(x_unfilt,y_unfilt),(x_unfilt+w_unfilt,y_unfilt+h_unfilt),(0,255,0),2)
+            cv2.rectangle(self.tar_kp_filtered_img,(x_filt,y_filt),(x_filt+w_filt,y_filt+h_filt),(0,255,0),2)
 
-      # Rotation matricies
-      self.rot_mtx = mtxR
-      if self.verbosity:
-         print "---------- Rotation Matricies ------------"
-         print self.rot_mtx
-
-      # Extract euler angles
-      self.euler_x_deg = eulerAngles[0]
-      self.euler_y_deg = eulerAngles[1]
-      self.euler_z_deg = eulerAngles[2]
-      if self.verbosity:
-         print "---------- Euler Angles ------------"
-         print "Degrees:  X = %f" % self.euler_x_deg
-         print "Degrees:  Y = %f" % self.euler_y_deg
-         print "Degrees:  Z = %f" % self.euler_z_deg
-
-      # Store Q matrix
-      self.q_mtx = mtxQ
-      if self.verbosity:
-         print "---------- Q Matrix ------------"
-         print self.q_mtx
-
-      # Store translation vectors
-      self.qx_vec = self.q_mtx[0]
-      self.qy_vec = self.q_mtx[1]
-      self.qz_vec = self.q_mtx[2]
-#      if self.verbosity:
-#         print "---------- Translation Vectors ------------"
-#         print self.qx_vec
-#         print self.qy_vec
-#         print self.qz_vec
-
-      self.calc_distance()
+            # Concatenate images together for comparison
+            self.vis = np.concatenate((self.tar_kp_img, self.tar_kp_filtered_img), axis=1);
+            # Show the images
+            plt.imshow(self.vis)
+            plt.show()
          
-      return True
+      return True, homography_mtx,ltc_filt,lbc_filt,rtc_filt,rbc_filt
 
+   '''
+      --------------------------------------------
+                   calc_distance()
+      --------------------------------------------
+   '''
+   def calc_distance(self, ltc, lbc, rtc, rbc):
+
+      if self.verbosity:
+         print "\n"
+         print "//////////////////////////////////////////////////////////////"
+         print "                  Camera: calc_distance()"
+         print "//////////////////////////////////////////////////////////////"
+
+      distance = 0
+         
+      if (ltc > -1 and lbc > -1 and rtc > -1 and rbc > -1):
+         # Initialize variable
+         distance = 0
+
+         # Determine longest side of rectangle and use it
+         lt_lb = float(lbc[1] - ltc[1])
+         lt_rt = float(rtc[0] - ltc[0])
+         rt_rb = float(rbc[1] - rtc[1])
+         lb_rb = float(rbc[0] - lbc[0])
+
+         # Use the longest side of the rectangle that encompasses all the filtered good match features
+         # times the ratio of the rectangle at a known distance.
+         distance = float(max([lt_lb,lt_rt,rt_rb,lb_rb]))*((BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE))
+
+         if self.verbosity:
+            print "Distance from Object:  %f ft." % distance
+         return distance
+      else:
+         if self.verbosity:
+            print "Cannot calculate distance yet. Ensure that the left top, left bottom, right top, and right bottom corners have been initialized first."
+         return -1
+   
    '''
       --------------------------------------------
                       solvePnP()
       --------------------------------------------
    '''
    def solvePnP(self):
+      
+      if self.verbosity:
+         print "\n"
+         print "//////////////////////////////////////////////////////////////"
+         print "                     Camera: solvPnP()"
+         print "//////////////////////////////////////////////////////////////"
       
       # Put matched source points into objPoints format for solvePnP()
       tmp_mtx = []
@@ -425,45 +602,22 @@ class camera():
       id_3x4[1][1] = 1
       id_3x4[2][2] = 1
       id_3x4 = np.float32(id_3x4)
-      print "--------------- Identity 3x4 matrix --------------"
-      print np.float32(id_3x4)
-      
-      print "--------------- cam_mtx * id_3x4 -----------------"
       cam_id = tmp_cam_mtx*id_3x4
-      print cam_id
+      
+      if self.verbosity:
+         print "--------------- Identity 3x4 matrix --------------"
+         print np.float32(id_3x4)
+         print "--------------- cam_mtx * id_3x4 -----------------"
+         print cam_id
       
       # Concatenate rotation matrix with translation matrix, 0's, and a 1, yields a 4x4 matrix
       rot_tv = np.concatenate((self.rot_mtx, self.img_tvec), axis=1)
       rot_tv = np.append(  rot_tv, [[0,0,0,1]] , axis=0  )
-      
-      print rot_tv
       cam_rot_tv = tmp_cam_mtx*rot_tv
-      print "----------- cam_rot_tv -----------"
-      print cam_rot_tv
-      
-      # Expand translation vector
+      if self.verbosity:
+         print "----------- cam_rot_tv -----------"
+         print cam_rot_tv
 
-      
-   '''
-      --------------------------------------------
-                   calc_distance()
-      --------------------------------------------
-   '''
-   def calc_distance(self):
-      
-      # Determine longest side of rectangle and use it
-      lt_lb = float(self.left_bottom_corner[1]  - self.left_top_corner[1])
-      lt_rt = float(self.right_top_corner[0]    - self.left_top_corner[0])
-      rt_rb = float(self.right_bottom_corner[1] - self.right_top_corner[1])
-      lb_rb = float(self.right_bottom_corner[0] - self.left_bottom_corner[0])
-      
-      self.distance = float(max([lt_lb,lt_rt,rt_rb,lb_rb]))*((3.0)/(117.878))
-      
-      print lt_lb
-      print lt_rt
-      print rt_rb
-      print lb_rb
-      print "You are %f feet away!" % self.distance
       
       
 

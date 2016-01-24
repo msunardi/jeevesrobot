@@ -30,6 +30,6 @@ if __name__ == "__main__":
    print "Requesting position..."
    position = get_position()
    if position['valid']:
-      print "id = %d, r = %d, theta = %d" % (position["id"], position["r"], position["theta"])
+      print "id = %d, r = %f, theta = %f, obj_hemisphere = %s, rqdecomp_x_deg = %f, rqdecomp_y_deg = %f, rqdecomp_z_deg = %f" % (position["id"], position["r"], position["theta"], position["obj_hemisphere"],position["rqdecomp_x_deg"], position["rqdecomp_y_deg"], position["rqdecomp_z_deg"])
    else:
       print "Invalid coordinates received..."
