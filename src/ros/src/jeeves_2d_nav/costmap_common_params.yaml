@@ -22,7 +22,7 @@ laser_scan_sensor: {
 
 # note: this is larger than wheelbase
 footprint: [[0.3450, 0.3450], [-0.3450, 0.3450], [-0.3450, -0.3450], [0.3450, -0.3450]]
-inflation_radius: 0.55
+inflation_radius: 1.0
 #cost_scaling_factor: 10.0
 
 
