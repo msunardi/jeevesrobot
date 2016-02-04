@@ -586,8 +586,6 @@ class camera():
          # Use the longest side of the rectangle that encompasses all the filtered good match features
          # and subject from it the known pixel length of a border at the known distance
          distance =  float(max([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE
-         print distance
-         print float(max([lt_lb,lt_rt,rt_rb,lb_rb]))
 
          # If we moved closer to the object
          if distance > 0.0:
@@ -596,10 +594,6 @@ class camera():
             distance = 2.0 + (BORDER_PIXLES_KNOWN_DISTANCE - float(max([lt_lb,lt_rt,rt_rb,lb_rb])))*((BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE))
          else:
             distance = 2.0
-         print distance
-         sys.exit()
-         
-         print float(max([lt_lb,lt_rt,rt_rb,lb_rb]))
          
          if self.verbosity:
             print "Distance from Object:  %f ft." % distance

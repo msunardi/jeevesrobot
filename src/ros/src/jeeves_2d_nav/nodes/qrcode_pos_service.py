@@ -20,7 +20,7 @@ rospy.init_node('qrcode_pos')                                             # Init
 #DEV_ENV = rospy.get_param('~dev_env')
 #VERBOSITY = rospy.get_param('~verbosity')
 DEV_ENV = bool(0)
-VERBOSITY = bool(0)
+VERBOSITY = bool(1)
 SEC_CNT_TIMEOUT = 3                                        # Number of seconds before timeout
 PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
 
