@@ -15,14 +15,14 @@ import zbar
 import json
 
 rospy.init_node('qrcode_pos')                                             # Initialize ROS node
-SEC_CNT_TIMEOUT = rospy.get_param('~timeout_value')       # Number of seconds before timeout
-PROJECT_VALUE = rospy.get_param('~project')               # Project that this service should look for in QR codes found
-DEV_ENV = rospy.get_param('~dev_env')
-VERBOSITY = rospy.get_param('~verbosity')
-#DEV_ENV = bool(1)
-#VERBOSITY = bool(1)
-#SEC_CNT_TIMEOUT = 3                                        # Number of seconds before timeout
-#PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
+#SEC_CNT_TIMEOUT = rospy.get_param('~timeout_value')       # Number of seconds before timeout
+#PROJECT_VALUE = rospy.get_param('~project')               # Project that this service should look for in QR codes found
+#DEV_ENV = rospy.get_param('~dev_env')
+#VERBOSITY = rospy.get_param('~verbosity')
+DEV_ENV = bool(0)
+VERBOSITY = bool(0)
+SEC_CNT_TIMEOUT = 3                                        # Number of seconds before timeout
+PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
 
 if VERBOSITY:
    print "Development Environment:  %s " % str(DEV_ENV)
@@ -42,7 +42,7 @@ from camera import *
 def get_position_h(req):
 
    # First calibrate the camera
-   camera_inst = camera(verbosity=VERBOSITY, src_image="../images/qrcode_query_image2.png")
+   camera_inst = camera(verbosity=VERBOSITY, src_image="../images/qrcode_query_image.png")
    
    # Local variables to thread
    i = 0

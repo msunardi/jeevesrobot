@@ -51,12 +51,12 @@ FLANN_INDEX_LSH              = 6        # For FLANN matching when using OpenCV O
 RATIO_TEST_PARAM             = 0.8      # Maximum distance point n can be from point m when determing good FLANN matches
 MIN_MATCH_COUNT              = 150      # Minimum number of good matches detected by ratio test to determine if a good match
 NUM_TREE_CHECKS              = 100      # Number of times trees are recursively checked. Higher value results in better results, but takes longer
-MATCH_STD_DEVIATION_N_1      = 2.0      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images.
+MATCH_STD_DEVIATION_N_1      = 1.75      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images.
                                         # Note that the std_deviation can be a floating point value, i.e. a fractional value
-MATCH_STD_DEVIATION_N_2      = 1.5      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images
+MATCH_STD_DEVIATION_N_2      = 1.75      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images
                                         # Note that the std_deviation can be a floating point value, i.e. a fractional value
-BORDER_KNOWN_DISTANCE        = 2.0      # Distance in feet from which BORDER_PIXELS_KNOWN_DISTANCE was calculated from.
-BORDER_PIXLES_KNOWN_DISTANCE = 134.0    # Lenght in pixels of a side of the feature rich border at 2ft away
+BORDER_KNOWN_DISTANCE        = 1.5      # Distance in feet from which BORDER_PIXELS_KNOWN_DISTANCE was calculated from.
+BORDER_PIXLES_KNOWN_DISTANCE = 123.0    # Lenght in pixels of a side of the feature rich border at 2ft away
 
 '''
 =========================================================================================
@@ -413,6 +413,9 @@ class camera():
       # Compute ORB descriptors for source image. Convert memory locations to coordinates in Python list?
       src_kp, src_des = src_orb.detectAndCompute(self.src_img, None)
       self.tar_kp, tar_des = tar_orb.detectAndCompute(target_cv2_image, None)
+
+      # -------------------   images without matching --------------
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_kp,tar_des,False)
       
       if self.verbosity:
          print "Source Features: %d" % (len(src_kp))
@@ -420,9 +423,9 @@ class camera():
 
       # Setup FLANN matching algorithm for use with ORB
       index_params= dict(algorithm = FLANN_INDEX_LSH,
-                         table_number = 6,      # 12
-                         key_size = 12,         # 20
-                         multi_probe_level = 1) # 2
+                         table_number = 6,      # 12  # 6
+                         key_size = 12,         # 20  # 12
+                         multi_probe_level = 1) # 2   # 1
 
       # Create search parameters dictionary.
       # Specifies number of times trees are recursively searched.
@@ -435,6 +438,18 @@ class camera():
       # Match source descriptors with target descriptors
       matches = flann.knnMatch(src_des,tar_des,k=2)
 
+      # -------------- images with matching but no ratio test ----------------
+      # Keep track of all matches before applying ratio test
+      self.good_matches = []
+      for m, n in matches:
+         self.good_matches.append(m)
+         
+      # Keep a copy of the original matched points via FLANN without additional filtering
+      # This is for visually comparing the difference between the FLANN matches and the good matches that
+      # had additional filterting applied to them.
+      self.h_tar_pts_unfiltered = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      
+      # ******** NOTE: This ratio test performs horribly for the Jeeves project. Only use it if you absolutely have to! **********
       # Keep only good matches that pass the ratio test
       #
       #     Structure of a match in matches
@@ -442,27 +457,35 @@ class camera():
       #             -> int imgIdx       , Train image index
       #             -> int queryIdx     , Query descriptor index
       #             -> int trainIdx     , Train descriptor index
-      self.good_matches = []
-      for m, n in matches:
+#      self.good_matches = []
+#      for m, n in matches:
             # If the match passes the ratio test add it to the list of good matches
-            if m.distance < RATIO_TEST_PARAM*n.distance:
-               self.good_matches.append(m)
-      if self.verbosity:
-         print "RANSAC Good Matches = %d" % len(self.good_matches)
+#         if m.distance < RATIO_TEST_PARAM*n.distance:
+#            self.good_matches.append(m)
+#      if self.verbosity:
+#         print "Good Matches = %d" % len(self.good_matches)
 
       # If not enough good matches alert and abort
       if(not len(self.good_matches) >= MIN_MATCH_COUNT):
          if self.verbosity:
             print "The number of good matches found is less than %d, aborting" % MIN_MATCH_COUNT
          return False,False,False,False,False,False
-      
-      # Keep a copy of the original matched points via RANSAC without additional filtering
-      # This is for visually comparing the difference between the RANSAC matches and the good matches that
-      # had additional filterting applied to them.
-      self.h_tar_pts_unfiltered = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
 
-      # Apply additional filtering to RANSAC matches to get rid of outliers
+      # ------------------ with ratio test images ---------------------
+      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
+      
+      # Apply additional filtering to FLANN matches to get rid of outliers
       self.filter_ransac_matches(MATCH_STD_DEVIATION_N_1);
+      
+      # ------------------ with 1 iteration ---------------------
+      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
+      
       self.filter_ransac_matches(MATCH_STD_DEVIATION_N_2);
       
       # Create list of source points and list of target/destination points from good matches
@@ -470,8 +493,12 @@ class camera():
       self.h_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
       self.tar_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
       
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,False)
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)
+      self.plot_images(target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)
+      
       # Find homography
-      homography_mtx, h_mask = cv2.findHomography(self.h_src_pts, self.h_tar_pts, cv2.RANSAC,5.0)
+      homography_mtx, h_mask = cv2.findHomography(self.h_src_pts, self.h_tar_pts, cv2.RANSAC,100.0)
       
       if self.verbosity:
          print "\nHomography Matrix:"
@@ -482,30 +509,55 @@ class camera():
       # Create a bounding rectangle and extract corner points for a rectangle that encompasses all filtered good matches
       x_filt,y_filt,w_filt,h_filt,ltc_filt,lbc_filt,rtc_filt,rbc_filt = self.get_bounding_rect(self.h_tar_pts)
       
+      self.plot_images(target_cv2_image, self.tar_good_point_keys,self.h_tar_pts_unfiltered,True,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)
+         
+      return True, homography_mtx,ltc_filt,lbc_filt,rtc_filt,rbc_filt
+
+   '''
+      --------------------------------------------
+                   plot_images()
+      --------------------------------------------
+   '''
+   def plot_images(self, img1, img1_keys,img1_pts, img1_rect=False, img2=[], img2_keys=[],img2_pts=False, img2_rect=False):
+      
       # If in development mode, i.e. not running on Jeeves
       if DEV_ENV:
          # Create display images and display them for comparison
          if self.verbosity:
             # Draw keypoint locations, not size and orientation
-#            src_kp_img = cv2.drawKeypoints(self.src_img,src_kp,color=(0,255,0), flags=0)
-            self.tar_kp_filtered_img = cv2.drawKeypoints(target_cv2_image,self.tar_filtered_good_point_keys,color=(255,255,0), flags=0)
-            self.tar_kp_img = cv2.drawKeypoints(target_cv2_image,self.tar_good_point_keys,color=(255,255,0), flags=0)
+            if len(img1) > 0:
+               img1 = cv2.drawKeypoints(img1,img1_keys,color=(255,255,0), flags=0)
+            if len(img2) > 0:
+               img2 = cv2.drawKeypoints(img2,img2_keys,color=(255,255,0), flags=0)
 
-            # Create a bounding rectangle that encompasses all un-filtered good matches
-            x_unfilt,y_unfilt,w_unfilt,h_unfilt,ltc_unfilt,lbc_unfilt,rtc_unfilt,rbc_unfilt     = self.get_bounding_rect(self.h_tar_pts_unfiltered)
+            if img1_rect:
+               # Create a bounding rectangle and extract corner points for a rectangle that encompasses all filtered good matches
+               x_img1,y_img1,w_img1,h_img1,ltc_img1,lbc_img1,rtc_img1,rbc_img1 = self.get_bounding_rect(img1_pts)
+
+            if img2_rect:
+               # Create a bounding rectangle that encompasses all un-filtered good matches
+               x_img2,y_img2,w_img2,h_img2,ltc_img2,lbc_img2,rtc_img2,rbc_img2 = self.get_bounding_rect(img2_pts)
 
             # Overlay the filtered and unfiltered rectangles
-            cv2.rectangle(self.tar_kp_img,(x_unfilt,y_unfilt),(x_unfilt+w_unfilt,y_unfilt+h_unfilt),(0,255,0),2)
-            cv2.rectangle(self.tar_kp_filtered_img,(x_filt,y_filt),(x_filt+w_filt,y_filt+h_filt),(0,255,0),2)
+            if img1_rect:
+               cv2.rectangle(img1,(x_img1,y_img1),(x_img1+w_img1,y_img1+h_img1),(0,255,0),2)
+
+            if img2_rect:
+               cv2.rectangle(img2,(x_img2,y_img2),(x_img2+w_img2,y_img2+h_img2),(0,255,0),2)
 
             # Concatenate images together for comparison
-            self.vis = np.concatenate((self.tar_kp_img, self.tar_kp_filtered_img), axis=1);
+            if len(img1) > 0 and len(img2) > 0:
+               self.vis = np.concatenate((img1, img2), axis=1);
+            else:
+               if len(img1) > 0:
+                  self.vis = img1
+               elif len(img2) > 0:
+                  self.vis = img2
+
             # Show the images
             plt.imshow(self.vis)
             plt.show()
-         
-      return True, homography_mtx,ltc_filt,lbc_filt,rtc_filt,rbc_filt
-
+   
    '''
       --------------------------------------------
                    calc_distance()
@@ -532,9 +584,23 @@ class camera():
          lb_rb = float(rbc[0] - lbc[0])
 
          # Use the longest side of the rectangle that encompasses all the filtered good match features
-         # times the ratio of the rectangle at a known distance.
-         distance = float(max([lt_lb,lt_rt,rt_rb,lb_rb]))*((BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE))
+         # and subject from it the known pixel length of a border at the known distance
+         distance =  float(max([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE
+         print distance
+         print float(max([lt_lb,lt_rt,rt_rb,lb_rb]))
 
+         # If we moved closer to the object
+         if distance > 0.0:
+            distance = 2.0 - ( float( max([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE )*( (BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE))
+         elif distance < 0.0:
+            distance = 2.0 + (BORDER_PIXLES_KNOWN_DISTANCE - float(max([lt_lb,lt_rt,rt_rb,lb_rb])))*((BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE))
+         else:
+            distance = 2.0
+         print distance
+         sys.exit()
+         
+         print float(max([lt_lb,lt_rt,rt_rb,lb_rb]))
+         
          if self.verbosity:
             print "Distance from Object:  %f ft." % distance
          return distance
