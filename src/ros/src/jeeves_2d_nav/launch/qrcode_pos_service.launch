@@ -1,6 +1,6 @@
 <launch>
   <!-- Launch the freenect node -->
-  <!-- include file="$(find freenect_launch)/launch/freenect.launch" -->
+  <!--include file="$(find freenect_launch)/launch/freenect.launch" /-->
   
   <!-- Launch the qrcode_pos service -->
   <node name="qrcode_pos" pkg="jeeves_2d_nav" type="qrcode_pos_service.py">
