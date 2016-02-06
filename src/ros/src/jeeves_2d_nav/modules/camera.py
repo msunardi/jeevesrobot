@@ -34,7 +34,7 @@ if DEV_ENV:
 import time
 import math
 
-SHOW_CALIB_IMAGES = False
+SHOW_CALIB_IMAGES = True
 
 # =======================================================================================
 #                                 Global Variables
@@ -180,21 +180,29 @@ class camera():
                    calibrate_camera()
       --------------------------------------------
    '''
-   def calibrate_camera(self):
+   def calibrate_camera(self, alt_calib_images=[]):
       
       if self.verbosity:
          print "//////////////////////////////////////////////////////////////"
          print "               Camera: calibrate_camera()"
          print "//////////////////////////////////////////////////////////////"
-      
+
+      # If user specified calibration images use them instead of class member list
+      if len(alt_calib_images) > 0:
+         use_images = alt_calib_images;
+      else:
+         use_images = self.images
+         
       # Process each filename in images
-      for fname in (self.images):
+      for fname in (use_images):
          img  = cv2.imread(fname)
          gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
          # Find the chess board corners
          calib_found, self.corners = cv2.findChessboardCorners(gray, (7,6),None)
 
+
+         
          # If found, add object points, image points (after refining them)
          if calib_found == True:
             self.objpoints.append(self.objp)
@@ -203,7 +211,7 @@ class camera():
 
             if DEV_ENV and SHOW_CALIB_IMAGES:
                # Draw and display the corners
-               cv2.drawChessboardCorners(img, (7,6), self.corners,self.ret);
+               cv2.drawChessboardCorners(img, (7,6), self.corners,1);
                plt.imshow(img);
                plt.show();
 
@@ -237,9 +245,11 @@ class camera():
             print tvecs
             
             print "\nCamera calibration successful!\n"
+         return True
       except Exception as e:
          if self.verbosity:
             print "\nFailed to calibrate camera. Chessboard pattern not detected...\n"
+         return False
 
    '''
       --------------------------------------------
@@ -586,12 +596,18 @@ class camera():
          # Use the longest side of the rectangle that encompasses all the filtered good match features
          # and subject from it the known pixel length of a border at the known distance
          distance =  float(max([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE
+         print distance
+         
 
          # If we moved closer to the object
          if distance > 0.0:
             distance = 2.0 - ( float( max([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE )*( (BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE))
+            print (BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE)
+
+            print "here1 = %f" % distance
          elif distance < 0.0:
             distance = 2.0 + (BORDER_PIXLES_KNOWN_DISTANCE - float(max([lt_lb,lt_rt,rt_rb,lb_rb])))*((BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE))
+            print "here2 = %f" % distance
          else:
             distance = 2.0
          

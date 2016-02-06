@@ -110,6 +110,12 @@ def proc_image(camera_inst, ros_image):
    
    # Save image
    cv2.imwrite(abs_node_path + "../images/camera_image.jpg", cv_image_color)
+   
+   # If calibration successful alert
+   if camera_inst.calibrate_camera([(abs_node_path + "../images/camera_image.jpg")]):
+      print "\n\n\n\n********* New calibration image detected! *************"
+   else:
+      print "\n\n\n\nNo new calibration image detected..."
 
    # Extract only the actual image data and pack as binary data
    string_data = struct.pack('<%dc' % (img_width*img_height), *cv_image.data)
