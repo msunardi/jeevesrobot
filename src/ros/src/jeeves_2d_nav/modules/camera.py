@@ -180,7 +180,7 @@ class camera():
                    calibrate_camera()
       --------------------------------------------
    '''
-   def calibrate_camera(self, alt_calib_images=[]):
+   def calibrate_camera(self, alt_calib_images=[],bypass_print=True):
       
       if self.verbosity:
          print "//////////////////////////////////////////////////////////////"
@@ -208,12 +208,16 @@ class camera():
             self.objpoints.append(self.objp)
             cv2.cornerSubPix(gray,self.corners,(11,11),(-1,-1),self.criteria)
             self.imgpoints.append(self.corners)
+            
+            print "\n\n\n\n********* New calibration image detected! *************"
 
             if DEV_ENV and SHOW_CALIB_IMAGES:
                # Draw and display the corners
                cv2.drawChessboardCorners(img, (7,6), self.corners,1);
                plt.imshow(img);
                plt.show();
+         else:
+            print "\n\n\n\n--------- No new calibration image detected -----------"
 
             
       # Calibrate the camera
@@ -227,7 +231,7 @@ class camera():
          self.tvecs      = tvecs
          
          # If verbose
-         if self.verbosity:
+         if self.verbosity and bypass_print == False:
             print "------ RET -----------"
             print np.shape(self.ret)
             print ret
@@ -245,7 +249,7 @@ class camera():
             print tvecs
             
             print "\nCamera calibration successful!\n"
-         return True
+         return calib_found
       except Exception as e:
          if self.verbosity:
             print "\nFailed to calibrate camera. Chessboard pattern not detected...\n"

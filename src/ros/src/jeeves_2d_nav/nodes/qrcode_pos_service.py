@@ -19,7 +19,7 @@ rospy.init_node('qrcode_pos')                                             # Init
 #PROJECT_VALUE = rospy.get_param('~project')               # Project that this service should look for in QR codes found
 #DEV_ENV = rospy.get_param('~dev_env')
 #VERBOSITY = rospy.get_param('~verbosity')
-DEV_ENV = bool(0)
+DEV_ENV = bool(1)
 VERBOSITY = bool(1)
 SEC_CNT_TIMEOUT = 3                                        # Number of seconds before timeout
 PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
@@ -112,10 +112,7 @@ def proc_image(camera_inst, ros_image):
    cv2.imwrite(abs_node_path + "../images/camera_image.jpg", cv_image_color)
    
    # If calibration successful alert
-   if camera_inst.calibrate_camera([(abs_node_path + "../images/camera_image.jpg")]):
-      print "\n\n\n\n********* New calibration image detected! *************"
-   else:
-      print "\n\n\n\nNo new calibration image detected..."
+   camera_inst.calibrate_camera([(abs_node_path + "../images/camera_image.jpg")])
 
    # Extract only the actual image data and pack as binary data
    string_data = struct.pack('<%dc' % (img_width*img_height), *cv_image.data)
