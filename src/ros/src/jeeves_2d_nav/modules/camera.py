@@ -34,7 +34,7 @@ if DEV_ENV:
 import time
 import math
 
-SHOW_CALIB_IMAGES = True
+SHOW_CALIB_IMAGES = False
 
 # =======================================================================================
 #                                 Global Variables
@@ -209,7 +209,7 @@ class camera():
             cv2.cornerSubPix(gray,self.corners,(11,11),(-1,-1),self.criteria)
             self.imgpoints.append(self.corners)
             
-            print "\n\n\n\n********* New calibration image detected! *************"
+#            print "\n\n\n\n********* New calibration image detected! *************"
 
             if DEV_ENV and SHOW_CALIB_IMAGES:
                # Draw and display the corners
@@ -217,7 +217,8 @@ class camera():
                plt.imshow(img);
                plt.show();
          else:
-            print "\n\n\n\n--------- No new calibration image detected -----------"
+#            print "\n\n\n\n--------- No new calibration image detected -----------"
+            Pass
 
             
       # Calibrate the camera
