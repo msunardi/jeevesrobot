@@ -9,17 +9,38 @@ import json
 import datetime
 import traceback
 
+# Test direct to ROS
+from jeeves_2d_nav.srv import *
+import rospy
+
 # Deserializes the JSON data into key-value dictionary
 class Payload(object):
      def __init__(self, j):
          self.__dict__ = json.loads(j)
+
+# Copied from issue_5807 jeeves_2d_nav/nodes/qrcode_pos_client_example.py
+def get_position():
+
+   # Wait for service to come up
+   rospy.wait_for_service('qrcode_pos_srv')
+
+   qrcode_pos_h = rospy.ServiceProxy('qrcode_pos_srv', qrcode_pos_service)              # Set handler to service
+   resp_data = json.loads(qrcode_pos_h().json_resp)
+   return resp_data                 
          
 def index(request):
  
      battery_status = ROSResults.objects.all().filter(ros_node=1).latest('id')
      add_two_ints = ROSResults.objects.all().filter(ros_node=2).latest('id')
+
+     # Copied from issue_5807 jeeves_2d_nav/nodes/qrcode_pos_client_example.py
+     position = get_position()
+     if position['valid']:
+         print "id = %d, r = %f, theta = %f, obj_hemisphere = %s, rqdecomp_x_deg = %f, rqdecomp_y_deg = %f, rqdecomp_z_deg = %f" % (position["id"], position["r"], position["theta"], position["obj_hemisphere"],position["rqdecomp_x_deg"], position["rqdecomp_y_deg"], position["rqdecomp_z_deg"])
+     else:
+        print "Invalid coordinates received..."
      
-     context_dict = {'status' : battery_status, 'add' : add_two_ints}
+     context_dict = {'status' : battery_status, 'add' : add_two_ints, 'id': position["id"]}
      
      return render(request, 'MrJeevesApp/index.html', context_dict)
 
