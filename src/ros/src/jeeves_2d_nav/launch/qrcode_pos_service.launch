@@ -1,0 +1,13 @@
+<launch>
+  <!-- Launch the freenect node -->
+  <!--include file="$(find freenect_launch)/launch/freenect.launch" /-->
+  
+  <!-- Launch the qrcode_pos service -->
+  <node name="qrcode_pos" pkg="jeeves_2d_nav" type="qrcode_pos_service.py">
+    <param name="timeout_value" value="5" />
+    <param name="project" value="mcecs_jeeves" />
+    <param name="dev_env" value="0" />
+    <param name="verbosity" value="0" />
+  </node>
+</launch>
+

@@ -55,6 +55,7 @@ add_service_files(
    SaveCurrentPose.srv
    CancelCurrentNavGoal.srv
    SetDefaultInitialPose.srv
+   qrcode_pos_service.srv
 )
 
 ## Generate actions in the 'action' folder
