@@ -44,19 +44,27 @@ SHOW_CALIB_IMAGES = False
 abs_node_path = sys.argv[0].split('/')
 abs_node_path = '/'.join(abs_node_path[0:len(abs_node_path)-1]) + '/'
 
-CAM_PIXEL_WIDTH              = 640      # Width in pixels of the camera being used.
-CAM_PIXEL_HEIGHT             = 480      # Height in pixels of the camera being used.
-N_ORB_FEATURES               = 10000    # Maximum number of orb features to detect
-FLANN_INDEX_LSH              = 6        # For FLANN matching when using OpenCV ORB
-RATIO_TEST_PARAM             = 0.8      # Maximum distance point n can be from point m when determing good FLANN matches
-MIN_MATCH_COUNT              = 150      # Minimum number of good matches detected by ratio test to determine if a good match
-NUM_TREE_CHECKS              = 100      # Number of times trees are recursively checked. Higher value results in better results, but takes longer
+CAM_PIXEL_WIDTH              = 640       # Width in pixels of the camera being used.
+CAM_PIXEL_HEIGHT             = 480       # Height in pixels of the camera being used.
+N_ORB_FEATURES               = 10000     # Maximum number of orb features to detect
+FLANN_INDEX_LSH              = 6         # For FLANN matching when using OpenCV ORB
+RATIO_TEST_PARAM             = 0.8       # Maximum distance point n can be from point m when determing good FLANN matches
+MIN_MATCH_COUNT              = 150       # Minimum number of good matches detected by ratio test to determine if a good match
+NUM_TREE_CHECKS              = 100       # Number of times trees are recursively checked. Higher value results in better results, but takes longer
 MATCH_STD_DEVIATION_N_1      = 1.75      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images.
-                                        # Note that the std_deviation can be a floating point value, i.e. a fractional value
+                                         # Note that the std_deviation can be a floating point value, i.e. a fractional value
 MATCH_STD_DEVIATION_N_2      = 1.75      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images
-                                        # Note that the std_deviation can be a floating point value, i.e. a fractional value
-BORDER_KNOWN_DISTANCE        = 1.5      # Distance in feet from which BORDER_PIXELS_KNOWN_DISTANCE was calculated from.
-BORDER_PIXLES_KNOWN_DISTANCE = 123.0    # Lenght in pixels of a side of the feature rich border at 2ft away
+                                         # Note that the std_deviation can be a floating point value, i.e. a fractional value
+BORDER_KNOWN_DISTANCE        = 2.7708333 # Distance in feet from which BORDER_PIXELS_KNOWN_DISTANCE was calculated from.
+BORDER_PIXLES_KNOWN_DISTANCE = 115.0     # Lenght in pixels of a side of the feature rich border at 2ft away
+
+# Calcualte slope of mathematical function that describes distance as a function of pixel length
+MEASUREMENT_PIXEL_1          = 312.0     # Lenght in pixels of longest rectangle side at known distance MEASUREMENT_DISTANCE_1
+MEASUREMENT_DISTANCE_1       = 1.0       # Distance that MEASUREMENT_PIXEL_1 was taken act.
+MEASUREMENT_PIXEL_2          = 83.0      # Lenght in pixels of longest rectangle side at known distance MEASUREMENT_DISTANCE_2
+MEASUREMENT_DISTANCE_2       = 4.0       # Distance that MEASUREMENT_PIXEL_2 was taken act.
+DIST_CALC_SLOPE              = (MEASUREMENT_DISTANCE_2-MEASUREMENT_DISTANCE_1)/(MEASUREMENT_PIXEL_2-MEASUREMENT_PIXEL_1);
+DIST_CALC_Y_INTERCEPT        = 4.6385
 
 '''
 =========================================================================================
@@ -208,8 +216,6 @@ class camera():
             self.objpoints.append(self.objp)
             cv2.cornerSubPix(gray,self.corners,(11,11),(-1,-1),self.criteria)
             self.imgpoints.append(self.corners)
-            
-#            print "\n\n\n\n********* New calibration image detected! *************"
 
             if DEV_ENV and SHOW_CALIB_IMAGES:
                # Draw and display the corners
@@ -217,7 +223,6 @@ class camera():
                plt.imshow(img);
                plt.show();
          else:
-#            print "\n\n\n\n--------- No new calibration image detected -----------"
             Pass
 
             
@@ -258,10 +263,10 @@ class camera():
 
    '''
       --------------------------------------------
-                filter_ransac_matches()
+                filter_matches()
       --------------------------------------------
    '''
-   def filter_ransac_matches(self, std_dev=2.0):
+   def filter_matches(self, std_dev=2.0):
 
       # Use mean and 2nd standard deviation to filter out outliers that corrupt distance calculations
       self.good_match_list_pts     = [list(self.tar_kp[m.trainIdx].pt) for m in self.good_matches];
@@ -336,7 +341,8 @@ class camera():
          tar_img_hemisphere = "right";
          
       if self.verbosity:
-         print "\n----------- Object Hemisphere in Image --------------"
+         print "\n----------- Object Center --------------"
+         print "Object Center      :  %f" % obj_center
          print "Object Hemisphere  :  %s" % tar_img_hemisphere
 
       return tar_img_hemisphere
@@ -352,8 +358,7 @@ class camera():
       obj_center_angle = (-1.0)*math.sin((obj_center - (CAM_PIXEL_WIDTH/2.0))/(r*BORDER_PIXLES_KNOWN_DISTANCE))*360.0/(2*math.pi)
       
       if self.verbosity:         
-         print "\n----------- Object Angle from Robot --------------"
-         print "Object Center      :  %f" % obj_center
+         print "\n-----------DISTANCE Object Angle from Robot --------------"
          print "Object Center Angle:  %f" % obj_center_angle
          
       return obj_center_angle
@@ -413,7 +418,7 @@ class camera():
                   find_qr_homography()
       --------------------------------------------
    '''
-   def find_qr_homography(self, target_cv2_image):
+   def find_qr_homography(self, target_cv2_image, ltc, lbc, rbc, rtc):
       
       if self.verbosity:
          print "\n"
@@ -493,7 +498,7 @@ class camera():
       self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
       
       # Apply additional filtering to FLANN matches to get rid of outliers
-      self.filter_ransac_matches(MATCH_STD_DEVIATION_N_1);
+      self.filter_matches(MATCH_STD_DEVIATION_N_1);
       
       # ------------------ with 1 iteration ---------------------
       self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
@@ -501,7 +506,7 @@ class camera():
       self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
       self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
       
-      self.filter_ransac_matches(MATCH_STD_DEVIATION_N_2);
+      self.filter_matches(MATCH_STD_DEVIATION_N_2);
       
       # Create list of source points and list of target/destination points from good matches
       self.h_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
@@ -552,7 +557,7 @@ class camera():
             if img2_rect:
                # Create a bounding rectangle that encompasses all un-filtered good matches
                x_img2,y_img2,w_img2,h_img2,ltc_img2,lbc_img2,rtc_img2,rbc_img2 = self.get_bounding_rect(img2_pts)
-
+               
             # Overlay the filtered and unfiltered rectangles
             if img1_rect:
                cv2.rectangle(img1,(x_img1,y_img1),(x_img1+w_img1,y_img1+h_img1),(0,255,0),2)
@@ -578,7 +583,7 @@ class camera():
                    calc_distance()
       --------------------------------------------
    '''
-   def calc_distance(self, ltc, lbc, rtc, rbc):
+   def calc_distance(self, ltc, lbc, rbc, rtc):
 
       if self.verbosity:
          print "\n"
@@ -597,27 +602,48 @@ class camera():
          lt_rt = float(rtc[0] - ltc[0])
          rt_rb = float(rbc[1] - rtc[1])
          lb_rb = float(rbc[0] - lbc[0])
+         
+         if self.verbosity:
+            print "Rectangle Left Side Length  :  %d" % lt_lb
+            print "Rectangle Top Side Length   :  %d" % lt_rt
+            print "Rectangle Right Side Length :  %d" % rt_rb
+            print "Rectangle Bottom Side Length:  %d" % lb_rb
 
          # Use the longest side of the rectangle that encompasses all the filtered good match features
          # and subject from it the known pixel length of a border at the known distance
-         distance =  float(max([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE
-         print distance
-         
+         delta_dist =  float(max([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE
+
+         # Use the side furthest away from the camera (i.e. shortest side of rectangle) in
+         # case the camera is viewing the QR code from an angle.
+         # Subtract from it the known pixel length of a border at the known distance.
+#         distance =  float(min([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE
 
          # If we moved closer to the object
-         if distance > 0.0:
-            distance = 2.0 - ( float( max([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE )*( (BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE))
-            print (BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE)
+#         if delta_dist > 0.0:
+#            print "************** here1 *****************"
+#            distance = BORDER_KNOWN_DISTANCE - abs( delta_dist * DIST_CALC_SLOPE)
+#            print "float( max([lt_lb,lt_rt,rt_rb,lb_rb])) = %f" % float( max([lt_lb,lt_rt,rt_rb,lb_rb]))
+#            print "BORDER_PIXELS_KNOWN_DISTANCE = %f" % BORDER_PIXLES_KNOWN_DISTANCE
+#            print "BORDER_KNOWN_DISTANCE = %f" % BORDER_KNOWN_DISTANCE
+            
+#         elif delta_dist < 0.0:
+#            print "************** here2 *****************"
+#            distance = BORDER_KNOWN_DISTANCE + abs(delta_dist*((BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE)))
+#            distance = BORDER_KNOWN_DISTANCE + abs(delta_dist * DIST_CALC_SLOPE)
+#            print "float( max([lt_lb,lt_rt,rt_rb,lb_rb])) = %f" % float( max([lt_lb,lt_rt,rt_rb,lb_rb]))
+#            print "BORDER_PIXELS_KNOWN_DISTANCE = %f" % BORDER_PIXLES_KNOWN_DISTANCE
+#            print "BORDER_KNOWN_DISTANCE = %f" % BORDER_KNOWN_DISTANCE
+#         else:
+#            distance = BORDER_KNOWN_DISTANCE
 
-            print "here1 = %f" % distance
-         elif distance < 0.0:
-            distance = 2.0 + (BORDER_PIXLES_KNOWN_DISTANCE - float(max([lt_lb,lt_rt,rt_rb,lb_rb])))*((BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE))
-            print "here2 = %f" % distance
-         else:
-            distance = 2.0
-         
+         distance = DIST_CALC_Y_INTERCEPT + float(max([lt_lb,lt_rt,rt_rb,lb_rb])) * DIST_CALC_SLOPE
+
          if self.verbosity:
+            print "------------- calc_distance() -------------"
+            print "Longest Rectangle Side = %d" % float(max([lt_lb,lt_rt,rt_rb,lb_rb]))
             print "Distance from Object:  %f ft." % distance
+            print "-------------------------------------------"
+
          return distance
       else:
          if self.verbosity:

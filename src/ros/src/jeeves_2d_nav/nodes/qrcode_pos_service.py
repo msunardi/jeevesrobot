@@ -19,7 +19,7 @@ SEC_CNT_TIMEOUT = rospy.get_param('~timeout_value')       # Number of seconds be
 PROJECT_VALUE = rospy.get_param('~project')               # Project that this service should look for in QR codes found
 DEV_ENV = rospy.get_param('~dev_env')
 VERBOSITY = rospy.get_param('~verbosity')
-#DEV_ENV = bool(1)
+#DEV_ENV = bool(0)
 #VERBOSITY = bool(1)
 #SEC_CNT_TIMEOUT = 3                                        # Number of seconds before timeout
 #PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
@@ -35,6 +35,14 @@ if VERBOSITY:
    print "Modules Path: %s" % abs_node_path
 
 from camera import *
+
+# ---------------------------------------------------------------------
+#                               dump()
+# ---------------------------------------------------------------------
+def dump(obj):
+   for attr in dir(obj):
+      if hasattr( obj, attr ):
+         print( "obj.%s = %s" % (attr, getattr(obj, attr)))
 
 # ---------------------------------------------------------------------
 #                           get_position()
@@ -103,6 +111,9 @@ def proc_image(camera_inst, ros_image):
    img_encoding   = ros_image.encoding
    img_big_endian = ros_image.is_bigendian
    img_step       = ros_image.step
+   
+   qrcode_data    = None
+   qrcode_corners = None
 
    # Convert ROS RGB image to OpenCV 8-bit grayscale image
    cv_image       = CvBridge().imgmsg_to_cv2(ros_image, "mono8")
@@ -130,32 +141,39 @@ def proc_image(camera_inst, ros_image):
         pass
    else:
       for symbol in zbar_img:
-         pass
+         print symbol.location
+         #Assuming data is encoded in utf8
+         data = symbol.data.decode(u'utf-8')
+         if data.find('project=%s' % str(PROJECT_VALUE)) != -1:
+            print "Good Match = %s" % data
+            qrcode_data = data
+            qrcode_corners = list(symbol.location)
+         else:
+            print "Bad Match = %s" % data
+
       # clean up
       del(ros_image)
-      #Assuming data is encoded in utf8
-      data = symbol.data.decode(u'utf-8')
 
    # If a valid string was extracted from the QR code
-   if data:
+   if qrcode_data:
 
       # Make sure the QR code was meant for use with the project specified
-      if data.find('project=%s' % str(PROJECT_VALUE)) != -1:
-         split_data = data.split(",")
+      if qrcode_data.find('project=%s' % str(PROJECT_VALUE)) != -1:
+         split_data = qrcode_data.split(",")
          qr_id = int(split_data[0].replace('id=', ''))
 
          # Get homography of QR code
-         bln_found_h_mtx, homography_mtx,ltc,lbc,rtc,rbc = camera_inst.find_qr_homography(cv_image_color)
+         bln_found_h_mtx, homography_mtx,ltc,lbc,rtc,rbc = camera_inst.find_qr_homography(cv_image_color, qrcode_corners[0],qrcode_corners[1],qrcode_corners[2],qrcode_corners[3])
          
          if not bln_found_h_mtx:
             # Could not successfully calculate homography, return invalid
             return [False,json.dumps({"valid":False})]
          
          # Calculate object center on the x axis
-         obj_center = camera_inst.x_obj_center(ltc[0], rtc[0]);
+         obj_center = camera_inst.x_obj_center(qrcode_corners[0][0], qrcode_corners[3][0]);
          
          # Calculate distance from object in ft. relative to longest side of bounding rectangle in pixels
-         r = camera_inst.calc_distance(ltc,lbc,rtc,rbc);
+         r = camera_inst.calc_distance(qrcode_corners[0],qrcode_corners[1],qrcode_corners[2],qrcode_corners[3]);
 
          # Calculate angle from robot to object in the XZ plane in the pinhole camera model
          theta = camera_inst.x_obj_angle(obj_center, r);
@@ -169,7 +187,7 @@ def proc_image(camera_inst, ros_image):
          # Print Jeeves QR code data extracted from image
          if VERBOSITY:
             print "----------- Extracted QR Code Data -----------"
-            print data
+            print qrcode_data
             print "----------------------------------------------"
 
          # solvPnP
