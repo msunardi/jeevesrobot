@@ -64,7 +64,7 @@ MEASUREMENT_DISTANCE_1       = 1.0       # Distance that MEASUREMENT_PIXEL_1 was
 MEASUREMENT_PIXEL_2          = 83.0      # Lenght in pixels of longest rectangle side at known distance MEASUREMENT_DISTANCE_2
 MEASUREMENT_DISTANCE_2       = 4.0       # Distance that MEASUREMENT_PIXEL_2 was taken act.
 DIST_CALC_SLOPE              = (MEASUREMENT_DISTANCE_2-MEASUREMENT_DISTANCE_1)/(MEASUREMENT_PIXEL_2-MEASUREMENT_PIXEL_1);
-DIST_CALC_Y_INTERCEPT        = 4.6385
+DIST_CALC_Y_INTERCEPT        = 4.277
 
 '''
 =========================================================================================
@@ -637,6 +637,9 @@ class camera():
 #            distance = BORDER_KNOWN_DISTANCE
 
          distance = DIST_CALC_Y_INTERCEPT + float(max([lt_lb,lt_rt,rt_rb,lb_rb])) * DIST_CALC_SLOPE
+   
+         # Correct the error in the calculation, non-linear
+         distance = self.correct_dist_err(distance);
 
          if self.verbosity:
             print "------------- calc_distance() -------------"
@@ -649,7 +652,25 @@ class camera():
          if self.verbosity:
             print "Cannot calculate distance yet. Ensure that the left top, left bottom, right top, and right bottom corners have been initialized first."
          return -1
-   
+
+   '''
+      --------------------------------------------
+                   correct_dist_err()
+      --------------------------------------------
+   '''
+   def correct_dist_err(self, distance):
+
+      corrected_distance = distance - (-0.0794*distance**6 + 0.8055*distance**5 - 3.195*distance**4 + 6.1133*distance**3 - 5.9012*distance**2 + 3.3285*distance - 1.3951);
+      
+      if self.verbosity:
+         print "------------ correct_dist_err() ------------"
+         print "Calculated Distance:  %f" % distance
+         print "Corrected  Distance:  %f" % corrected_distance
+         print "Calculated Error:     %f" % ((-0.0794*distance**6 + 0.8055*distance**5 - 3.195*distance**4 + 6.1133*distance**3 - 5.9012*distance**2 + 3.3285*distance - 1.3951))
+         print "--------------------------------------------"
+         
+      return corrected_distance
+      
    '''
       --------------------------------------------
                       solvePnP()
