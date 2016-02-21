@@ -1,51 +1,73 @@
+#!/usr/bin/env python
 '''
-# //////////////////////////////////////////////////////////////////////////////////////
-#                        Camera Class for MCECS Jeeves Navigation
+# /////////////////////////////////////////////////////////////////////////////////////////////////////
+#                                           Camera Class
 #
 #     Engineer:  Josh Sackos
 #                jsackos@pdx.edu
 #                503.298.1820
 #
 #       School:  Portland State University
-#       Course:  ECE 578
+#       Course:  ECE 579
 #      Project:  MCECS Jeeves
-#  Description:
+#  Description:  This Python module defines a "camera" class that is to be used with the OpenCV 2.4
+#                library for computer vision applications that use a camera. The main target
+#                application of this class is for the Portland State University MCECS Jeeves robot.
+#                The class contains methods for calibrating a camera for use in OpenCV, detecting/
+#                matching features in source and target images, calculating distance/angle to
+#                an object, more.
 #
-#        Notes:
+#                Many of the methods make use of class data members, but in the future these methods
+#                should be set to use local copies to avoid data corruption.
+#
+#        Notes:  The RQ-Decomposition Euler angles cannot be relied upon as
+#                they are not consistent from request to request, and the fact that
+#                the data measured so far does not agree with the camera pinhole model.
 #
 #    Revisions:
 #
 #                rev 0.0 - File created - 11/29/2015
 #
-# //////////////////////////////////////////////////////////////////////////////////////
+# /////////////////////////////////////////////////////////////////////////////////////////////////////
 '''
 
+'''
+# ---------------------------------------------------------------------
+#                               Imports
+# ---------------------------------------------------------------------
+'''
 import sys, os
 import numpy as np
 import cv2
 import glob
 import inspect
+import time
+import math
 from qrcode_pos_service import DEV_ENV
+# Only try to import the graphical libraries if code is NOT running on the robot.
 if DEV_ENV:
    import matplotlib
    matplotlib.use('GTKAgg')
    print matplotlib.rcsetup.interactive_bk
    from matplotlib import pyplot as plt
-import time
-import math
-
-SHOW_CALIB_IMAGES = False
-
-# =======================================================================================
-#                                 Global Variables
-# =======================================================================================
 
 # Get absolute path of where scripts/nodes are located
 abs_node_path = sys.argv[0].split('/')
 abs_node_path = '/'.join(abs_node_path[0:len(abs_node_path)-1]) + '/'
 
+'''
+# ---------------------------------------------------------------------
+#                       Configuration Parameters
+# ---------------------------------------------------------------------
+'''
+
+SHOW_CALIB_IMAGES = False                # When set to True calibration images are displayed. Hidden when False.
+
+# Camera resolution
 CAM_PIXEL_WIDTH              = 640       # Width in pixels of the camera being used.
 CAM_PIXEL_HEIGHT             = 480       # Height in pixels of the camera being used.
+
+# Configure "find_homogrpahy" function.
 N_ORB_FEATURES               = 10000     # Maximum number of orb features to detect
 FLANN_INDEX_LSH              = 6         # For FLANN matching when using OpenCV ORB
 RATIO_TEST_PARAM             = 0.8       # Maximum distance point n can be from point m when determing good FLANN matches
@@ -58,7 +80,8 @@ MATCH_STD_DEVIATION_N_2      = 1.75      # Selects the 1st, 2nd, 3rd, ..., nth s
 BORDER_KNOWN_DISTANCE        = 2.7708333 # Distance in feet from which BORDER_PIXELS_KNOWN_DISTANCE was calculated from.
 BORDER_PIXLES_KNOWN_DISTANCE = 115.0     # Lenght in pixels of a side of the feature rich border at 2ft away
 
-# Calcualte slope of mathematical function that describes distance as a function of pixel length
+# Configure "calc_dist" function
+#    *** Calcualte slope of mathematical function that describes distance as a function of pixel length ***
 MEASUREMENT_PIXEL_1          = 312.0     # Lenght in pixels of longest rectangle side at known distance MEASUREMENT_DISTANCE_1
 MEASUREMENT_DISTANCE_1       = 1.0       # Distance that MEASUREMENT_PIXEL_1 was taken act.
 MEASUREMENT_PIXEL_2          = 83.0      # Lenght in pixels of longest rectangle side at known distance MEASUREMENT_DISTANCE_2
@@ -85,34 +108,43 @@ class camera():
    images         = None     # Stores list of ".jpg" image names found in images directory
    image_dir      = ''       # Image directory to look in for calibration jpegs
    camera_mtx     = None     # Calibrated camera matrix
-   ret            = None
-   dist           = None
-   rvecs          = None
-   tvecs          = None
-   corners        = None
-   verbosity      = False
+   ret            = None     # Returned by OpenCV camera calibration function. Not sure what it is used for.
+   dist           = None     # Returned by OpenCV camera calibration function.
+   rvecs          = None     # Rotation vectors
+   tvecs          = None     # Translation vectors
+   corners        = None     # Corners of detected QR code object
+   verbosity      = False    # Verbosity for displaying text/images
    
-   h_src_pts      = None
-   h_tar_pts      = None
-   homography_mtx = None
-   h_mask         = None
+   h_src_pts      = None     # Source feature points
+   h_tar_pts      = None     # Target feature points
+   homography_mtx = None     # The homography matrix of the matched object surface
+   h_mask         = None     # Homography matrix mask?
    
-   rot_mtx        = None
-   q_mtx          = None
-   qx_vec         = None
-   qy_vec         = None
-   qz_vec         = None
-   
-   euler_x_deg    = None
-   euler_y_deg    = None
-   euler_z_deg    = None
-   
+   rot_mtx        = None     # Rotation matrix
+   q_mtx          = None     # Q Matrix
+   qx_vec         = None     # X translation vector
+   qy_vec         = None     # Y translation vector
+   qz_vec         = None     # Z translation vector   
+   euler_x_deg    = None     # X axis rotation angle (degrees)
+   euler_y_deg    = None     # Y axis rotation angle (degrees)
+   euler_z_deg    = None     # Z axis rotation angle (degrees)
    
 
    '''
-      --------------------------------------------
-                      Constructor
-      --------------------------------------------
+      -------------------------------------------------------------------------------------------------------------
+                                                   Constructor
+
+         Description:  This constructor reads all of the files in the "image_dir" directory, and
+                       usees all images that end with "_calib.jpg" for OpenCV camera calibration.
+                       Additionally, the constructor creates/prepares class data members for use
+                       in the class methods.
+         
+           Arguments:  image_dir - Relative path to directory containing the calibration images.
+                       src_image - Path to image of object to be detected in picture.
+           
+             Returns:  N/A
+             
+      -------------------------------------------------------------------------------------------------------------
    '''
    def __init__(self, image_dir='../images', verbosity=False, src_image="../images/qrcode_query_image2.png"):
       
@@ -171,9 +203,17 @@ class camera():
          self.calibrate_camera()
          
    '''
-      --------------------------------------------
-                       Destructor
-      --------------------------------------------
+      -------------------------------------------------------------------------------------------------------------
+   #                                                Destructor
+   #
+   #   Description:  Perform cleanup tasks. For now this method just prints a message indicating that the
+   #                 destructor was called.
+   #     
+   #     Arguments:  N/A
+   #       
+   #       Returns:  N/A
+   #          
+      -------------------------------------------------------------------------------------------------------------
    '''
    def __del__(self):
       if self.verbosity:
@@ -182,13 +222,45 @@ class camera():
          print "                    Camera: Destructor"
          print "//////////////////////////////////////////////////////////////"
 
-      
    '''
-      --------------------------------------------
-                   calibrate_camera()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                             dump_py_object()
+   #
+   #   Description:  Takes any Python object as an argument and prints out its data members, methods, etc.
+   #
+   #     Arguments:  obj - Any Python object
+   #
+   #       Returns:  N/A
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
-   def calibrate_camera(self, alt_calib_images=[],bypass_print=True):
+   def dump_py_object(self, pyobj):
+      # Loop through all attributes in the Python object
+      for attribute in dir(pyobj):
+         # If has attribute
+         if hasattr( pyobj, attribute ):
+            print( "pyobj.%s  =  %s" % (attribute, getattr(pyobj, attribute)))
+
+   '''
+   # -----------------------------------------------------------------------------------------------------
+   #                                          calibrate_camera()
+   #
+   #   Description:  Uses either the "_calib.jpg" files found in the constructor, or a list supplied
+   #                 by the developer to calibrate a camera in OpenCV. Camera calibration is critical
+   #                 in OpenCV as it allows one to calculate things such as homographies, solvePnP, etc.
+   #
+   #     Arguments:  alt_calib_images - Optional user supplied list of images to be used for camera
+   #                       (OPTIONAL)   calibration, instead of the images found in the constructor.
+   #
+   #                     bypass_print - Disables the printing of the camera matrix, etc., that takes
+   #                       (OPTIONAL)   up a lot of vertical space to display. Useful when developing
+   #                                    other methods. (OPTIONAL)
+   #
+   #       Returns:     Boolean value - True if camera calibration was successful. False if unsuccessful.
+   #
+   # -----------------------------------------------------------------------------------------------------
+   '''
+   def calibrate_camera(self, alt_calib_images=[],bypass_print=False):
       
       if self.verbosity:
          print "//////////////////////////////////////////////////////////////"
@@ -208,8 +280,6 @@ class camera():
 
          # Find the chess board corners
          calib_found, self.corners = cv2.findChessboardCorners(gray, (7,6),None)
-
-
          
          # If found, add object points, image points (after refining them)
          if calib_found == True:
@@ -224,7 +294,6 @@ class camera():
                plt.show();
          else:
             Pass
-
             
       # Calibrate the camera
       try:
@@ -262,9 +331,21 @@ class camera():
          return False
 
    '''
-      --------------------------------------------
-                filter_matches()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                          filter_matches()
+   #
+   #   Description:  Filters out outlier feature matches by using the mean and a user specified standard
+   #                 deviation. First the mean is calcualted for the good matches, then the standard
+   #                 deviation of the points is calculated. All of the (x,y) points that lie within +/-
+   #                 the user specified standard deviation is kept. Note that the standard deviation
+   #                 specified by the user can be a floating point number.
+   #
+   #     Arguments:  std_dev - The maximum standard deviation a point can lie away from the mean to be
+   #                           considered a good match by the filter. Default standard deviation is 2.0
+   #
+   #       Returns:  N/A
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def filter_matches(self, std_dev=2.0):
 
@@ -296,9 +377,23 @@ class camera():
       )]
 
    '''
-      --------------------------------------------
-                  get_bounding_rect()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                         get_bounding_rect()
+   #
+   #   Description:  Creates an OpenCV bounding rectangle of the (x,y) points supplied by the user.
+   #
+   #     Arguments:  xy_pts - Numpy array of XY points.
+   #
+   #       Returns:       x - The X coordinate of the top left of the rectangle.
+   #                      y - The Y cooridnate of the top left of the rectangle.
+   #                      w - The width of the rectangle in pixels.
+   #                      h - The height of the rectangle in pixels.
+   #                    ltc - Left top corner list containing x and y coordinates.
+   #                    lbc - Left bottom corner list containing x and y coordinates.
+   #                    rtc - Right top corner list containing x and y coordinates.
+   #                    rbc - Right bottom corner list containing x and y coordinates.
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def get_bounding_rect(self, xy_pts):
       x,y,w,h = cv2.boundingRect(xy_pts) # Create the rectangle that encompasses all xy points
@@ -309,9 +404,18 @@ class camera():
       return x,y,w,h,ltc,lbc,rtc,rbc
 
    '''
-      --------------------------------------------
-                    x_obj_center()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                         x_obj_center()
+   #
+   #   Description:  Calculates the center of an object relative to its leftmost point and its
+   #                 rightmost point.
+   #
+   #     Arguments:   obj_left_edge - The leftmost point of the detected object.
+   #                 obj_right_edge - The rightmost point of the detected object.
+   #
+   #       Returns:      obj_center - Floating point value that specifies the pixel center of the object.
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def x_obj_center(self, obj_left_edge, obj_right_edge):
       # Determine center of object and whether or not it resides in the left or right hemisphere of the image
@@ -324,9 +428,18 @@ class camera():
       return obj_center
 
    '''
-      --------------------------------------------
-                  x_obj_hemisphere()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                         x_obj_hemisphere()
+   #
+   #   Description:  Determines what side of the image the detected object is on, or if it lies directly
+   #                 on the origin/center of image.
+   #
+   #     Arguments:  obj_center - Floating point value that specifies the pixel center of the object.
+   #
+   #       Returns:  tar_img_hemisphere - A string describing the object's location hemisphere. Will
+   #                                      either be "left", "right", or "origin".
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def x_obj_hemisphere(self, obj_center):
       tar_img_hemisphere = ""
@@ -348,25 +461,47 @@ class camera():
       return tar_img_hemisphere
 
    '''
-      --------------------------------------------
-                     x_obj_angle()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                           x_obj_angle()
+   #
+   #   Description:  Calculates the angle from the center of the camera to the object center using the
+   #                 SOH part of SOH-CAH-TOA.
+   #
+   #     Arguments:  obj_center - Floating point value that specifies the pixel center of the object.
+   #                          r - Distance from camera to center of object. This is the hypotenuse.
+   #
+   #       Returns:       theta - Angle in degrees from center of camera image to center of object.
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def x_obj_angle(self, obj_center, r):
       # Calculate angle of the center of the object relative to the center of the image.
       # Assume that the center of the image is the origin (x=0)
-      obj_center_angle = (-1.0)*math.sin((obj_center - (CAM_PIXEL_WIDTH/2.0))/(r*BORDER_PIXLES_KNOWN_DISTANCE))*360.0/(2*math.pi)
+      theta = (-1.0)*math.sin((obj_center - (CAM_PIXEL_WIDTH/2.0))/(r*BORDER_PIXLES_KNOWN_DISTANCE))*360.0/(2*math.pi)
       
       if self.verbosity:         
          print "\n-----------DISTANCE Object Angle from Robot --------------"
-         print "Object Center Angle:  %f" % obj_center_angle
+         print "Object Center Angle:  %f" % theta
          
-      return obj_center_angle
+      return theta
 
    '''
-      --------------------------------------------
-                decompose_homography()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                        decompose_homography()
+   #
+   #   Description:  Decomposes an OpenCV homography matrix into its rotation matrix, Q matrix, and 
+   #                 (x,y,z) rotation Euler angles.
+   #
+   #     Arguments:  homography_mtx - Homography matrix of detected object calculated via OpenCV
+   #                                  findHomography()
+   #
+   #       Returns:      rot_mtx - Rotation matrix 3x3
+   #                 euler_x_deg - Camera rotation about the X axis (camera pinhole model)
+   #                 euler_y_deg - Camera rotation about the Y axis (camera pinhole model)
+   #                 euler_z_deg - Camera rotation about the Z axis (camera pinhole model)
+   #                       q_mtx - Q Matrix 3x3
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def decompose_homography(self, homography_mtx):
       
@@ -414,9 +549,28 @@ class camera():
       return rot_mtx,euler_x_deg,euler_y_deg,euler_z_deg,q_mtx
    
    '''
-      --------------------------------------------
-                  find_qr_homography()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                        find_qr_homography()
+   #
+   #   Description:  Find the OpenCV homography matrix of the QR code template in the target.
+   #
+   #     Arguments:  target_cv2_image - OpenCV 8-bit RGB image
+   #                              ltc - Left top corner list containing x and y coordinates.
+   #                              lbc - Left bottom corner list containing x and y coordinates.
+   #                              rtc - Right top corner list containing x and y coordinates.
+   #                              rbc - Right bottom corner list containing x and y coordinates.
+   #
+   #       Returns:             valid - Boolean value that states whether or not the attempt to
+   #                                    find the homography matrix succeeded or not. True means
+   #                                    the attempt was a success, and False is failure.
+   #                   homography_mtx - Homography matrix of detected object calculated via OpenCV
+   #                                    findHomography()
+   #                         ltc_filt - Left top corner list containing x and y coordinates.
+   #                         lbc_filt - Left bottom corner list containing x and y coordinates.
+   #                         rtc_filt - Right top corner list containing x and y coordinates.
+   #                         rbc_filt - Right bottom corner list containing x and y coordinates.
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def find_qr_homography(self, target_cv2_image, ltc, lbc, rbc, rtc):
       
@@ -491,31 +645,33 @@ class camera():
             print "The number of good matches found is less than %d, aborting" % MIN_MATCH_COUNT
          return False,False,False,False,False,False
 
-      # ------------------ with ratio test images ---------------------
-      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
-      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
+      # ------------------ FLANN matching images ---------------------
+#      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+#      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+#      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
+#      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
       
       # Apply additional filtering to FLANN matches to get rid of outliers
       self.filter_matches(MATCH_STD_DEVIATION_N_1);
       
-      # ------------------ with 1 iteration ---------------------
-      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
-      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
-      
+      # ------------------ Images with 1 iteration of addtional filtering ---------------------
+#      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+#      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+#      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
+#      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
+
+      # Apply second round of additional filtering to increase accuracy
       self.filter_matches(MATCH_STD_DEVIATION_N_2);
       
+      # ------------------ Images with 2 iterations of addtional filtering, and with/without bounding rectangles ---------------------
       # Create list of source points and list of target/destination points from good matches
       self.h_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
       self.h_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
       self.tar_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
       
-      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,False)
-      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)
-      self.plot_images(target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,False)   # Features before/after no rectangle
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)    # Features before/after, with rectangle
+      self.plot_images(target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)                                       # Target image only with features and rectangle
       
       # Find homography
       homography_mtx, h_mask = cv2.findHomography(self.h_src_pts, self.h_tar_pts, cv2.RANSAC,100.0)
@@ -525,18 +681,38 @@ class camera():
          print "-------------------------"
          print homography_mtx
          print "-------------------------\n"
-
+         
       # Create a bounding rectangle and extract corner points for a rectangle that encompasses all filtered good matches
       x_filt,y_filt,w_filt,h_filt,ltc_filt,lbc_filt,rtc_filt,rbc_filt = self.get_bounding_rect(self.h_tar_pts)
       
+      # Show images of target with unfiltered features and filtered features
       self.plot_images(target_cv2_image, self.tar_good_point_keys,self.h_tar_pts_unfiltered,True,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)
          
       return True, homography_mtx,ltc_filt,lbc_filt,rtc_filt,rbc_filt
 
    '''
-      --------------------------------------------
-                   plot_images()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                        plot_images()
+   #
+   #   Description:  This function plots the OpenCV img1/img2 images with the supplied feature points
+   #                 side by side if both are supplied. Each image has an additional option to plot
+   #                 a bounding rectangle around the feature points. The second image img2 is optional
+   #                 to the user and is not required.
+   #
+   #                 Note: If only img1 is supplied it will be plotted by itself.
+   #
+   #     Arguments:         img1 - OpenCV 8-bit RGB image.
+   #                   img1_keys - Keypoints from ORB feature detection.
+   #                    img1_pts - (x,y) poitns extracted from keypoints.
+   #                   img1_rect - Boolean value: True = show bouding rectangle, False = No rectangle
+   #       (OPTIONAL)       img2 - OpenCV 8-bit RGB image.
+   #       (OPTIONAL)  img2_keys - Keypoints from ORB feature detection.
+   #       (OPTIONAL)   img2_pts - (x,y) poitns extracted from keypoints.
+   #       (OPTIONAL)  img2_rect - Boolean value: True = show bouding rectangle, False = No rectangle
+   #
+   #       Returns:  N/A
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def plot_images(self, img1, img1_keys,img1_pts, img1_rect=False, img2=[], img2_keys=[],img2_pts=False, img2_rect=False):
       
@@ -579,9 +755,24 @@ class camera():
             plt.show()
    
    '''
-      --------------------------------------------
-                   calc_distance()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                      calc_distance()
+   #
+   #   Description:  Calculates the distance from the camera to the detected object using a pixel scaling
+   #                 technique. Essentially the longest side of a bounding rectangle is used to determine
+   #                 how far away the camera is from an object. The calculated distance accuracy decreases
+   #                 as the camera views an object from an angle. There also appears to be issues when the
+   #                 camera gets within 1ft of the object. Perhaps this is due to the camera's focal
+   #                 length.
+   #
+   #     Arguments:  ltc - Left top corner list containing x and y coordinates.
+   #                 lbc - Left bottom corner list containing x and y coordinates.
+   #                 rtc - Right top corner list containing x and y coordinates.
+   #                 rbc - Right bottom corner list containing x and y coordinates.
+   #
+   #       Returns:    r - Floating point distance value upon successful calcualtion, and -1 upon failure.
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def calc_distance(self, ltc, lbc, rbc, rtc):
 
@@ -613,29 +804,6 @@ class camera():
          # and subject from it the known pixel length of a border at the known distance
          delta_dist =  float(max([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE
 
-         # Use the side furthest away from the camera (i.e. shortest side of rectangle) in
-         # case the camera is viewing the QR code from an angle.
-         # Subtract from it the known pixel length of a border at the known distance.
-#         distance =  float(min([lt_lb,lt_rt,rt_rb,lb_rb])) - BORDER_PIXLES_KNOWN_DISTANCE
-
-         # If we moved closer to the object
-#         if delta_dist > 0.0:
-#            print "************** here1 *****************"
-#            distance = BORDER_KNOWN_DISTANCE - abs( delta_dist * DIST_CALC_SLOPE)
-#            print "float( max([lt_lb,lt_rt,rt_rb,lb_rb])) = %f" % float( max([lt_lb,lt_rt,rt_rb,lb_rb]))
-#            print "BORDER_PIXELS_KNOWN_DISTANCE = %f" % BORDER_PIXLES_KNOWN_DISTANCE
-#            print "BORDER_KNOWN_DISTANCE = %f" % BORDER_KNOWN_DISTANCE
-            
-#         elif delta_dist < 0.0:
-#            print "************** here2 *****************"
-#            distance = BORDER_KNOWN_DISTANCE + abs(delta_dist*((BORDER_KNOWN_DISTANCE)/(BORDER_PIXLES_KNOWN_DISTANCE)))
-#            distance = BORDER_KNOWN_DISTANCE + abs(delta_dist * DIST_CALC_SLOPE)
-#            print "float( max([lt_lb,lt_rt,rt_rb,lb_rb])) = %f" % float( max([lt_lb,lt_rt,rt_rb,lb_rb]))
-#            print "BORDER_PIXELS_KNOWN_DISTANCE = %f" % BORDER_PIXLES_KNOWN_DISTANCE
-#            print "BORDER_KNOWN_DISTANCE = %f" % BORDER_KNOWN_DISTANCE
-#         else:
-#            distance = BORDER_KNOWN_DISTANCE
-
          distance = DIST_CALC_Y_INTERCEPT + float(max([lt_lb,lt_rt,rt_rb,lb_rb])) * DIST_CALC_SLOPE
    
          # Correct the error in the calculation, non-linear
@@ -654,9 +822,23 @@ class camera():
          return -1
 
    '''
-      --------------------------------------------
-                   correct_dist_err()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                        correct_dist_err()
+   #
+   #   Description:  This method removes the error from the calculated distance in calc_distance().
+   #                 several distance calculations were performed with no error correction at known
+   #                 distances, the error was calculated for each trial, and a 6th order polynomial
+   #                 functiono describing the error at different distances was created using
+   #                 Microsoft Excel.
+   #
+   #                 Note:  This 6th order polynomial works well for all distances of interest
+   #                        for use with Jeeves except for at 1 ft.
+   #
+   #     Arguments:            distance - Floating point distance that contains error.
+   #
+   #       Returns:  corrected_distance - Floating point distance with error removed.
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def correct_dist_err(self, distance):
 
@@ -672,9 +854,18 @@ class camera():
       return corrected_distance
       
    '''
-      --------------------------------------------
-                      solvePnP()
-      --------------------------------------------
+   # -----------------------------------------------------------------------------------------------------
+   #                                          solvePnP()
+   #
+   #   Description:  This method computes the OpenCV solvePnP() function. It is currently not used
+   #                 and was left in the class for the sake of providing the essential building
+   #                 blocks required for using OpenCV's solvePnP() function in the future.
+   #
+   #     Arguments:  N/A
+   #
+   #       Returns:  N/A
+   #
+   # -----------------------------------------------------------------------------------------------------
    '''
    def solvePnP(self):
       
