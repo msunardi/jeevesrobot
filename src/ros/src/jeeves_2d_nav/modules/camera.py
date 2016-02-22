@@ -73,9 +73,9 @@ FLANN_INDEX_LSH              = 6         # For FLANN matching when using OpenCV 
 RATIO_TEST_PARAM             = 0.8       # Maximum distance point n can be from point m when determing good FLANN matches
 MIN_MATCH_COUNT              = 150       # Minimum number of good matches detected by ratio test to determine if a good match
 NUM_TREE_CHECKS              = 100       # Number of times trees are recursively checked. Higher value results in better results, but takes longer
-MATCH_STD_DEVIATION_N_1      = 1.75      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images.
+MATCH_STD_DEVIATION_N_1      = 1.6       # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images.
                                          # Note that the std_deviation can be a floating point value, i.e. a fractional value
-MATCH_STD_DEVIATION_N_2      = 1.75      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images
+MATCH_STD_DEVIATION_N_2      = 1.60      # Selects the 1st, 2nd, 3rd, ..., nth standard deviation to be used when filtering out outlier good matches for common feature points between source and target images
                                          # Note that the std_deviation can be a floating point value, i.e. a fractional value
 BORDER_KNOWN_DISTANCE        = 2.7708333 # Distance in feet from which BORDER_PIXELS_KNOWN_DISTANCE was calculated from.
 BORDER_PIXLES_KNOWN_DISTANCE = 115.0     # Lenght in pixels of a side of the feature rich border at 2ft away
@@ -547,6 +547,44 @@ class camera():
          print qz_vec
          
       return rot_mtx,euler_x_deg,euler_y_deg,euler_z_deg,q_mtx
+
+   '''
+   # -----------------------------------------------------------------------------------------------------
+   #                                        calc_linear_func_val()
+   #
+   #   Description:  
+   #
+   #     Arguments:  
+   #
+   #       Returns:  
+   #
+   # -----------------------------------------------------------------------------------------------------
+   '''
+   def calc_linear_func_val(self, p, p1, p2, b=0, function_of_y=False):
+      
+      # Function of y  --> f(y)
+      if function_of_y:
+         # Calculate the slope
+         if(p2[1] == p1[1]):
+            # Cannot divide by zero
+            return False, -1
+         m = (float(p2[0]) - float(p1[0]))/(float(p2[1]) - float(p1[1]))
+         
+         # Calculate value at the specified point
+         val = (float(p) - float(p2[1])) * m + float(b)
+         
+      # Function of x  --> f(x)
+      else:
+         # Calculate the slope
+         if(p2[0] == p1[0]):
+            # Cannot divide by zero
+            return False, -1
+         m = (float(p2[1]) - float(p1[1]))/(float(p2[0]) - float(p1[0]))
+         
+         # Calculate value at the specified point
+         val = (float(p) - float(p2[0])) * m + float(b)
+
+      return True, val
    
    '''
    # -----------------------------------------------------------------------------------------------------
@@ -573,6 +611,11 @@ class camera():
    # -----------------------------------------------------------------------------------------------------
    '''
    def find_qr_homography(self, target_cv2_image, ltc, lbc, rbc, rtc):
+
+      print ltc
+      print lbc
+      print rtc
+      print rbc
       
       if self.verbosity:
          print "\n"
@@ -610,20 +653,60 @@ class camera():
       flann = cv2.FlannBasedMatcher(index_params,search_params)
 
       # Match source descriptors with target descriptors
-      matches = flann.knnMatch(src_des,tar_des,k=2)
-
-      # -------------- images with matching but no ratio test ----------------
+      matches = flann.knnMatch(src_des,tar_des,k=2)         
+      
+      # -------------- Images with FLANN matching but no Lowe's ratio test ----------------
       # Keep track of all matches before applying ratio test
       self.good_matches = []
       for m, n in matches:
          self.good_matches.append(m)
          
+      self.tar_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
+         
       # Keep a copy of the original matched points via FLANN without additional filtering
       # This is for visually comparing the difference between the FLANN matches and the good matches that
       # had additional filterting applied to them.
       self.h_tar_pts_unfiltered = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+
+      # ------------------ FLANN matching images ---------------------
+      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
       
-      # ******** NOTE: This ratio test performs horribly for the Jeeves project. Only use it if you absolutely have to! **********
+      # Use ZBar corners as criteria for determining good matches
+      # ------------------ ZBar corner filtering ---------------------
+      self.zbar_good_matches = []
+      for m, n in matches:
+         # Keep all features that are within the ZBar QR code detected corner area
+         
+         # Calculate current feature minimums and maximums for X and Y coordinates based on ZBar corner points
+         bool_x_min, x_min = self.calc_linear_func_val(self.tar_kp[m.trainIdx].pt[1],ltc, lbc, lbc[0], True)
+         bool_y_min, y_min = self.calc_linear_func_val(self.tar_kp[m.trainIdx].pt[0],ltc, rtc, rtc[1], False)
+         bool_x_max, x_max = self.calc_linear_func_val(self.tar_kp[m.trainIdx].pt[1],rtc, rbc, rbc[0], True)
+         bool_y_max, y_max = self.calc_linear_func_val(self.tar_kp[m.trainIdx].pt[0],lbc, rbc, rbc[1], False)
+
+         # Make sure no errors occurred during min/max computations
+         if bool_x_min and bool_y_min and bool_x_max and bool_y_max:
+            if((self.tar_kp[m.trainIdx].pt[0] >= x_min and self.tar_kp[m.trainIdx].pt[0] <= x_max)  and  (self.tar_kp[m.trainIdx].pt[1] >= y_min and self.tar_kp[m.trainIdx].pt[1] <= y_max)  ):
+               # Made it this far, the feature is good, keep it!
+               self.zbar_good_matches.append(m)
+         else:
+            # Something went wrong return False
+            if self.verbosity:
+               print "Something went wrong calculating min/max boundaries for a point, aborting..."
+            return False,False,False,False,False,False
+
+      # ------------------ ZBar Corner Images ---------------------
+      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.zbar_good_matches ]).reshape(-1,1,2)
+      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.zbar_good_matches ]).reshape(-1,1,2)
+      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.zbar_good_matches]
+      self.plot_images(target_cv2_image, self.tar_kp,self.h_tar_pts_unfiltered,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
+      self.plot_images(target_cv2_image, self.tar_kp,self.h_tar_pts_unfiltered,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,True)
+
+      
+      
+      # ******** NOTE: Lowe's ratio test performs horribly for the Jeeves project. Only use it if you absolutely have to! **********
       # Keep only good matches that pass the ratio test
       #
       #     Structure of a match in matches
@@ -631,43 +714,43 @@ class camera():
       #             -> int imgIdx       , Train image index
       #             -> int queryIdx     , Query descriptor index
       #             -> int trainIdx     , Train descriptor index
-#      self.good_matches = []
-#      for m, n in matches:
+      self.good_matches_2 = []
+      for m, n in matches:
             # If the match passes the ratio test add it to the list of good matches
-#         if m.distance < RATIO_TEST_PARAM*n.distance:
-#            self.good_matches.append(m)
-#      if self.verbosity:
-#         print "Good Matches = %d" % len(self.good_matches)
+         if m.distance < RATIO_TEST_PARAM*n.distance:
+            self.good_matches_2.append(m)
+      if self.verbosity:
+         print "Good Matches = %d" % len(self.good_matches_2)
+         
+      # ------------------ Lowe's Ratio Test Plot ---------------------
+      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches_2 ]).reshape(-1,1,2)
+      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches_2 ]).reshape(-1,1,2)
+      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches_2]
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
 
       # If not enough good matches alert and abort
       if(not len(self.good_matches) >= MIN_MATCH_COUNT):
          if self.verbosity:
             print "The number of good matches found is less than %d, aborting" % MIN_MATCH_COUNT
          return False,False,False,False,False,False
-
-      # ------------------ FLANN matching images ---------------------
-#      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-#      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-#      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
-#      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
       
       # Apply additional filtering to FLANN matches to get rid of outliers
-      self.filter_matches(MATCH_STD_DEVIATION_N_1);
+#      self.filter_matches(MATCH_STD_DEVIATION_N_1);
       
       # ------------------ Images with 1 iteration of addtional filtering ---------------------
-#      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-#      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-#      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
-#      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
+      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
+      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
+      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
 
       # Apply second round of additional filtering to increase accuracy
-      self.filter_matches(MATCH_STD_DEVIATION_N_2);
+#      self.filter_matches(MATCH_STD_DEVIATION_N_2);
       
       # ------------------ Images with 2 iterations of addtional filtering, and with/without bounding rectangles ---------------------
       # Create list of source points and list of target/destination points from good matches
-      self.h_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.h_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.tar_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
+      self.h_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.zbar_good_matches ]).reshape(-1,1,2)
+      self.h_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.zbar_good_matches ]).reshape(-1,1,2)
+      self.tar_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.zbar_good_matches]
       
       self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,False)   # Features before/after no rectangle
       self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)    # Features before/after, with rectangle
@@ -675,7 +758,7 @@ class camera():
       
       # Find homography
       homography_mtx, h_mask = cv2.findHomography(self.h_src_pts, self.h_tar_pts, cv2.RANSAC,100.0)
-      
+
       if self.verbosity:
          print "\nHomography Matrix:"
          print "-------------------------"

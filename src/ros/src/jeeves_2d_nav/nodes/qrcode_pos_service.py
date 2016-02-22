@@ -85,20 +85,20 @@ from camera import *
 # ---------------------------------------------------------------------
 '''
 # **** These parameters get their value from the ROS "qrcode_pos_service.srv" file. ****
-#SEC_CNT_TIMEOUT = rospy.get_param('~timeout_value')       # Number of seconds before timeout
-#PROJECT_VALUE = rospy.get_param('~project')               # Project that this service should look for in QR codes found
-#DEV_ENV = rospy.get_param('~dev_env')                     # Specifies whether in a development enviornment or not where images can be displayed.
+SEC_CNT_TIMEOUT = rospy.get_param('~timeout_value')       # Number of seconds before timeout
+PROJECT_VALUE = rospy.get_param('~project')               # Project that this service should look for in QR codes found
+DEV_ENV = rospy.get_param('~dev_env')                     # Specifies whether in a development enviornment or not where images can be displayed.
                                                            # If enabled (i.e. set True) the Python code will display several images showing the
                                                            # OpenCV calculations/manipulations. For observing the calibration images used
                                                            # for calibrating the Kinect camera see the "SHOW_CALIB_IMAGES" parameter in
                                                            # "camera.py".
-#VERBOSITY = rospy.get_param('~verbosity')                 # This specifies whether or not images and/or text will be displayed or not.
+VERBOSITY = rospy.get_param('~verbosity')                 # This specifies whether or not images and/or text will be displayed or not.
 
 # **** Hardcoded values to be used when developing/using rosrun. You do not want to use the launch file or else no text/images will be displayed. ****
-DEV_ENV = bool(0)
-VERBOSITY = bool(1)
-SEC_CNT_TIMEOUT = 3                                        # Number of seconds before timeout
-PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
+#DEV_ENV = bool(0)
+#VERBOSITY = bool(1)
+#SEC_CNT_TIMEOUT = 3                                        # Number of seconds before timeout
+#PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
 
 if VERBOSITY:
    print "Development Environment:  %s " % str(DEV_ENV)
