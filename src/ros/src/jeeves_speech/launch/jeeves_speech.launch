@@ -1,0 +1,6 @@
+<launch>
+  <node name="speech_recognition" pkg="jeeves_speech" type="speech_recognition.py" />
+  <node name="speech_recognition_nb" pkg="jeeves_speech" type="speech_recognition_nb.py" />
+  <node name="speech_synthesis" pkg="jeeves_speech" type="speech_synthesis.py" />
+  <node name="speech_integrated" pkg="jeeves_speech" type="speech_integrated.py" />
+</launch>
