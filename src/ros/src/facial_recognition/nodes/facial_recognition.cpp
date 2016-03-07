@@ -35,6 +35,7 @@ void ImageReceivedCallback2( Mat frame );
 // path to cascade file must take this into account.
 String cascade_filename = "src/facial_recognition/cascades/haarcascade_frontalface_alt.xml";
 CascadeClassifier my_cascade;
+//Ptr<FaceRecognizer> model createLBPHFaceRecognizer(1,8,8,8, 123.0); (int radius, neighbors, grid_x, grid_y, double threshold)
 Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
 ros::Publisher pub_yaw;
 ros::Publisher pub_pitch;
@@ -47,17 +48,29 @@ int main(int argc, char **argv)
 
   CvCapture* capture;   // Structure for capturing video frames
   Mat frame;            // Single frame from video feed
+
+
+  /****************************************************************************************
+  //Code for reading training images and creating a new model. To be moved to a separate application.
+
   vector<Mat> images;   // Where to store training images
   vector<int> labels;   // Labels for training images
 
   // Get training images and train FaceRecognizer
   read_csv("src/facial_recognition/people/people.csv", images, labels, ';');
 
-  if (images[0].data == NULL) cout << "FAILURE TO READ FIRST IMAGE"<<endl;
+  //if (images[0].data == NULL) cout << "FAILURE TO READ FIRST IMAGE"<<endl;
 
-  model->set("threshold", 125.0);
   model->train(images, labels);
-  //ptr<FaceRecognizer> model createLBPHFaceRecognizer(1,8,8,8, 123.0);
+
+  // Save and/or update the model
+  //model->update(newimages, newlabels);
+  model->save("src/facial_recognition/people/model.yaml");
+
+  *****************************************************************************************/
+
+  model->load("src/facial_recognition/people/model.yaml");
+  model->set("threshold", 125.0);
 
   // Current working directory, for debugging
   //char cwd[100];
@@ -73,10 +86,15 @@ int main(int argc, char **argv)
   pub_pitch = n.advertise<std_msgs::Float32>("/head/cmd_pose_pitch", 100);
 
 
+  /*// Subscribe to third party usb_cam_node
+  image_transport::ImageTransport it(n);
+  image_transport::Subscriber subscribe = it.subscribe("/usb_cam/image_raw", 10, ImageReceivedCallback);
+  ros::spin();
+*/
   // Continually read images from webcam
   // THIS LOOP TAKES THE PLACE OF spin() AND WAITING FOR A MESSAGE FROM FREENECT
   // Use one or the other
-  
+  /*
   // **********************************************************************
   capture = cvCaptureFromCAM( -1 ); //cvCaptureFromCAM same as VideoCapture
     if( capture )
@@ -97,14 +115,14 @@ int main(int argc, char **argv)
     }
   // *********************************************************************
   
-
+*/
   // Create window for displaying images
   //cv::namedWindow("view");
   //cv::startWindowThread();
 
   // Subscriber
-  image_transport::ImageTransport it(n);
-  image_transport::Subscriber sub = it.subscribe("/camera/rgb/image_color", 10, ImageReceivedCallback);
+  image_transport::ImageTransport itrans(n);
+  image_transport::Subscriber sub = itrans.subscribe("/camera/rgb/image_color", 10, ImageReceivedCallback);
 
   ros::spin();
   return 0;
@@ -112,7 +130,7 @@ int main(int argc, char **argv)
 
 
 
-// This function borrowed from docs.opencv.org tutorials by Philipp Wagner (of bytefish fame)
+// This function borrowed from docs.opencv.org tutorials by Philipp Wagner (aka Bytefish)
 void read_csv(const string& filename, vector<Mat>& images, vector<int>& labels, char separator = ';') {
     std::ifstream file(filename.c_str(), ifstream::in);
     if (!file) {
@@ -151,10 +169,9 @@ void ImageReceivedCallback(const sensor_msgs::ImageConstPtr& msg)
     ROS_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
-  //frame = frame_ptr->image;
-
   // Send the converted cv::MAT image to the the main callback
   ImageReceivedCallback2(frame_ptr->image);
+  imshow( "Capture - Face Detection", frame_ptr->image );
 }
 
 
@@ -193,7 +210,8 @@ void ImageReceivedCallback2(Mat frame)
     Mat person_resized;
     resize(person, person_resized, Size(100, 100), 1.0, 1.0, INTER_CUBIC);
 
-    //Code for saving training images
+    // Code for saving training images
+    // Use this to save faces detected from the cascade classifier, and then update LBPH model
     /*
     face_counter++;
     std::string file_name;
@@ -203,7 +221,8 @@ void ImageReceivedCallback2(Mat frame)
     file_name = file_name + convert.str();
     file_name = file_name + ".jpg";
     imwrite(file_name, person_resized);
-*/
+    */
+
     // Predict!
     int prediction = model->predict(person_resized);
     cout<< "PREDICTION: " << prediction << endl; 
