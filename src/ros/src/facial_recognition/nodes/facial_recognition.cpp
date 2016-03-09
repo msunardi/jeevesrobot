@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float32.h"
+#include "geometry_msgs/Point32.h"
 #include "opencv2/core/core.hpp"
 #include "opencv2/contrib/contrib.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
@@ -39,6 +40,8 @@ CascadeClassifier my_cascade;
 Ptr<FaceRecognizer> model = createLBPHFaceRecognizer();
 ros::Publisher pub_yaw;
 ros::Publisher pub_pitch;
+ros::Publisher pub_location;
+ros::Publisher pub_coordinates;
 
 int main(int argc, char **argv)
 {
@@ -70,7 +73,7 @@ int main(int argc, char **argv)
   *****************************************************************************************/
 
   model->load("src/facial_recognition/people/model.yaml");
-  model->set("threshold", 125.0);
+  model->set("threshold", 100.0);
 
   // Current working directory, for debugging
   //char cwd[100];
@@ -84,17 +87,18 @@ int main(int argc, char **argv)
   //ros::Publisher pub = n.advertise("/head/cmd_pose", 100);
   pub_yaw   = n.advertise<std_msgs::Float32>("/head/cmd_pose_yaw", 100);
   pub_pitch = n.advertise<std_msgs::Float32>("/head/cmd_pose_pitch", 100);
-
+  pub_location = n.advertise<std_msgs::String>("/head/cmd_pose_rad", 10);
+  pub_coordinates = n.advertise<geometry_msgs::Point32>("/head/comd_pose", 10);
 
   /*// Subscribe to third party usb_cam_node
   image_transport::ImageTransport it(n);
   image_transport::Subscriber subscribe = it.subscribe("/usb_cam/image_raw", 10, ImageReceivedCallback);
   ros::spin();
-*/
+  */
   // Continually read images from webcam
   // THIS LOOP TAKES THE PLACE OF spin() AND WAITING FOR A MESSAGE FROM FREENECT
   // Use one or the other
-  /*
+  
   // **********************************************************************
   capture = cvCaptureFromCAM( -1 ); //cvCaptureFromCAM same as VideoCapture
     if( capture )
@@ -115,12 +119,11 @@ int main(int argc, char **argv)
     }
   // *********************************************************************
   
-*/
   // Create window for displaying images
   //cv::namedWindow("view");
   //cv::startWindowThread();
 
-  // Subscriber
+  // Freenect image subscriber
   image_transport::ImageTransport itrans(n);
   image_transport::Subscriber sub = itrans.subscribe("/camera/rgb/image_color", 10, ImageReceivedCallback);
 
@@ -204,14 +207,15 @@ void ImageReceivedCallback2(Mat frame)
   // Go through the list of faces in this image and store the best one in recent_locations[i]
   for( size_t i = 0; i < faces.size(); i++ )
   {
-    // Extract Rect for facial recognition
+    // Extract face from location described by Rect 
     Rect faces_i = faces[i];
     Mat person = grayframe(faces_i);
     Mat person_resized;
     resize(person, person_resized, Size(100, 100), 1.0, 1.0, INTER_CUBIC);
+    equalizeHist( person_resized, person_resized );
 
     // Code for saving training images
-    // Use this to save faces detected from the cascade classifier, and then update LBPH model
+    // Use this to save faces detected from the cascade classifier, and then update LBPH model. Commend out for normal use
     /*
     face_counter++;
     std::string file_name;
@@ -280,14 +284,18 @@ void ImageReceivedCallback2(Mat frame)
   // Decide whether there are enough valid frames to go ahead with publishing a head location
   if(valid_count > (MAX_FRAMES/2))
   {
+
+    // Message type instances
+    std_msgs::Float32 yaw;
+    std_msgs::Float32 pitch;
+    std_msgs::String msg;
+    geometry_msgs::Point32 coordinates;
+
     // Convert to radians and publish
     cout<< "Qualified location at (" <<average_location.x<<", "<<average_location.y<<")";
 
-    std_msgs::Float32 yaw;
-    std_msgs::Float32 pitch;
-
     yaw.data = (float)((XSIZE - average_location.x) * 3.14/(XSIZE * 3)); // Limits yaw to +/-pi/3
-    pitch.data = (float)((YSIZE - average_location.y) * 3.14/(YSIZE * 12)); // Limits yaw to +/-pi/12
+    pitch.data = (float)((YSIZE - average_location.y) * 3.14/(YSIZE * 12)); // Limits pitch to +/-pi/12
 
     // Round off to prevent micro-movements
     yaw.data = roundf(yaw.data * 100) / 100;
@@ -295,8 +303,21 @@ void ImageReceivedCallback2(Mat frame)
 
     cout<< " ---> (yaw, pitch) = "<< yaw.data << " " << pitch.data << endl;
 
+    // Publish to Pitch/Yaw topic
     pub_yaw.publish(yaw);
     pub_pitch.publish(pitch);
+
+    // Publish to pub_coordinates topic
+    coordinates.x = yaw.data;
+    coordinates.y = pitch.data;
+    pub_coordinates.publish(coordinates);
+
+    ostringstream convert1, convert2;
+    convert1 << (float)yaw.data;
+    convert2 << (float)pitch.data;
+    string mystring = convert1.str() +  "," + convert2.str();
+    msg.data = mystring;
+    pub_location.publish(msg);
   }
   else cout<<"recent_locations doesn't qualify to send a head message"<<endl;
 
