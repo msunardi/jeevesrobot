@@ -96,7 +96,7 @@ VERBOSITY = rospy.get_param('~verbosity')                 # This specifies wheth
 
 # **** Hardcoded values to be used when developing/using rosrun. You do not want to use the launch file or else no text/images will be displayed. ****
 #DEV_ENV = bool(0)
-#VERBOSITY = bool(1)
+#VERBOSITY = bool(0)
 #SEC_CNT_TIMEOUT = 3                                        # Number of seconds before timeout
 #PROJECT_VALUE = "mcecs_jeeves"                             # Project that this service should look for in QR codes found
 
@@ -269,15 +269,11 @@ def proc_image(camera_inst, ros_image):
         pass
    else:
       for symbol in zbar_img:
-         print symbol.location
          #Assuming data is encoded in utf8
          data = symbol.data.decode(u'utf-8')
          if data.find('project=%s' % str(PROJECT_VALUE)) != -1:
-            print "Good Match = %s" % data
             qrcode_data = data
             qrcode_corners = list(symbol.location)
-         else:
-            print "Bad Match = %s" % data
 
       # clean up
       del(ros_image)

@@ -43,6 +43,7 @@ import glob
 import inspect
 import time
 import math
+import copy
 from qrcode_pos_service import DEV_ENV
 # Only try to import the graphical libraries if code is NOT running on the robot.
 if DEV_ENV:
@@ -585,6 +586,33 @@ class camera():
          val = (float(p) - float(p2[0])) * m + float(b)
 
       return True, val
+
+   '''
+   # -----------------------------------------------------------------------------------------------------
+   #                                     insert_bounding_polygon()
+   #
+   #   Description:  Plots a polygon on top of the image passed in.
+   #
+   #     Arguments:       img - OpenCV image that polygon is to be inserted into
+   #                      ltc - Left top corner list containing x and y coordinates.
+   #                      lbc - Left bottom corner list containing x and y coordinates.
+   #                      rtc - Right top corner list containing x and y coordinates.
+   #                      rbc - Right bottom corner list containing x and y coordinates.
+   #                    color - List containing red, green, blue color values. Determines color
+   #                            of polygon shape.
+   #                thickness - Thickness of polygon line.
+   #
+   #       Returns:  N/A
+   #
+   # -----------------------------------------------------------------------------------------------------
+   '''
+   def insert_bounding_polygon(self, img, ltc, lbc, rtc, rbc, color=[0,255,0], thickness=5):
+   
+      # Draw each side of the bounding polygon in the image that was passed in
+      cv2.line(img,ltc,rtc,color,thickness)
+      cv2.line(img,ltc,lbc,color,thickness)
+      cv2.line(img,lbc,rbc,color,thickness)
+      cv2.line(img,rtc,rbc,color,thickness)
    
    '''
    # -----------------------------------------------------------------------------------------------------
@@ -611,11 +639,6 @@ class camera():
    # -----------------------------------------------------------------------------------------------------
    '''
    def find_qr_homography(self, target_cv2_image, ltc, lbc, rbc, rtc):
-
-      print ltc
-      print lbc
-      print rtc
-      print rbc
       
       if self.verbosity:
          print "\n"
@@ -631,6 +654,9 @@ class camera():
       src_kp, src_des = src_orb.detectAndCompute(self.src_img, None)
       self.tar_kp, tar_des = tar_orb.detectAndCompute(target_cv2_image, None)
 
+      # Make a copy of the original detected feature points
+      unfiltered_trap_tar_cv2_image = copy.deepcopy(target_cv2_image)
+      
       # -------------------   images without matching --------------
       self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_kp,tar_des,False)
       
@@ -667,12 +693,6 @@ class camera():
       # This is for visually comparing the difference between the FLANN matches and the good matches that
       # had additional filterting applied to them.
       self.h_tar_pts_unfiltered = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-
-      # ------------------ FLANN matching images ---------------------
-      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
-      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
       
       # Use ZBar corners as criteria for determining good matches
       # ------------------ ZBar corner filtering ---------------------
@@ -696,14 +716,6 @@ class camera():
             if self.verbosity:
                print "Something went wrong calculating min/max boundaries for a point, aborting..."
             return False,False,False,False,False,False
-
-      # ------------------ ZBar Corner Images ---------------------
-      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.zbar_good_matches ]).reshape(-1,1,2)
-      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.zbar_good_matches ]).reshape(-1,1,2)
-      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.zbar_good_matches]
-      self.plot_images(target_cv2_image, self.tar_kp,self.h_tar_pts_unfiltered,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
-      self.plot_images(target_cv2_image, self.tar_kp,self.h_tar_pts_unfiltered,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,True)
-
       
       
       # ******** NOTE: Lowe's ratio test performs horribly for the Jeeves project. Only use it if you absolutely have to! **********
@@ -714,19 +726,13 @@ class camera():
       #             -> int imgIdx       , Train image index
       #             -> int queryIdx     , Query descriptor index
       #             -> int trainIdx     , Train descriptor index
-      self.good_matches_2 = []
-      for m, n in matches:
-            # If the match passes the ratio test add it to the list of good matches
-         if m.distance < RATIO_TEST_PARAM*n.distance:
-            self.good_matches_2.append(m)
-      if self.verbosity:
-         print "Good Matches = %d" % len(self.good_matches_2)
-         
-      # ------------------ Lowe's Ratio Test Plot ---------------------
-      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches_2 ]).reshape(-1,1,2)
-      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches_2 ]).reshape(-1,1,2)
-      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches_2]
-      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
+#      self.good_matches_2 = []
+#      for m, n in matches:
+#            # If the match passes the ratio test add it to the list of good matches
+#         if m.distance < RATIO_TEST_PARAM*n.distance:
+#            self.good_matches_2.append(m)
+#      if self.verbosity:
+#         print "Good Matches = %d" % len(self.good_matches_2)
 
       # If not enough good matches alert and abort
       if(not len(self.good_matches) >= MIN_MATCH_COUNT):
@@ -734,27 +740,14 @@ class camera():
             print "The number of good matches found is less than %d, aborting" % MIN_MATCH_COUNT
          return False,False,False,False,False,False
       
-      # Apply additional filtering to FLANN matches to get rid of outliers
-#      self.filter_matches(MATCH_STD_DEVIATION_N_1);
-      
-      # ------------------ Images with 1 iteration of addtional filtering ---------------------
-      self.h2_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.h2_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.good_matches ]).reshape(-1,1,2)
-      self.tar2_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.good_matches]
-      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar2_filtered_good_point_keys,self.h2_tar_pts,False)
-
-      # Apply second round of additional filtering to increase accuracy
-#      self.filter_matches(MATCH_STD_DEVIATION_N_2);
-      
       # ------------------ Images with 2 iterations of addtional filtering, and with/without bounding rectangles ---------------------
       # Create list of source points and list of target/destination points from good matches
       self.h_src_pts = np.float32([ src_kp[m.queryIdx].pt for m in self.zbar_good_matches ]).reshape(-1,1,2)
       self.h_tar_pts = np.float32([ self.tar_kp[m.trainIdx].pt for m in self.zbar_good_matches ]).reshape(-1,1,2)
       self.tar_filtered_good_point_keys = [self.tar_kp[m.trainIdx] for m in self.zbar_good_matches]
       
-      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,False)   # Features before/after no rectangle
-      self.plot_images(self.src_img, src_kp,src_des,False,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)    # Features before/after, with rectangle
-      self.plot_images(target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)                                       # Target image only with features and rectangle
+      filtered_trap_tar_cv2_image = copy.deepcopy(target_cv2_image)
+      self.insert_bounding_polygon(filtered_trap_tar_cv2_image, ltc, lbc, rtc, rbc)
       
       # Find homography
       homography_mtx, h_mask = cv2.findHomography(self.h_src_pts, self.h_tar_pts, cv2.RANSAC,100.0)
@@ -769,8 +762,8 @@ class camera():
       x_filt,y_filt,w_filt,h_filt,ltc_filt,lbc_filt,rtc_filt,rbc_filt = self.get_bounding_rect(self.h_tar_pts)
       
       # Show images of target with unfiltered features and filtered features
-      self.plot_images(target_cv2_image, self.tar_good_point_keys,self.h_tar_pts_unfiltered,True,target_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,True)
-         
+      self.plot_images(unfiltered_trap_tar_cv2_image, self.tar_kp,tar_des,False, filtered_trap_tar_cv2_image, self.tar_filtered_good_point_keys,self.h_tar_pts,False)
+      
       return True, homography_mtx,ltc_filt,lbc_filt,rtc_filt,rbc_filt
 
    '''
