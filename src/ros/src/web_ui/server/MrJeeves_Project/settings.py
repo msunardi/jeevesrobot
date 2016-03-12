@@ -42,7 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
+    #'corsheaders',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin', # THIS LINE SHOULD NOW BE UNCOMMENTED
     # Uncomment the next line to enable admin documentation:
@@ -59,7 +59,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    #'corsheaders.middleware.CorsMiddleware',
 )
 
 ROOT_URLCONF = 'MrJeeves_Project.urls'

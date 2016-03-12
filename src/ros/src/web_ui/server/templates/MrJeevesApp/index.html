@@ -4,127 +4,50 @@
     
 <html>
     <head>
-    <meta charset="utf-8" />
+        <meta charset="utf-8" />
+        
+        <style>
+            #error{color:red;}
+        </style>
+        
+        <script type="text/javascript" src="{% static "scripts/jquery-2.1.4.min.js" %}"></script>
+        
+        <script type="text/javascript">
+            var scanInterval = 2000;
+            
+            $(document).ready(function(){
+               setInterval(function(){ scan(); }, scanInterval);
     
-    <script type="text/javascript" src="{% static "scripts/jquery-2.1.4.min.js" %}"></script>
-    
-    <script type="text/javascript">
-        // COUNTDOWN TIMER //
-        var timer = 10;
-        var temp = timer;
-                
-        $(document).ready(function(){
-            {% if status %}
-                var status = {{status | safe}};
-            {% else %}
-                var status = {};
-            {% endif %}
-            
-            {% if add %}
-                var addInts = {{add | safe}};
-            {% else %}
-                var addInts = {};
-            {% endif %}
-            
-            $("#voltage-status").text(parseFloat(status.voltage).toFixed(1));
-            $("#current-status").text(parseFloat(status.current).toFixed(1));
-            
-            $("#sum").text(addInts.sum);
-            
-            //startCountdown();
-
-        });
-      
-      
-    function getData() {
-        $.ajax({
-          method:"GET",
-          url:"http://127.0.0.1:8000/MrJeevesApp/GetROSResults/1/",
-          success:function(response){
-            updateStatus(response);
-          },
-          error:function(xhr){
-            console.log(xhr);
-          }
-        }); 
-    }
-    
-    function startCountdown(){
-        temp--;
-        if(temp > -1){
-            $("#countdown").html(temp);
-           setTimeout(startCountdown, 1000);
-        }else{
-          temp = timer;
-          getData();
-          startCountdown();
+            });
+          
+          
+        function scan() {
+            $.ajax({
+              method:"GET",
+              url:"/MrJeevesApp/FindAndMatchQR",
+              success:function(response){
+                if ($("#error").is(":visible")) {
+                    $("#error").empty().hide();
+                }
+                $("#message").text(response);
+              },
+              error:function(xhr, textStatus, errorThrown){
+                $("#error").text(errorThrown);
+                $("#message").empty();
+              }
+            }); 
         }
-      }
-      
-    function updateStatus(result){
-        var result_obj = JSON.parse(result.fields.result);
-
-        var floatVoltage = parseFloat(result_obj.voltage).toFixed(1);
-        var floatCurrent = parseFloat(result_obj.current).toFixed(1);
-   
-        var voltageBackgroundColor = "lightgreen"; // make default green
-        if(floatVoltage < 2.0){
-          voltageBackgroundColor = "tomato";
-        }
-   
-        $("#voltage-wrapper").css({backgroundColor:voltageBackgroundColor});
-   
-        $("#voltage-status").html(floatVoltage);
-        $("#current-status").html(floatCurrent);
-    }
-    
-    </script>
-     
-    
-    <style type="text/css">
-      div.status{
-        padding:5px;
-        background-color:burlywood;
-        margin-bottom: 5px;
-        width:20%
-      }
-      
-      h1.title{
-        background-color: #ccc;
-        color: white;
-        padding: 10px;
-      }
-    </style>
+        
+        
+        
+        </script>
     
     </head>
 
     <body>
 
-        <h1 class="title">Voltage and Current Output From Mr. Jeeves</h1>
-        <div>Updating in...&nbsp;<strong><span id="countdown"></span></strong>&nbsp;second</div>
-        <br/>
-        
-        {% if status %}
-            <div class="status" id="voltage-wrapper">Voltage : <strong><span id="voltage-status">N/A</span> V</strong></div>
-            <div class="status">Current : <strong><span id="current-status">N/A</span> A</strong></div>
-        {% else %}
-            <strong>There is no battery status present.</strong>
-        {% endif %}
-
-        <br/>
-        <hr/>
-        <br/>
-        
-        <h1 class="title">Adding Two Ints</h1>
-        <br/>
-        
-        {% if add %}
-            <div class="status">Sum : <strong><span id="sum">N/A</span></strong></div>
-        {% else %}
-            <strong>There is no data for Sum.</strong>
-        {% endif %}
-        
-        
+        <div><h4>scanning...</h4><span id="error"></span></div>
+        <h3 id="message"></h3>
         
     </body>
 </html>
