@@ -21,12 +21,12 @@ class NeckController(threading.Thread):
 
     def yaw_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "Got pan data: %s" % data.data)
-        pan = data.data * -1
+        pan = data.data * -0.8
         self.pan_pub.publish(Float64(pan))
 
     def pitch_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "Got pitch data: %s" % data.data)
-        tilt = data.data * -1
+        tilt = data.data * -0.8
         self.tilt_pub.publish(Float64(tilt))
 
 def main(args):
