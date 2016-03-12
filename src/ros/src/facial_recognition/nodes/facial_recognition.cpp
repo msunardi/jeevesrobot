@@ -42,16 +42,19 @@ ros::Publisher pub_yaw;
 ros::Publisher pub_pitch;
 ros::Publisher pub_location;
 ros::Publisher pub_coordinates;
+sensor_msgs::ImagePtr imsg;
+image_transport::Publisher im_pub;
 
 int main(int argc, char **argv)
 {
   // Initialize node
   ros::init(argc, argv, "facial_recognition");
   ros::NodeHandle n;
+  image_transport::ImageTransport it(n);
+  im_pub = it.advertise("camera/face", 1);
 
   CvCapture* capture;   // Structure for capturing video frames
   Mat frame;            // Single frame from video feed
-
 
   /****************************************************************************************
   //Code for reading training images and creating a new model. To be moved to a separate application.
@@ -109,7 +112,10 @@ int main(int argc, char **argv)
 
         // Apply the classifier to the frame
         if( !frame.empty() )
-        { ImageReceivedCallback2( frame ); }
+        {
+          ImageReceivedCallback2( frame );
+          im_pub.publish(imsg);
+        }
         else
         { printf(" --(!) No captured frame -- Break!"); break; }
 
@@ -324,8 +330,9 @@ void ImageReceivedCallback2(Mat frame)
   cout << endl;
 
   // Show the edited frame in the window
-  imshow( "Capture - Face Detection", frame );
-
+  //imshow( "Capture - Face Detection", frame );
+  imsg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
+  im_pub.publish(imsg);
   // Cycle through circular array of most recent points
   count++;
   if(count >= MAX_FRAMES) count = 0; 
