@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import sys, threading
-from arbotix import Arbotix
 import rospy
 from std_msgs.msg import Float32, Float64
 from collections import deque
