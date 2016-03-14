@@ -16,8 +16,11 @@ def speech_recognition():
 	proc = subprocess.Popen(["pocketsphinx_continuous -lm " + cwd + "/en-us.lm -dict " + cwd + "/cmu07a.dic"], shell=True, stdout=subprocess.PIPE)
 	while not rospy.is_shutdown():
 		output = proc.stdout.readline().rstrip()
+		rospy.loginfo("Output: "+output)
 		if output[0].isdigit(): # if the first character of the line read from stdout of pocketsphinx_continuous is a digit
 			pub.publish(output[11:]) # then slice the string and publish only the meaningful text (all characters after the 11th character)
+		else:
+			rospy.loginfo("There was no output")
 	rospy.spin()
 	remainder = proc.communicate()[0]
 

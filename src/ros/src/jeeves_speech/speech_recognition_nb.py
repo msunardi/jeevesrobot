@@ -16,8 +16,14 @@ def speech_recognition():
 	proc = subprocess.Popen(["pocketsphinx_continuous -lm " + cwd + "/jeeves.lm -dict " + cwd + "/jeeves.dic"], shell=True, stdout=subprocess.PIPE)
 	while not rospy.is_shutdown():
 		output = proc.stdout.readline().rstrip()
-		if output[0].isdigit(): # if the first character of the line read from stdout of pocketsphinx_continuous is a digit
-			pub.publish(output[11:]) # then slice the string and publish only the meaningful text (all characters after the 11th character)
+		rospy.loginfo("OUTPUT: "+output)
+		try:
+			if len(output) > 0 and output[0].isdigit(): # if the first character of the line read from stdout of pocketsphinx_continuous is a digit
+				pub.publish(output[11:]) # then slice the string and publish only the meaningful text (all characters after the 11th character)
+			else:
+				rospy.loginfo("No output")
+		except Exception as e:
+			rospy.logerr("Failed processing output: "+ str(e.args))
 	rospy.spin()
 	remainder = proc.communicate()[0]
 
