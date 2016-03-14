@@ -63,24 +63,90 @@
                      <h1><p class="text-center">J.E.E.V.E.S.</p>
 	             <small><p class="text-center">At your service.</p></small></h1>
                      </div>
-        	    <h3 id="message"></h3>
+        	    <!--h3 id="message"></h3-->
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-2">
-			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">GET INFO</button>
-			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">INTERACT</button>
-			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">TOUR</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="get_info">GET INFO</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="interact" data-toggle="modal" data-target=".interact-modal-lg">INTERACT</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="tour" data-toggle="modal" data-target=".tour-modal-lg">TOUR</button>
                 </div>
        		    <div class="col-md-8">
                    	<img class="center-block" src="http://192.168.1.2:8080/stream?topic=/camera/face" width="640">
                 </div>
                 <div class="col-md-2">
-			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">READ QR</button>
-			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">DASHBOARD</button>
-			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">ABOUT ME</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr" data-toggle="modal" data-target=".qr-code-modal-lg">READ QR</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="dashboard">DASHBOARD</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="about_me" data-toggle="modal" data-target=".about-me-modal-lg">ABOUT ME</button>
 	
                 </div>
+            </div>
+        </div>
+        <!-- INTERACT MODAL -->
+        <div class="modal fade interact-modal-lg" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg">
+                 <div class="modal-content">
+                     <div class="modal-header">
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                         <h1 class="modal-title">INTERACT</h1>
+                     </div>
+                     <div class="modal-body">
+                         <div class="panel panel-default">
+                             <div class="panel-heading">
+                                 <h3 class="panel-title">CHAT</h3>
+                             </div>
+                             <div class="panel-body">
+                                 <button class="btn btn-primary btn-lg btn-block" type="button" id="say">Click to say something</button>
+                                 You said: 
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+            </div>
+        </div>
+        <!-- TOUR MODAL -->
+        <div class="modal fade tour-modal-lg" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg">
+                 <div class="modal-content">
+                     <div class="modal-header">
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                         <h1 class="modal-title">TOUR</h1>
+                     </div>
+                     <div class="modal-body">
+                         <button class="btn btn-primary btn-lg btn-block" type="button" id="alltour">Give me the whole tour!</button>
+                         <button class="btn btn-primary btn-lg btn-block" type="button" id="alltour">Intelligent Robotics Lab</button>
+                         <button class="btn btn-primary btn-lg btn-block" type="button" id="alltour">Home/EB Basement Lounge</button>
+                     </div>
+                 </div>
+            </div>
+        </div>
+        <!-- QR CODE MODAL -->
+        <div class="modal fade qr-code-modal-lg" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg">
+                 <div class="modal-content">
+                     <div class="modal-header">
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                         <h1 class="modal-title">READ QR</h1>
+                     </div>
+                     <div class="modal-body">
+                         <h3 id="message"></h3>
+                     </div>
+                 </div>
+            </div>
+        </div>
+        <!-- ABOUT ME MODAL -->
+        <div class="modal fade about-me-modal-lg" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg">
+                 <div class="modal-content">
+                     <div class="modal-header">
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                         <h1 class="modal-title">ABOUT ME</h1>
+                     </div>
+                     <div class="modal-body">
+                         <p class="lead">Hello, I am Jeeves.</p>
+                     </div>
+                 </div>
             </div>
         </div>
     </body>
