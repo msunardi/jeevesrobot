@@ -54,7 +54,8 @@ add_service_files(
    DeleteWaypoint.srv
    SaveCurrentPose.srv
    CancelCurrentNavGoal.srv
-   SetCurrentPoseToWaypoint.srv
+   SetDefaultInitialPose.srv
+   qrcode_pos_service.srv
 )
 
 ## Generate actions in the 'action' folder

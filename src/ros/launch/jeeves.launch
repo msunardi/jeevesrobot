@@ -11,6 +11,9 @@
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(arg JEEVES_LAUNCH_DIR)/rosconsole.config" />
   <env name="ROS_PYTHON_LOG_CONFIG_FILE" value="$(arg JEEVES_LAUNCH_DIR)/python_logging.config" />
 
+  <!-- Launch the freenect node -->
+  <include file="$(find freenect_launch)/launch/freenect.launch" />
+
   <!-- battery status -->
   <include file="$(arg JEEVES_LAUNCH_DIR)/battery_monitor.launch" />
 
@@ -52,5 +55,7 @@
     <rosparam file="$(find jeeves_2d_nav)/base_local_planner_params.yaml" command="load" />
     <rosparam file="$(find jeeves_2d_nav)/move_base_params.yaml" command="load" />
   </node>
+  <!-- QR Code Position Node -->
+  <include file="$(arg JEEVES_LAUNCH_DIR)/qrcode_pos_service.launch" />
 
 </launch>
