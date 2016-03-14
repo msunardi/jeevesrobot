@@ -25,7 +25,7 @@
             });
 
             $(document).on({
-                ajaxStart: function() {$("#message").text("Wait!"); },
+                ajaxStart: function() {$("#message").text("Hang on..."); },
                 
             });
           
@@ -56,19 +56,30 @@
 
     <body>
         <div class="container-fluid">
-        	<div class="row">
-                <h4>scanning...</h4><span id="error"></span>
+            <div class="row">
+                <div class="col-md-12">
+                </h4><span id="error"></span>
+                     <div class="page-header">
+                     <h1><p class="text-center">J.E.E.V.E.S.</p>
+	             <small><p class="text-center">At your service.</p></small></h1>
+                     </div>
         	    <h3 id="message"></h3>
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-2">
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">GET INFO</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">INTERACT</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">TOUR</button>
                 </div>
        		    <div class="col-md-8">
-                    <h3>Le Video</h3>
                    	<img class="center-block" src="http://192.168.1.2:8080/stream?topic=/camera/face" width="640">
                 </div>
                 <div class="col-md-2">
-					<button class="btn btn-primary" type="button" id="read_qr">Read QR</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">READ QR</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">DASHBOARD</button>
+			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr">ABOUT ME</button>
+	
                 </div>
             </div>
         </div>
