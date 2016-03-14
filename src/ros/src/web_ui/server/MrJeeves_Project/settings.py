@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     "django_extensions",
     "MrJeevesApp",
+    "navigation",
 )
 
 MIDDLEWARE_CLASSES = (

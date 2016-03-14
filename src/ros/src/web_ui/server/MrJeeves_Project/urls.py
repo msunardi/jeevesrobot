@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-from MrJeevesApp import views
+#from MrJeevesApp import views
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^MrJeevesApp/', include('MrJeevesApp.urls')),
+    url(r'^navigation/', include('navigation.urls')),
 ]
