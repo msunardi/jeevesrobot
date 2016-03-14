@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+    
+    {% load staticfiles %}
+    
+<html>
+    <head>
+        <meta charset="utf-8" />
+        
+        <style>
+            #error{color:red;}
+        </style>
+        
+        <script type="text/javascript" src="{% static "scripts/jquery-2.1.4.min.js" %}"></script>
+        
+        <script type="text/javascript">
+            var scanInterval = 2000;
+            
+            $(document).ready(function(){
+               setInterval(function(){ scan(); }, scanInterval);
+    
+            });
+          
+          
+        function scan() {
+            $.ajax({
+              method:"GET",
+              url:"/MrJeevesApp/FindAndMatchQR",
+              success:function(response){
+                if ($("#error").is(":visible")) {
+                    $("#error").empty().hide();
+                }
+                $("#message").text(response);
+              },
+              error:function(xhr, textStatus, errorThrown){
+                $("#error").text(errorThrown);
+                $("#message").empty();
+              }
+            }); 
+        }
+        
+        
+        
+        </script>
+    
+    </head>
+
+    <body>
+
+        <div><h4>scanning...</h4><span id="error"></span></div>
+        <h3 id="message"></h3>
+        
+    </body>
+</html>
