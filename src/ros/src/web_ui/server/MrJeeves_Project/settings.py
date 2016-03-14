@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'django.contrib.admin', # THIS LINE SHOULD NOW BE UNCOMMENTED
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    "django_extensions",
     "MrJeevesApp",
 )
 
@@ -97,6 +98,31 @@ DATABASES = {
     }
 }
 
+# LOGGING
+LOGGING_CONFIG = None
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s % (asctime)s %(module)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': './log/debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
