@@ -8,16 +8,15 @@ from Navigator import WaypointManager
 #def index(request):  
 #    return HttpResponse('Navigation')
 
+nav = WaypointManager()
+
 class WaypointView(View):
     # Main navigation view
-    def __init__(self):
-        super(WaypointView, self).__init__()
-        self.nav = WaypointManager()
     
     def get(self, request, *args, **kwargs):
         try:            
             # Dictionary of known waypoints
-            waypoints = self.nav.get_waypoints()
+            waypoints = nav.get_waypoints()
 
             # qs checks for querystring e.g. successfully adding new waypoint
             qs = request.GET
@@ -29,16 +28,13 @@ class WaypointView(View):
 
 class SaveCurrentPoseView(View):
     # View/Endpoint to add new waypoint
-    def __init__(self):
-        super(SaveCurrentPoseView, self).__init__()
-        self.nav = WaypointManager()
     
     def post(self, request, *args, **kwargs):
         try:
             msg = ""
             waypoint_name = request.POST.get('waypoint_name', "")
             if waypoint_name: 
-                response = self.nav.save_current_pose(waypoint_name)
+                response = nav.save_current_pose(waypoint_name)
                 if not response:
                     msg = 0
                 else:
@@ -51,14 +47,11 @@ class SaveCurrentPoseView(View):
 
 class DeleteWaypointView(View):
     # Delete a waypoint
-    def __init__(self):
-        super(DeleteWaypointView, self).__init__()
-        self.nav = WaypointManager()
 
     def get(self, request, *args, **kwargs):
         try:
             #return HttpResponse("Hello world! %s" % request.GET.get('waypoint'))
-            response = self.nav.delete_waypoint(request.GET.get('waypoint'))
+            response = nav.delete_waypoint(request.GET.get('waypoint'))
             return redirect('/navigation?d=0')
         except Exception as e:
             return HttpResponse(e)
