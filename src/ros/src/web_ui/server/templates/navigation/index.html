@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+    
+    {% load staticfiles %}
+    
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{% static "bootstrap-3.3.6-dist/css/bootstrap.min.css" %}"> 
+        <script type="text/javascript" src="{% static "scripts/jquery-2.1.4.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "bootstrap-3.3.6-dist/js/bootstrap.min.js" %}"></script> 
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-2">
+                    <h1><a href="{% url 'MrJeevesApp.views.index' %}"><span class="glyphicon glyphicon-chevron-left"></span>Back</a></h1>
+                </div>
+                <div class="col-md-8">
+                    <div class="page-header">
+                    <h1><p class="text-center">NAVIGATION</p></h1>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li role="presentation"><a href="#">Save current pose</a></li>
+                        <li role="presentation"><a href="#">Cancel Current Goal</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-10">
+                   <table class="table table-hover">
+                       <thead>
+                         <th class="col-md-2">Waypoint</th>
+                         <th class="col-md-4">Description (x, y, theta)</th>
+                         <th class="col-md-1">Enabled</th>
+                         <th class="col-md-5">Actions</th>
+                       </thead>
+                       <tbody>
+                           {% for waypoint in waypoints %}
+                               <tr>
+                                  <td>{{ waypoint.name }}</td>
+                                  <td>{{ waypoint.x|floatformat:3 }}, {{ waypoint.y|floatformat:3 }}, {{ waypoint.theta|floatformat:3 }}</td>
+                                  <td>{{ waypoint.enabled }}</td>
+                                  <td>
+                                       <button class="btn btn-default"><span>Set Pose</span></button>
+                                       <button class="btn btn-danger"><span>Delete</span></button>
+                                       {% if waypoint.enabled %}
+                                       <button class="btn btn-default"><span>Disable</span></button>
+                                       <button class="btn btn-primary"><span>GO</span></button>
+                                       {% else %}
+                                       <button class="btn btn-default"><span>Enable</span></button>                   
+                                       {% endif %}
+                                  </td>     
+                               </tr>
+                           {% endfor %} 
+                       </tbody>
+                   </table>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

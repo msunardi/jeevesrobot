@@ -13,4 +13,10 @@ class NavigationView(View):
         self.nav = WaypointManager()
     
     def get(self, request):
-        return HttpResponse("Navigation View")
+        try:
+            waypoints = self.nav.get_waypoints()
+            context_dict = {'waypoints': waypoints}
+            #return HttpResponse("Navigation View %s" % waypoints)
+            return render(request, 'navigation/index.html', context_dict)
+        except:
+            return HttpResponse("Foobar!")
