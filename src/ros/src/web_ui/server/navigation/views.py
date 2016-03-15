@@ -77,3 +77,14 @@ class CancelWaypointView(View):
             return redirect('/navigation?c=0')
         except Exception as e:
             return HttpResponse(e)
+
+class SetCurrentPoseWaypointView(View):
+    def get(self, request):
+        try:
+            wp = request.GET.get('waypoint')
+            response = nav.set_current_pose_to_waypoint(wp)
+            return redirect('/navigation?w=0')
+        except Exception as e:
+            return redirect('/navigation?w=1')
+            #return HttpResponse(e)
+
