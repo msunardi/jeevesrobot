@@ -9,6 +9,34 @@
         <link rel="stylesheet" href="{% static "bootstrap-3.3.6-dist/css/bootstrap.min.css" %}"> 
         <script type="text/javascript" src="{% static "scripts/jquery-2.1.4.min.js" %}"></script>
         <script type="text/javascript" src="{% static "bootstrap-3.3.6-dist/js/bootstrap.min.js" %}"></script> 
+
+        <script type="text/javascript">
+            /*$(document).ready(function() {
+                $('.wp-delete').click(function() {
+                    var wp_name = $(this).data('name');
+                    delete_waypoint(wp_name);
+                });
+             });
+         
+             function delete_waypoint(name) {
+                 $.ajax({
+                     method:"POST",
+                     url:"/navigation/delete_waypoint/"+name,
+                     success:function(response){
+                         if ($("#error").is(":visible")) {
+                             $("#error").empty().hide();
+                         }
+                         $(".delete-success").show();
+                         $(".delete-failed").hide();                  
+                     },
+                     error:function(xhr, textStatus, errorThrown){
+                         $("#error").text(errorThrown);
+                         $(".delete-success").hide();
+                         $(".delete-failed").show();
+                     }
+                 });
+             }*/
+        </script>
     </head>
     <body>
         <div class="container-fluid">
@@ -39,11 +67,24 @@
                            <span aria-hidden="true">&times;</span></button>
                            <strong>Success!</strong> Waypoint added.
                        </div>
-                       {% else %}
+                       {% elif qs.s == '1' %}
                        <div class="alert alert-danger alert-dismissable" role="alert">
                            <button type-"button" class="close" data-dismiss="alert" aria-label="Close">
                            <span aria-hidden="true">&times;</span></button>
                            <strong>Uh oh!</strong> Failed to add waypoint.
+                       </div>
+                       {% endif %}
+                       {% if qs.d == '0' %}
+                       <div class="alert alert-success alert-dismissable delete-success" role="alert">
+                           <button type-"button" class="close" data-dismiss="alert" aria-label="Close">
+                           <span aria-hidden="true">&times;</span></button>
+                           <strong>Success!</strong> Waypoint deleted.
+                       </div>
+                       {% elif qs.d == '1' %}
+                       <div class="alert alert-danger alert-dismissabledelete-failed" role="alert">
+                           <button type-"button" class="close" data-dismiss="alert" aria-label="Close">
+                           <span aria-hidden="true">&times;</span></button>
+                           <strong>Uh oh!</strong> Failed to delete waypoint.
                        </div>
                        {% endif %}
                    {% endif %}
@@ -62,7 +103,8 @@
                                   <td>{{ waypoint.enabled }}</td>
                                   <td>
                                        <button class="btn btn-default"><span>Set Pose</span></button>
-                                       <button class="btn btn-danger"><span>Delete</span></button>
+                                       <a href="{% url 'delete_waypoint' %}?waypoint={{ waypoint.name }}"
+                                          class="btn btn-danger"><span>Delete</span></a>
                                        {% if waypoint.enabled %}
                                        <button class="btn btn-default"><span>Disable</span></button>
                                        <button class="btn btn-primary"><span>GO</span></button>
@@ -83,12 +125,12 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="post" action="/navigation/save_current_pose">
+        		{% csrf_token %}
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
                             <h3>Save Current Pose</h3>
                         </div>
                         <div class="modal-body">
-                            {% csrf_token %}
                             <div class="form-group">
                                 <label for="waypoint_name">Waypoint name</label>
                                 <input type="text" class="form-control" id="waypoint_name" name="waypoint_name" value="" placeholder="Enter a name for this location">
