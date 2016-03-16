@@ -223,7 +223,9 @@
                            {% for waypoint in waypoints %}
                                {% with x=waypoint.x|floatformat:3 y=waypoint.y|floatformat:3 theta=waypoint.theta|floatformat:3 %}
                                <tr>
-                                  <td>{{ waypoint.name }}</td>
+                                  <td>
+                                       <button class="btn btn-primary btn-lg btn-goto" data-href="{% url 'goto_waypoint' %}?waypoint={{ waypoint.name }}" data-toggle="modal" data-target=".go-modal" data-name="{{ waypoint.name }}"><span>{{ waypoint.name }}</span></button>
+                                  </td>
                                   <td>{{ x }}, {{ y }}, {{ theta }}</td>
                                   <td>{{ waypoint.enabled }}</td>
                                   <td>
@@ -236,7 +238,6 @@
                                        </button>
                                        {% if waypoint.enabled %}
                                        <button class="btn btn-default btn-lg disabled"><span>Disable</span></button>
-                                       <button class="btn btn-primary btn-lg btn-goto" data-href="{% url 'goto_waypoint' %}?waypoint={{ waypoint.name }}" data-toggle="modal" data-target=".go-modal" data-name="{{ waypoint.name }}"><span>GO</span></button>
                                        {% else %}
                                        <button class="btn btn-default btn-lg disabled"><span>Enable</span></button>                   
                                        {% endif %}
