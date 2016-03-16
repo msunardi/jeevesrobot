@@ -19,6 +19,12 @@
                     $(this).find('#del-waypoint').text($(e.relatedTarget).data('name'));
                     $(this).find('#yes-del').attr('href', $(e.relatedTarget).data('href'));
                  });
+                 $('#update-confirm-modal').on('shown.bs.modal', function(e) {
+                    $(this).find('#update-waypoint').text($(e.relatedTarget).data('name'));
+                    //$(this).find('#current-pose').text($(e.relatedTarget).data('pose'));
+                    $(this).find('#yes-update').attr('href', $(e.relatedTarget).data('href'));
+                 });
+
                  $('.btn-goto').click(function() {
                      var href = $(this).data('href');
                      var name = $(this).data('name');
@@ -31,6 +37,7 @@
                      
                      set_current_pose_wp(href);
                  });
+                 
                  
                  // NavTest controls
                  $('#start-navtest').click(function() {
@@ -214,12 +221,13 @@
                        </thead>
                        <tbody>
                            {% for waypoint in waypoints %}
+                               {% with x=waypoint.x|floatformat:3 y=waypoint.y|floatformat:3 theta=waypoint.theta|floatformat:3 %}
                                <tr>
                                   <td>{{ waypoint.name }}</td>
-                                  <td>{{ waypoint.x|floatformat:3 }}, {{ waypoint.y|floatformat:3 }}, {{ waypoint.theta|floatformat:3 }}</td>
+                                  <td>{{ x }}, {{ y }}, {{ theta }}</td>
                                   <td>{{ waypoint.enabled }}</td>
                                   <td>
-                                       <button class="btn btn-default btn-lg btn-setpose"><span data-href="{% url 'set_current_waypoint' %}?waypoint={{ waypoint.name }}">Set Pose</span></button>
+                                       <button class="btn btn-default btn-lg" data-href="{% url 'set_current_waypoint' waypoint.name %}" data-pose="{{ x }}, {{ y }}, {{ theta }}" data-toggle="modal" data-name="{{ waypoint.name }}" data-target=".update-confirm-modal"><span>Set Pose</span></button>
                                        <button data-href="{% url 'delete_waypoint' %}?waypoint={{ waypoint.name }}" 
                                                data-name="{{ waypoint.name }}" data-toggle="modal" 
                                                data-target="#delete-confirm-modal" 
@@ -227,13 +235,14 @@
                                            <span>Delete</span>
                                        </button>
                                        {% if waypoint.enabled %}
-                                       <button class="btn btn-default btn-lg"><span>Disable</span></button>
+                                       <button class="btn btn-default btn-lg disabled"><span>Disable</span></button>
                                        <button class="btn btn-primary btn-lg btn-goto" data-href="{% url 'goto_waypoint' %}?waypoint={{ waypoint.name }}" data-toggle="modal" data-target=".go-modal" data-name="{{ waypoint.name }}"><span>GO</span></button>
                                        {% else %}
-                                       <button class="btn btn-default btn-lg"><span>Enable</span></button>                   
+                                       <button class="btn btn-default btn-lg disabled"><span>Enable</span></button>                   
                                        {% endif %}
                                   </td>     
                                </tr>
+                               {% endwith %}
                            {% endfor %} 
                        </tbody>
                    </table>
@@ -265,6 +274,28 @@
                 </div>
             </div>
         </div>
+
+        <!-- UPDATE WAYPOINT POSE CONFIRMATION MODAL -->
+        <div class="modal fade update-confirm-modal" tabindex="-1" id="update-confirm-modal" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h3><strong><span id="update-waypoint"></span></strong></h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to <strong>update</strong> this waypoint?</p>
+                        <!--Current pose: <span id="current-pose"></span><br>
+                        New pose: <span id="new-pose"></span>-->
+                    </div>
+                    <div class="modal-footer">
+                        <p><a class="btn btn-primary btn-lg btn-setpose" id="yes-update" href="#">UPDATE</a>
+                           <button class="btn btn-default btn-lg" data-dismiss="modal" id="no-del">CANCEL</button></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         
         <!-- DELETE CONFIRMATION MODAL -->
         <div class="modal fade delete-confirm-modal" tabindex="-1" id="delete-confirm-modal" role="dialog">

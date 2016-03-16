@@ -8,8 +8,8 @@ from Navigator import WaypointManager, NavTest
 #def index(request):  
 #    return HttpResponse('Navigation')
 
-SUCCESS = 0
-FAIL = -1
+SUCCESS = '0'
+FAIL = '-1'
 
 nav = WaypointManager()
 navtest = NavTest()
@@ -84,11 +84,11 @@ class CancelWaypointView(View):
             return HttpResponse(e)
 
 class SetCurrentPoseWaypointView(View):
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         try:
-            wp = request.GET.get('waypoint')
+            wp = self.kwargs['waypoint']
             response = nav.set_current_pose_to_waypoint(wp)
-            return redirect('/navigation?w='+SUCCESS)
+            return redirect('/navigation?w=%s' % SUCCESS)
         except Exception as e:
             return redirect('/navigation?w='+FAIL)
             #return HttpResponse(e)
