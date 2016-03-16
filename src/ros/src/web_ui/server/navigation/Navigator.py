@@ -5,10 +5,13 @@ import sys
 import actionlib
 from geometry_msgs.msg import Pose, Point, Quaternion
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from nav_msgs.msg import OccupancyGrid
+from std_msgs.msg import String
 import tf
 
 import jeeves_2d_nav
 from jeeves_2d_nav.srv import *
+from nav_msgs.srv import GetMap
 
 class WaypointManager:
 
@@ -87,3 +90,50 @@ class WaypointManager:
             return -1
         self.prxy_set_current_pose_to_waypoint(waypoint_name)
         return 0
+
+class Mapper:
+    
+    def __init__(self):
+        self.map_sub = rospy.Subscriber(
+            '/map', nav_msgs/OccupancyGrid, self.map_cb)
+        self.prxy_static_map = rospy.ServiceProxy(
+            '/static_map',
+            map_server.srv.static_map)
+
+class NavTest:
+    def __init__(self):
+        self.cmd_sub = rospy.Subscriber('/nav_test/cmd', 
+                                        String, self.cmd_cb)
+        self.msg_sub = rospy.Subscriber('/nav_test/last_message', 
+                                        String, self.last_msg_cb)
+        self.prog_sub = rospy.Subscriber('/nav_test/progress',
+                                        String, self.progress_cb)
+        self.cmd_pub = rospy.Publisher('/nav_test/cmd',
+                                        String, latch=True, queue_size=10)
+        self.cmd = ""
+        self.last_message = ""
+        self.progress = ""
+
+    def cmd_nav_test(self, cmd):
+        self.cmd_pub.publish(cmd)
+        rospy.wait_for_messge('/nav_test/cmd', String, timeout=10)
+        return cmd
+
+    def cmd_cb(self, msg):
+        self.cmd = msg.data
+
+    def last_msg_cb(self, msg):
+        self.last_message = msg.data
+
+    def progress_cb(self, msg):
+        self.progress = msg.data
+
+    def get_cmd(self):
+        return self.cmd
+
+    def get_last_msg(self):
+        return self.last_message
+
+    def get_progress(self):
+        return self.progress 
+        

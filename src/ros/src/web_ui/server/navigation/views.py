@@ -3,12 +3,13 @@ from django.http import HttpResponse
 from django.views.generic import View
 from django import forms
 
-from Navigator import WaypointManager
+from Navigator import WaypointManager, NavTest
 # Create your views here.
 #def index(request):  
 #    return HttpResponse('Navigation')
 
 nav = WaypointManager()
+navtest = NavTest()
 
 class WaypointView(View):
     # Main navigation view
@@ -88,3 +89,10 @@ class SetCurrentPoseWaypointView(View):
             return redirect('/navigation?w=1')
             #return HttpResponse(e)
 
+class NavTestView(View):
+    def get(self, request, *args, **kwargs):
+        try:
+            cmmd = self.kwargs['cmd']
+            return HttpResponse("Command: %s" % cmmd)
+        except Exception as e:
+            return HttpResponse("Fubar! %s" % e) 
