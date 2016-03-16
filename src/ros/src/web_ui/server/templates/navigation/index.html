@@ -11,6 +11,9 @@
         <script type="text/javascript" src="{% static "bootstrap-3.3.6-dist/js/bootstrap.min.js" %}"></script> 
 
         <script type="text/javascript">
+             var pollInterval = 1000;
+             var navtest_timer;
+
              $(document).ready(function() {
                  $('#delete-confirm-modal').on('shown.bs.modal', function(e) {
                     $(this).find('#del-waypoint').text($(e.relatedTarget).data('name'));
@@ -27,6 +30,22 @@
                      var href = $(this).data('href');
                      
                      set_current_pose_wp(href);
+                 });
+                 
+                 // NavTest controls
+                 $('#start-navtest').click(function() {
+                     var url = $(this).data('url');
+                     var mode = $(this).data('mode');
+                     run_navtest(url, mode);
+                     navtest_timer = setInterval(function(){
+                         poll_navtest();
+                     }, pollInterval);
+                 });
+                 $('.btn-navtest-stop').click(function() {
+                     var url = $(this).data('url');
+                     var mode = $(this).data('mode');
+                     run_navtest(url, mode);
+                     clearInterval(navtest_timer);
                  });
              });
 
@@ -64,6 +83,49 @@
                   }
                 }); 
             }
+            function run_navtest(nt_url, mode) {
+                $("#nav-test-status").text(mode+" Nav Test ...");
+                $.ajax({
+                  method:"GET",
+                  url:nt_url,
+                  success:function(response){
+                    if ($("#error").is(":visible")) {
+                        $("#error").empty().hide();
+                    }
+                    $("#nav-test-status").text(response);
+                  },
+                  error:function(xhr, textStatus, errorThrown){
+                    $("#nav-test-status").text(errorThrown);
+                  }
+                }); 
+            }
+            function poll_navtest() {
+                /*$.ajax({
+                  method:"GET",
+                  url:"{% url 'nav_test_status' %}",
+                  success:function(response){
+                    if ($("#error").is(":visible")) {
+                        $("#error").empty().hide();
+                    }
+                    var r = $.parseJSON(response);
+                    $("#nav-test-console").http("Status: "+r.status+
+                    "<br>Last message: "+r.last_message+"<br>Progress: "+
+                    r.progress+"<br>");
+                  },
+                  error:function(xhr, textStatus, errorThrown){
+                    $("#nav-test-console").text(errorThrown);
+                  }
+                });*/
+                $.getJSON("{% url 'nav_test_status' %}",
+                    function(r) {
+                    $("#nav-test-console").html("Status: "+r.status+
+                    "<br>Last message: "+r.last_message+"<br>Progress: "+
+                    r.progress+"<br>Refresh rate: "+pollInterval+"hz");
+                    });
+                 
+            }
+            
+        </script>
             
         </script>
         <style>
@@ -102,7 +164,7 @@
                            <span aria-hidden="true">&times;</span></button>
                            <strong>Success!</strong> Waypoint added.
                        </div>
-                       {% elif qs.s == '1' %}
+                       {% elif qs.s == '-1' %}
                        <div class="alert alert-danger alert-dismissable" role="alert">
                            <button type-"button" class="close" data-dismiss="alert" aria-label="Close">
                            <span aria-hidden="true">&times;</span></button>
@@ -115,7 +177,7 @@
                            <span aria-hidden="true">&times;</span></button>
                            <strong>Success!</strong> Waypoint deleted.
                        </div>
-                       {% elif qs.d == '1' %}
+                       {% elif qs.d == '-1' %}
                        <div class="alert alert-danger alert-dismissabledelete-failed" role="alert">
                            <button type-"button" class="close" data-dismiss="alert" aria-label="Close">
                            <span aria-hidden="true">&times;</span></button>
@@ -135,7 +197,7 @@
                            <span aria-hidden="true">&times;</span></button>
                            <strong>Success!</strong> Set current pose to waypoint.
                        </div>
-                       {% elif qs.w == '1' %}
+                       {% elif qs.w == '-1' %}
                        <div class="alert alert-danger alert-dismissable" role="alert">
                            <button type-"button" class="close" data-dismiss="alert" aria-label="Close">
                            <span aria-hidden="true">&times;</span></button>
@@ -146,7 +208,7 @@
                    <table class="table table-hover">
                        <thead>
                          <th class="col-md-2">Waypoint</th>
-                         <th class="col-md-4">Description (x, y, theta)</th>
+                         <th class="col-md-4">Location (x, y, theta)</th>
                          <th class="col-md-1">Enabled</th>
                          <th class="col-md-5">Actions</th>
                        </thead>
@@ -253,11 +315,15 @@
                     </div>
                     <div class="modal-body">
                         <p>Jeeves will run around in random order over several waypoints</p>
+                        <div class="well"> 
+                            <strong><span id="nav-test-status"></span></strong><hr />
+                            <span id="nav-test-console"></span>
+                        </div>
                     </div>
                     <div class="modal-footer">
-                        <p class="text-center"><a class="btn btn-primary btn-lg" id="go-navtest" href="{% url 'nav_test' 'RUN' %}">START</a>
-                        <a class="btn btn-danger btn-lg" id="go-navtest" href="{% url 'nav_test' 'HALT' %}">STOP</a>
-                           <button class="btn btn-default btn-lg" data-dismiss="modal" id="no-del">CANCEL</button></p>
+                        <p class="text-center"><button class="btn btn-primary btn-lg btn-navtest" data-url="{% url 'nav_test' 'RUN' %}" data-mode="Starting" id="start-navtest">START</button>
+                        <button class="btn btn-danger btn-lg btn-navtest-stop" data-url="{% url 'nav_test' 'HALT' %}" data-mode="Stopping" id="stop-navtest">STOP</button>
+                           <button class="btn btn-default btn-lg btn-navtest-stop" data-url="{% url 'nav_test' 'HALT' %}" data-mode="Stopping" data-dismiss="modal">CANCEL</button></p>
                     </div>
                 </div>
              </div>

@@ -2,7 +2,7 @@ from django.conf.urls import patterns, url
 from navigation.views import WaypointView, SaveCurrentPoseView,\
     DeleteWaypointView, GoToWaypointView, \
     CancelWaypointView, SetCurrentPoseWaypointView, \
-    NavTestView
+    NavTestView, NavTestStatusView
 
 urlpatterns = [
     url(r'^$', WaypointView.as_view(), name='navigation'),
@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^cancel_waypoint', CancelWaypointView.as_view(), name='cancel_waypoint'),
     url(r'^set_current_waypoint', SetCurrentPoseWaypointView.as_view(), name='set_current_waypoint'),
     url(r'^navtest/(?P<cmd>\w+)', NavTestView.as_view(), name='nav_test'),
+    url(r'^navteststatus', NavTestStatusView.as_view(), name='nav_test_status'),
 ]

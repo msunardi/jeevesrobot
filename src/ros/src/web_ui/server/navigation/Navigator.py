@@ -110,9 +110,9 @@ class NavTest:
                                         String, self.progress_cb)
         self.cmd_pub = rospy.Publisher('/nav_test/cmd',
                                         String, latch=True, queue_size=10)
-        self.cmd = ""
-        self.last_message = ""
-        self.progress = ""
+        self.cmd = "No command"
+        self.last_message = "No last message"
+        self.progress = "No progress"
 
     def cmd_nav_test(self, cmd):
         self.cmd_pub.publish(cmd)
