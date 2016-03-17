@@ -25,7 +25,7 @@
             });
 
             $(document).on({
-                ajaxStart: function() {$("#message").text("Hang on..."); },
+                ajaxStart: function() {$("#message").html("Reading ...<br><img src=\"{% static 'images/loader.gif' %}\" width=\"100\" height=\"100\"/>"); },
                 
             });
             $("#dashboard").click(function(){
@@ -93,7 +93,7 @@
                         <a href="{% url 'navigation' %}" class="btn btn-primary btn-lg btn-block">NAVIGATE</a>
                 </div>
        		    <div class="col-md-8">
-                   	<img class="center-block" src="http://192.168.1.2:8080/stream?topic=/camera/face" width="640">
+                   	<img class="center-block" src="http://192.168.1.2:8081/stream?topic=/camera/face" width="640">
                 </div>
                 <div class="col-md-2">
 			<button class="btn btn-primary btn-lg btn-block" type="button" id="read_qr" data-toggle="modal" data-target=".qr-code-modal-lg">READ QR</button>
@@ -150,7 +150,13 @@
                          <h1 class="modal-title">READ QR</h1>
                      </div>
                      <div class="modal-body">
-                         <h3 id="message"></h3>
+                         <h3 id="message" class="text-center"></h3>
+                     </div>
+                     <div class="modal-footer">
+                        <p class="text-center">
+			<button class="btn btn-primary btn-lg btn-readqr" type="button" id="read_qr">TRY AGAIN</button>
+                        <button class="btn btn-default btn-lg" data-dismiss="modal">CANCEL</button>
+                        </p>
                      </div>
                  </div>
             </div>

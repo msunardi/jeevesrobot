@@ -43,6 +43,8 @@
                  $('#start-navtest').click(function() {
                      var url = $(this).data('url');
                      var mode = $(this).data('mode');
+                     $('#nav-test-status').html("<strong>Loading...</strong>");
+                     $('#nav-test-console').html("<p class='text-center'><img height=\"100\" width=\"100\" src=\"{% static 'images/loader.gif' %}\" /></p>");
                      run_navtest(url, mode);
                      navtest_timer = setInterval(function(){
                          poll_navtest();
@@ -74,7 +76,6 @@
                 }); 
             }
             function set_current_pose_wp(wp_url) {
-                $("#go-waypoint-detail").text("Loading ...");
                 $.ajax({
                   method:"GET",
                   url:wp_url,
@@ -82,11 +83,9 @@
                     if ($("#error").is(":visible")) {
                         $("#error").empty().hide();
                     }
-                    $("#go-waypoint-detail").text(response);
                   },
                   error:function(xhr, textStatus, errorThrown){
                     $("#error").text(errorThrown);
-                    $("#go-waypoint-detail").empty();
                   }
                 }); 
             }
