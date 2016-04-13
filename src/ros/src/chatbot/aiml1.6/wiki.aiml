@@ -9,10 +9,24 @@
 <!-- as adopted by the ALICE A.I. Foundation.  -->
 <!-- Last modified 12/02/2011 -->
 <!-- -->
-<category><pattern>WHAT IS *</pattern>
-<template>wiki: <star /></template>
-</category>
-<category><pattern>_ TELL ME ABOUT *</pattern>
-<template><srai>WHAT IS <star/></srai></template>
-</category>
+	<category>
+		<pattern>WHAT IS *</pattern>
+		<template>wiki: <star /></template>
+	</category>
+	<category>
+		<pattern>WHAT CAN YOU TELL ME ABOUT *</pattern>
+		<template><srai>WHAT IS <star /></srai></template>
+	</category>
+	<category>
+		<pattern>TELL ME ABOUT *</pattern>
+		<template><srai>WHAT IS <star /></srai></template>
+	</category>
+	<category>
+		<pattern>I WANT TO KNOW ABOUT *</pattern>
+		<template><srai>WHAT IS <star /></srai></template>
+	</category>
+	<category>
+		<pattern>WHAT DO YOU KNOW ABOUT *</pattern>
+		<template><srai>WHAT IS <star /></srai></template>
+	</category>
 </aiml>

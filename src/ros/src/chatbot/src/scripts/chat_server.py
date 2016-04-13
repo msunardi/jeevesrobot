@@ -21,13 +21,13 @@ def handle_chat_request(req):
             r = response.replace('ambiguous: ', '')
             #print r
             engine.say('...')
-            engine.say(r)
+            engine.say('Well ...')
             engine.say(r)
             engine.runAndWait()
         else:
             print response
             engine.say('...')
-            engine.say(response)
+            engine.say('...')
             engine.say(response)
             engine.runAndWait()
         engine.stop()
