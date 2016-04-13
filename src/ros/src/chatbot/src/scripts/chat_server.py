@@ -42,9 +42,7 @@ def handle_chat_request(req):
         try:
             response = isWolframalpha(req.pattern)
 
-            if response:
-                if 'sqrt' in response:
-                    response = response.replace('sqrt', 'square root of ')
+            if response:                
                 say(response)
             else:
                 say("Hmm ... could not find it in Wolframalpha either. \
@@ -105,7 +103,8 @@ def isWolframalpha(pattern):
             # if next(result.results):
             for p in result.pods:
                 if p.title in ['Input', 'Result']:
-                    answer.append(p.text)
+                    ff = replaceMathWords(p.text)
+                    answer.append(ff)
                 elif p.title == 'Decimal approximation':
                     answer.append(p.text[:7])
             return "The %s is %s" % (answer[0], answer[1])
@@ -116,16 +115,28 @@ def isWolframalpha(pattern):
                 for p in result.pods:
                     if p.title == 'Input interpretation':
                         answer += "You mean %s? ... " % p.text
-                    if p.title in ['Result', 'Definition', 'Description', 'Alternate description']:
-                        answer += p.text
+                    if p.title in ['Result', 'Current result', 'Definition', 'Description', 'Alternate description']:
+                        answer += replaceMathWords(p.text)
                     if p.title in ['Unit conversions']:
-                        answer += " or %s" % p.text
+                        answer += " or %s" % replaceMathWords(p.text)
                 return answer
             except Exception:
                 return "Not found"
 
     except ValueError:
         return None
+
+def replaceMathWords(answer):
+    # if not findNumbers(answer):
+    #     return answer
+    fixed = answer
+    if 'sqrt' in answer:
+        fixed = fixed.replace('sqrt', 'square root of ')
+    if '^' in answer:
+        fixed = fixed.replace('^', ' to the power of ')
+    if '/' in answer:
+        fixed = fixed.replace('/', ' divided by ')
+    return fixed
 
 def findQuestionPattern(pattern):
     p = re.compile('(what|how (much|many|long|far|heavy|big|short|small|hot|cold|tall|deep|shallow|wide|narrow)|who|) (is|are)')
