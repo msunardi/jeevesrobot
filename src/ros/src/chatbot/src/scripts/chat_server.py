@@ -5,6 +5,8 @@ import wikipedia
 import wolframalpha
 import pyttsx
 import random
+import re
+
 from chatbot.srv import *
 import rospy
 import rospkg
@@ -33,14 +35,23 @@ def handle_chat_request(req):
     else:
         engine.say('...')
         if not findNumbers(req.pattern):
-            engine.say('Cannot find %s in wikipedia. Trying Wolframalpha...' % req.pattern)
-        response = isWolframalpha(req.pattern)
-        if response:
-            say(response)
-        else:
-            say("Hmm ... could not find it in Wolframalpha either. \
-                Are you %s" % (response, random.choice(\
-                    ['sure?', 'pulling my hypothetical leg?', 'sure about this?'])))
+            # engine.say('Cannot find %s in wikipedia. Trying Wolframalpha...' % req.pattern)
+            think_choices = ['Cannot find %s in wikipedia. Trying Wolframalpha...' % req.pattern,\
+                             'Let me think ...', 'Hang on ...', 'I\'m not sure, let me check Wolframalpha']
+            engine.say(random.choice(think_choices))
+        try:
+            response = isWolframalpha(req.pattern)
+
+            if response:
+                if 'sqrt' in response:
+                    response = response.replace('sqrt', 'square root of ')
+                say(response)
+            else:
+                say("Hmm ... could not find it in Wolframalpha either. \
+                    Are you %s" % (random.choice(\
+                        ['sure?', 'pulling my hypothetical leg?', 'sure about this?'])))
+        except ValueError:
+            say("Sorry - I don't understand that question.")
 
     return ChatResponse(response)
 
@@ -82,13 +93,51 @@ def isWiki(answer):
     else: return None
 
 def isWolframalpha(pattern):
+    new_pattern, skip = findQuestionPattern(pattern)
+    # if not new_pattern:
+    #     return None
+    
+    print "Trying %s" % new_pattern
     try:
-        result = wa_client.query(pattern)
-        return next(result.results).text
+        result = wa_client.query(new_pattern)
+        try:
+            answer = []
+            # if next(result.results):
+            for p in result.pods:
+                if p.title in ['Input', 'Result']:
+                    answer.append(p.text)
+                elif p.title == 'Decimal approximation':
+                    answer.append(p.text[:7])
+            return "The %s is %s" % (answer[0], answer[1])
+            # return "%s is %s" % (new_pattern[skip:], next(result.results).text)
+        except Exception:
+            try:
+                answer = ''
+                for p in result.pods:
+                    if p.title == 'Input interpretation':
+                        answer += "You mean %s? ... " % p.text
+                    if p.title in ['Result', 'Definition', 'Description', 'Alternate description']:
+                        answer += p.text
+                    if p.title in ['Unit conversions']:
+                        answer += " or %s" % p.text
+                return answer
+            except Exception:
+                return "Not found"
 
     except ValueError:
         return None
 
+def findQuestionPattern(pattern):
+    p = re.compile('(what|how (much|many|long|far|heavy|big|short|small|hot|cold|tall|deep|shallow|wide|narrow)|who|) (is|are)')
+    i = 0
+    skip = 0
+    iterator = p.finditer(pattern)
+    for it in iterator:
+        i = it.start()
+        skip = len(it.group())
+
+    return pattern[i:], skip
+    
 def chat_server():
     rospy.init_node('chat_server')
     s = rospy.Service('chat', Chat, handle_chat_request)

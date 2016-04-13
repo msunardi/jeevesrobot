@@ -18,11 +18,23 @@
 		<template><srai>COMPUTE <star /></srai></template>
 	</category>
 	<category>
-		<pattern>WHAT IS *</pattern>
+		<pattern>HOW MUCH IS *</pattern>
 		<template><srai>COMPUTE <star /></srai></template>
 	</category>
 	<category>
 		<pattern>CAN YOU CALCULATE WHAT IS *</pattern>
+		<template><srai>COMPUTE <star /></srai></template>
+	</category>
+	<category>
+		<pattern>CAN YOU COMPUTE WHAT IS *</pattern>
+		<template><srai>COMPUTE <star /></srai></template>
+	</category>
+	<category>
+		<pattern>COULD YOU CALCULATE WHAT IS *</pattern>
+		<template><srai>COMPUTE <star /></srai></template>
+	</category>
+	<category>
+		<pattern>COULD YOU COMPUTE WHAT IS *</pattern>
 		<template><srai>COMPUTE <star /></srai></template>
 	</category>
 </aiml>
