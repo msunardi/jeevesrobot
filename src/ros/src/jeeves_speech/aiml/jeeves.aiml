@@ -1,0 +1,151 @@
+<aiml version="1.0.1">
+
+<category>
+   <pattern>HELLO</pattern>
+   <template>
+      <random>
+         <li>Hi there</li>
+         <li>Hello there</li>
+         <li>Greetings</li>
+         <li>Good day</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>HELLO *</pattern>
+   <template>
+      <srai>Hello</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>HI *</pattern>
+   <template>
+      <srai>Hello</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>BYE</pattern>
+   <template>
+      <random>
+         <li>See you later</li>
+         <li>Goodbye</li>
+         <li>Until next time</li>
+         <li>See you later</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>* BYE *</pattern>
+   <template>
+      <srai>BYE</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>TELL ME A STORY</pattern>
+   <template>
+      I was traveling through the desert with two friends.  We only had one mouthful of food and water left.  We made camp for the night, and agreed that the one who dreamed the greatest dream that night would get the food in the morning.  We awoke, and we related our dreams.  My first friend said, I dreamed that I computed the parameters for a robot that was self aware.  People gave me much love and admiration, and I was hailed as a hero.  That is a great dream indeed, said the second, but I dreamed that I actually became self aware, and the people put me on their shoulders and made me the guest of honor.  Then both of my friends turned to me, and said, so tell us your dream, so that one of us may eat the food and water, at which I said, no doubt both of your dreams were great, but you see, in the middle of the night I was captivated by a powerful desire to rise and eat up all the remaining food and water, and that is just what I did.  End story.
+   </template>
+</category>
+
+<category>
+   <pattern>TELL ME * STORY</pattern>
+   <template>
+      <srai>TELL ME A STORY</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>* TELL ME A STORY *</pattern>
+   <template>
+      <srai>TELL ME A STORY</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>TELL ME A STORY *</pattern>
+   <template>
+      <srai>TELL ME A STORY</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>* TELL ME A STORY</pattern>
+   <template>
+      <srai>TELL ME A STORY</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>Calculate *</pattern>
+   <template>
+         <srai>Calculate command</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>dance</pattern>
+   <template>
+      <random>
+         <li>Dance command</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>TAKE ME TO *</pattern>
+   <template>
+      <random>
+         <li>Escort command</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>TAKE ME TO THE *</pattern>
+   <template>
+      <random>
+         <li>Location command</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>TAKE ME TO YOUR *</pattern>
+   <template>
+      <random>
+         <li>Escort command</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>TELL ME ABOUT *</pattern>
+   <template>
+      <random>
+         <li>Query command</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>GIVE ME A TOUR</pattern>
+   <template>
+      <random>
+         <li>Tour command</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>TOUR</pattern>
+   <template>
+      <srai>* give me a tour *</srai>
+   </template>
+</category>
+
+</aiml>
