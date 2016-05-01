@@ -148,4 +148,24 @@
    </template>
 </category>
 
+   
+<category>
+   <pattern>JEEVES ACKNOWLEDGE</pattern>
+   <template>
+      <random>
+         <li>jeeves acknowledge response to person</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>JEEVES LISTEN</pattern>
+   <template>
+      <random>
+         <li>I am</li>
+      </random>
+   </template>
+</category>
+
 </aiml>
+

@@ -58,6 +58,8 @@ jeeves.respond('load aiml b') #finished initializing
 
 
 t2s    = '';
+t2s_topic = '';
+
 
 '''
 # -----------------------------------------------------------------------------------------------------
@@ -72,8 +74,8 @@ t2s    = '';
 # -----------------------------------------------------------------------------------------------------
 '''
 def proc_cmd(message):
-
-   global t2s_topic;
+   
+   global t2s_topic, t2s;
    
    if len(message.data) == 0:
       print "Invalid command received..."
@@ -126,13 +128,13 @@ def proc_cmd(message):
 '''
 def jeeves_proc_cmd_f():
    
-   global t2s_topic
+   global t2s_topic;
    
    # Create the "jeeves_speech_to_text" ROS node
    rospy.init_node('jeeves_proc_cmd')
    
-   # Create topic to publish to
-   t2s_topic    = rospy.Publisher('jeeves_speech/speech_synthesis'   , String, queue_size=10)   
+   # Publish to "jeeves_speech_synthesis.py" node
+   t2s_topic         = rospy.Publisher('jeeves_speech/speech_synthesis'   , String, queue_size=10)
    
    # Subscribe to speech_to_text topic
    rospy.Subscriber("jeeves_speech/speech_proc_cmd", String, proc_cmd)

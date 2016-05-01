@@ -60,6 +60,7 @@ jeeves.respond('load aiml b') #finished initializing
 proc_cmd_topic    = '';
 wolfram_cmd_topic = '';
 wiki_cmd_topic    = '';
+t2s_topic         = '';
 
 '''
 # -----------------------------------------------------------------------------------------------------
@@ -88,25 +89,53 @@ def proc_text(message):
    # Check the Jeeves AIML for a pattern match
    aiml_string      = jeeves.respond( speech_txt )
    print "aiml_string = %s" % aiml_string
-   
-   # Publish AIML Command
+
+   # -----------------------------------------------------
+   #                  AIML Command
+   # -----------------------------------------------------
    if( aiml_string.lower().find('command') != -1 ):
       if VERBOSITY:
          print "Jeeves: %s" % speech_txt
       json_aiml_string = json.dumps({'command':aiml_string.lower().replace(' command', ''), 'text':speech_txt});
       proc_cmd_topic.publish(json_aiml_string);
-   # Publish Calculate Command
+      
+   # -----------------------------------------------------
+   #                Calculate Command
+   # -----------------------------------------------------
    elif( aiml_string.lower().find('wolfram') != -1 ):
       if VERBOSITY:
          print "Wolfram: %s" % speech_txt
       proc_cmd_topic.publish(speech_txt)
-   # Publish Wikipedia Command
+      
+   # -----------------------------------------------------
+   #                 Wikipedia Command
+   # -----------------------------------------------------
    elif( aiml_string.lower().find('wikipedia') != -1 ):
       if VERBOSITY:
          print "Wikipedia: %s" % speech_txt
       proc_cmd_topic.publish(speech_text)
-   # If no pattern match
+      
+   # -----------------------------------------------------
+   #                    Acknowledge
+   # -----------------------------------------------------
+   elif( aiml_string.lower().find('jeeves acknowledge response to person') != -1 ):
+      t2s_topic.publish('How can I help you');
+      if VERBOSITY:
+         print "How can I help you?"
+         
+   # -----------------------------------------------------
+   #                    Acknowledge
+   # -----------------------------------------------------
+   elif( aiml_string.lower().find('i am') != -1 ):
+      t2s_topic.publish(aiml_string);
+      if VERBOSITY:
+         print "I am"
+      
+   # -----------------------------------------------------
+   #                      No Match
+   # -----------------------------------------------------
    else:
+      t2s_topic.publish('I\'m sorry, I did not understand what you said.');
       if VERBOSITY:
          print "I'm sorry, I did not understand what you said."
    
@@ -126,15 +155,16 @@ def proc_text(message):
 '''
 def jeeves_text_category_f():
    
-   global proc_cmd_topic, wolfram_cmd_topic, wiki_cmd_topic
+   global proc_cmd_topic, wolfram_cmd_topic, wiki_cmd_topic, t2s_topic;
    
    # Create the "jeeves_speech_to_text" ROS node
    rospy.init_node('jeeves_text_category')
    
-   # Create topic to publish to
+   # Create topics to publish to
    proc_cmd_topic    = rospy.Publisher('jeeves_speech/speech_proc_cmd'   , String, queue_size=10)   
    wolfram_cmd_topic = rospy.Publisher('jeeves_speech/speech_wolfram_cmd', String, queue_size=10)   
    wiki_cmd_topic    = rospy.Publisher('jeeves_speech/speech_wiki_cmd'   , String, queue_size=10)
+   t2s_topic         = rospy.Publisher('jeeves_speech/speech_synthesis'   , String, queue_size=10)
    
    # Subscribe to speech_to_text topic
    rospy.Subscriber("jeeves_speech/speech_to_text", String, proc_text)

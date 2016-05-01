@@ -51,6 +51,8 @@ VERBOSITY = bool(1)
 if VERBOSITY:
    print "Development Environment:  %s " % str(DEV_ENV)
 
+handshake_topic = False;
+   
 '''
 # -----------------------------------------------------------------------------------------------------
 #                                            proc_cmd()
@@ -65,11 +67,17 @@ if VERBOSITY:
 '''
 def synthesize(message):
    
+   global handshake_topic;
+   
    if len(message.data) == 0:
       print "Invalid speech request received..."
-
+   else:
+      print message.data
 #	subprocess.call(["festival", "--batch", "(voice_rab_diphone)", "(SayText \"" + text.data + "\")"])
    subprocess.call(["festival", "--batch", "(SayText \"" + message.data + "\")"])
+   
+   # Provide handshake to "jeeves_speech_to_text" node
+   handshake_topic.publish("True");
 	
    return
 
@@ -87,8 +95,12 @@ def synthesize(message):
 '''
 def jeeves_speech_synthesis_f():
    
+   global handshake_topic;
+   
    # Create the "jeeves_speech_to_text" ROS node
    rospy.init_node('jeeves_speech_synthesis')
+
+   handshake_topic = rospy.Publisher('jeeves_speech/speech_handshake'   , String, queue_size=10)
    
    # Subscribe to speech_to_text topic
    rospy.Subscriber("jeeves_speech/speech_synthesis", String, synthesize)
