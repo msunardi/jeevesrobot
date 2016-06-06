@@ -1,32 +1,33 @@
-tell me where is location
-give me directions to location
-how do i get to location
-take me to location
-show me to location
-lets go to location
-
-take me to person office
-show me to person office
-lets go to person office
-tell me about location
-what is location
-give me information about location
-what happens at location
-what goes on at location
-tell me about person
-give me information about person
-who is person
-tell me where is person office
-give me directions to person office
-how do i get to person office
-
+command location
+command person
+Give me a command
+Calculate
+Dance
+Take me to
+Take me to the
+Take me to your
+Tell me about
+Tour
+Calculate
+Dance
+Listen
+Take me to
+Take me to the
+Take me to your
+Tell me about
+Tour
+Doctor Perkowski
+Doctor Hall
+Doctor Song
+Josh Sackos
+Mathias Sunardi
+Rick Armstrong
+Leader
+Jeeves
 Robotics Lab
 Intel Lab
 Atrium
 EB 84
 Conference Room
 
-Doctor Perkowski
-Doctor Hall
-Doctor Song
 
