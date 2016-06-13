@@ -1,0 +1,44 @@
+<aiml version="1.0.1">
+
+<category>
+	<pattern>MAGIC TRICK</pattern>
+	<template>
+		Ok. Think of a number between two and nine. What is it?
+	</template>
+</category>
+
+<category>
+	<pattern>*</pattern>
+	<that>
+		Ok. Think of a number between two and nine. What is it?
+	</that>
+	<template>
+		<star index="1">. Ok, now multiply your number by nine. What is your number now?
+	</template>
+</category>
+
+<category>
+	<pattern>*</pattern>
+	<that>
+		*. Ok, now multiply your number by nine. What is your number now?
+	</that>
+	<template>
+		<star index="1">. What do you get when you add the two digits together?
+	</template>
+</category>
+
+<category>
+	<pattern>*</pattern>
+	<that>
+		*. Ok, now multiply your number by nine. What is your number now?
+	</that>
+	<template>
+		<star index="1">. What do you get when you add the two digits together?
+	</template>
+</category>
+
+
+
+
+
+</aiml>
