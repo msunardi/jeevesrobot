@@ -1,0 +1,5 @@
+<launch>
+    <arg name="JEEVES_LAUNCH_DIR" value="/home/mcecsbot/src/roboticsclub-mcecsbot/src/ros/launch" />
+    <include file="$(find jeeves_speech)/launch/jeeves_speech.launch" />
+
+</launch>
