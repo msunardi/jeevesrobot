@@ -1,0 +1,3 @@
+<launch>
+  <node name="jeeves_speech_to_text" pkg="jeeves_speech" type="jeeves_speech_to_text.py" />
+</launch>

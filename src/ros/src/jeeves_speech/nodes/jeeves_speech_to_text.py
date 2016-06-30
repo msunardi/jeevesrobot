@@ -123,11 +123,6 @@ def jeeves_speech_to_text_f():
    #      Create speech_to_text Topic
    # ---------------------------------------
    s2t_topic = rospy.Publisher('jeeves_speech/speech_to_text', String, queue_size=10)
-
-   # ---------------------------------------
-   #      Create speech_greeting Topic
-   # ---------------------------------------
-   sgreet_topic = rospy.Publisher('jeeves_speech/speech_greeting', String, queue_size=10)
    
    # ---------------------------------------
    #   Subscribe to speech_handshake Topic

@@ -59,6 +59,7 @@ jeeves.respond('load aiml b') #finished initializing
 
 t2s    = '';
 t2s_topic = '';
+scmd_topic = '';
 
 
 '''
@@ -95,6 +96,15 @@ def proc_cmd(message):
       command = command.replace('greeting ', '');
       print "GREETING COMMAND";
       t2s_topic.publish(command);
+
+      if(command.find('bye') != -1):
+         json_str = json.dumps({'command':'greeting', 'args':[0, text]});
+      else:
+         json_str = json.dumps({'command':'greeting', 'args':[1, text]});
+
+      scmd_topic.publish(json_str);
+      print json_str
+
 
    # --------------------------------------------
    #                   Escort
@@ -195,13 +205,18 @@ def proc_cmd(message):
 '''
 def jeeves_proc_cmd_f():
    
-   global t2s_topic;
+   global t2s_topic, scmd_topic;
    
    # Create the "jeeves_speech_to_text" ROS node
    rospy.init_node('jeeves_proc_cmd')
    
    # Publish to "jeeves_speech_synthesis.py" node
    t2s_topic         = rospy.Publisher('jeeves_speech/speech_synthesis'   , String, queue_size=10)
+
+   # ---------------------------------------
+   #      Create speech_command Topic
+   # ---------------------------------------
+   scmd_topic = rospy.Publisher('jeeves_speech/speech_command', String, queue_size=10)
    
    # Subscribe to speech_to_text topic
    rospy.Subscriber("jeeves_speech/speech_proc_cmd", String, proc_cmd)

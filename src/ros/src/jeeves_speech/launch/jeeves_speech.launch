@@ -1,0 +1,6 @@
+<launch>
+  <node name="jeeves_speech_to_text" pkg="jeeves_speech" type="jeeves_speech_to_text.py" />
+  <node name="jeeves_speech_synthesis" pkg="jeeves_speech" type="jeeves_speech_synthesis.py" />
+  <node name="jeeves_proc_cmd" pkg="jeeves_speech" type="jeeves_proc_cmd.py" />
+  <node name="jeeves_text_category" pkg="jeeves_speech" type="jeeves_text_category.py" />
+</launch>
