@@ -1,39 +1,41 @@
 <aiml version="1.0.1">
-
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                    Greetings                                                                  -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <category>
-   <pattern>HELLO</pattern>
+   <pattern>HI JEEVES</pattern>
    <template>
       <random>
-         <li>Hi there</li>
-         <li>Hello there</li>
-         <li>Greetings</li>
-         <li>Good day</li>
+         <li>greeting command Hi there</li>
+         <li>greeting command Hello there</li>
+         <li>greeting command Greetings</li>
+         <li>greeting command Good day</li>
       </random>
    </template>
 </category>
 
 <category>
-   <pattern>HELLO *</pattern>
+   <pattern>HELLO JEEVES *</pattern>
    <template>
-      <srai>Hello</srai>
+      <srai>HI JEEVES</srai>
    </template>
 </category>
 
 <category>
-   <pattern>HI *</pattern>
+   <pattern>HELLO JEEVES</pattern>
    <template>
-      <srai>Hello</srai>
+      <srai>HI JEEVES</srai>
    </template>
 </category>
 
 <category>
-   <pattern>BYE</pattern>
+   <pattern>BYE JEEVES</pattern>
    <template>
       <random>
-         <li>See you later</li>
-         <li>Goodbye</li>
-         <li>Until next time</li>
-         <li>See you later</li>
+         <li>greeting command See you later</li>
+         <li>greeting command Goodbye</li>
+         <li>greeting command Until next time</li>
+         <li>greeting command See you manana</li>
       </random>
    </template>
 </category>
@@ -41,10 +43,13 @@
 <category>
    <pattern>* BYE *</pattern>
    <template>
-      <srai>BYE</srai>
+      <srai>BYE JEEVES</srai>
    </template>
 </category>
 
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                    Stories                                                                    -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <category>
    <pattern>TELL ME A STORY</pattern>
    <template>
@@ -79,7 +84,10 @@
       <srai>TELL ME A STORY</srai>
    </template>
 </category>
-   
+
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                    Wolfram                                                                    -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <category>
    <pattern>Calculate *</pattern>
    <template>
@@ -87,8 +95,11 @@
    </template>
 </category>
 
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                    Entertainment                                                              -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <category>
-   <pattern>dance</pattern>
+   <pattern>DANCE</pattern>
    <template>
       <random>
          <li>Dance command</li>
@@ -96,17 +107,12 @@
    </template>
 </category>
 
-<category>
-   <pattern>TAKE ME TO *</pattern>
-   <template>
-      <random>
-         <li>Escort command</li>
-      </random>
-   </template>
-</category>
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                    Location Commands                                                          -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
    
 <category>
-   <pattern>TAKE ME TO THE *</pattern>
+   <pattern>TAKE ME TO THE</pattern>
    <template>
       <random>
          <li>Location command</li>
@@ -115,7 +121,22 @@
 </category>
 
 <category>
-   <pattern>TAKE ME TO YOUR *</pattern>
+   <pattern>TAKE ME TO THE *</pattern>
+   <template>
+      <srai>TAKE ME TO</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>* TAKE ME TO THE *</pattern>
+   <template>
+      <srai>TAKE ME TO</srai>
+   </template>
+</category>
+
+
+<category>
+   <pattern>TAKE ME TO</pattern>
    <template>
       <random>
          <li>Escort command</li>
@@ -124,11 +145,57 @@
 </category>
 
 <category>
-   <pattern>TELL ME ABOUT *</pattern>
+   <pattern>TAKE ME TO DOCTOR *</pattern>
+   <template>
+      <srai>TAKE ME TO</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>* TAKE ME TO DOCTOR *</pattern>
+   <template>
+      <srai>TAKE ME TO</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>TAKE ME TO YOUR *</pattern>
+   <template>
+      <srai>TAKE ME TO</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>* TAKE ME TO YOUR *</pattern>
+   <template>
+      <srai>TAKE ME TO</srai>
+   </template>
+</category>
+
+
+
+
+
+<category>
+   <pattern>TELL ME ABOUT</pattern>
    <template>
       <random>
          <li>Query command</li>
       </random>
+   </template>
+</category>
+
+<category>
+   <pattern>TELL ME ABOUT *</pattern>
+   <template>
+      <srai>TELL ME ABOUT</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>* TELL ME ABOUT *</pattern>
+   <template>
+      <srai>TELL ME ABOUT</srai>
    </template>
 </category>
 
@@ -144,11 +211,13 @@
 <category>
    <pattern>TOUR</pattern>
    <template>
-      <srai>* give me a tour *</srai>
+      <srai>GIVE ME A TOUR</srai>
    </template>
 </category>
 
-   
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                    Control Commands                                                           -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->   
 <category>
    <pattern>JEEVES ACKNOWLEDGE</pattern>
    <template>
