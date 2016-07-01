@@ -1,0 +1,5 @@
+<launch>
+  <node name="pagelist_reader_node" pkg="arm_gesture" type="pagelist_reader_node.py" />
+  <node name="arm_gesture_node" pkg="arm_gesture" type="arm_gesture_node.py" />
+  <include file="$(find ros_pololu_servo)/launch/pololu_example.launch" /> 
+</launch>

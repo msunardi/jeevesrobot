@@ -1,0 +1,53 @@
+# Pololu based motors
+
+left_shoulder_roll_joint:
+  pololu_id: 12
+  motor_id: 1
+  init: 1500
+  min: 1400
+  max: 1800
+  reverse: false
+  calibration:
+    min_pulse: 1000
+    min_angle: -45
+    max_pulse: 2000
+    max_angle: 45
+
+left_shoulder_pitch_joint:
+  pololu_id: 12
+  motor_id: 2
+  init: 1650
+  min: 1300
+  max: 1700
+  reverse: true
+  calibration:
+    min_pulse: 1000
+    min_angle: -50
+    max_pulse: 2000
+    max_angle: 50
+
+right_shoulder_roll_joint:
+  pololu_id: 12
+  motor_id: 4
+  init: 1550
+  min: 1300
+  max: 1550
+  reverse: true
+  calibration:
+    min_pulse: 1000
+    min_angle: -45
+    max_pulse: 2000
+    max_angle: 45
+
+right_shoulder_pitch_joint:
+  pololu_id: 12
+  motor_id: 5
+  init: 1500
+  min: 1450
+  max: 1800
+  reverse: false
+  calibration:
+    min_pulse: 1000
+    min_angle: -50
+    max_pulse: 2000
+    max_angle: 50
