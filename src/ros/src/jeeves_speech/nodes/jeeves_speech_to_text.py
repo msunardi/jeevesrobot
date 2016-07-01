@@ -59,8 +59,8 @@ if VERBOSITY:
 #                                           Global Variables
 # -----------------------------------------------------------------------------------------------------
 
-jeeves_handshake         = False;            # Jeeves handshake. Indicates when a speech to text publication has been processed.
-JEEVES_KEYWORDS          = "jeeves listen";  # Keywords that cause Jeeves to begin paying attention to words spoken. Should be ALL lowercase.
+jeeves_handshake         = False;                           # Jeeves handshake. Indicates when a speech to text publication has been processed.
+JEEVES_KEYWORDS          = ["jeeves listen", "hi jeeves", "hello jeeves", "bye jeeves"];  # Keywords that cause Jeeves to begin paying attention to words spoken. Should be ALL lowercase.
 
 # Jeeves Speech State Machine
 JEEVES_IDLE_STATE        = 0;                # IDLE state
@@ -132,6 +132,9 @@ def jeeves_speech_to_text_f():
    # ---------------------------------------
    #          Start PocketSphinx
    # ---------------------------------------
+#   proc = subprocess.Popen(["pocketsphinx_continuous -dict " + cwd + "jeeves_small.dic"], shell=True, stdout=subprocess.PIPE)
+#   proc = subprocess.Popen(["pocketsphinx_continuous -lm " + cwd + "jeeves_small.lm -dict " + cwd + "jeeves_small.dic"], shell=True, stdout=subprocess.PIPE)
+
 #   proc = subprocess.Popen(["pocketsphinx_continuous -dict " + cwd + "jeeves.dic"], shell=True, stdout=subprocess.PIPE)
    proc = subprocess.Popen(["pocketsphinx_continuous -lm " + cwd + "jeeves.lm -dict " + cwd + "jeeves.dic"], shell=True, stdout=subprocess.PIPE)
 
@@ -151,7 +154,6 @@ def jeeves_speech_to_text_f():
          # If a string actually exists
          if len(speech_txt) > 0:
             # If a speech to text conversion actually occurred
-
             if speech_txt[0].isdigit():
                speech_txt = speech_txt.split(': ')                                         # Break apart the CMU Sphinx response. It will always start with a 32-bit number and colon-space.
 
@@ -184,15 +186,28 @@ def jeeves_speech_to_text_f():
       # -----------------------------------------------------
       if(state == JEEVES_IDLE_STATE):
          # If the string contains "jeeves listen", advance to next state
-         if(speech_txt.lower() == JEEVES_KEYWORDS.lower()):
+         if(speech_txt.lower() == JEEVES_KEYWORDS[0].lower()):
             state = JEEVES_ACKNOWLEDGE_STATE;
             jeeves_handshake = False;
             ack_state_pub = False;
 
             if VERBOSITY:
                print "Idle State Text:  %s" % speech_txt;
-               
-         print "JEEVES_IDLE_STATE"
+
+         # If the user greets Jeeves
+         if(speech_txt.lower() == JEEVES_KEYWORDS[1].lower() or speech_txt.lower() == JEEVES_KEYWORDS[2].lower() or speech_txt.lower() == JEEVES_KEYWORDS[3].lower()):
+            state = JEEVES_HANDSHAKE_STATE;
+            jeeves_handshake = False;
+            ack_state_pub = False;
+
+            # Publish the text string so that the jeeves_text_category.py node can pick it up
+            s2t_topic.publish(speech_txt);
+
+            if VERBOSITY:
+               print "Greetings Text:  %s" % speech_txt;
+         
+         if VERBOSITY:
+            print "JEEVES_IDLE_STATE"
 
       # -----------------------------------------------------
       #               JEEVES ACKNOWLEDGE STATE
@@ -202,8 +217,10 @@ def jeeves_speech_to_text_f():
          if(ack_state_pub == False):
             s2t_topic.publish('JEEVES ACKNOWLEDGE');
             ack_state_pub = True;
+         
+         if VERBOSITY:
+            print "JEEVES_ACKNOWLEDGE_STATE"
             
-         print "JEEVES_ACKNOWLEDGE_STATE"
          if(jeeves_handshake == True):
             time.sleep(1);
             state = JEEVES_LISTENING_STATE;
@@ -225,8 +242,9 @@ def jeeves_speech_to_text_f():
             
             state = JEEVES_HANDSHAKE_STATE;
             jeeves_handshake = False;
-            
-         print "JEEVES_LISTENING_STATE"
+         
+         if VERBOSITY:
+            print "JEEVES_LISTENING_STATE"
 
       # -----------------------------------------------------
       #                JEEVES HANDSHAKE STATE
@@ -234,8 +252,8 @@ def jeeves_speech_to_text_f():
       elif(state == JEEVES_HANDSHAKE_STATE):
          
          ack_state_pub = False;
-#         if VERBOSITY:
-         print "JEEVES_HANDSHAKE_STATE"
+         if VERBOSITY:
+            print "JEEVES_HANDSHAKE_STATE"
          # Wait for a response from the speech synthesis node
          if(jeeves_handshake == True):
             state = JEEVES_IDLE_STATE;
@@ -252,7 +270,9 @@ def jeeves_speech_to_text_f():
          state = JEEVES_IDLE_STATE;
          jeeves_handshake = False;
          ack_state_pub = False;
-         print "JEEVES_UNDEFINED_STATE"
+
+         if VERBOSITY:
+            print "JEEVES_UNDEFINED_STATE"
          
          
       # Sleep for 100ms before checking for another sentence
