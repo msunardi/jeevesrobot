@@ -1,7 +1,7 @@
 <launch>
 
   <!-- start a turtlebot in gazebo -->
-  <include file="$(find turtlebot_gazebo)/launch/turtlebot_empty_world.launch" />
+  <include file="$(find turtlebot_gazebo)/launch/turtlebot_world.launch" />
 
   <!-- start our blank map server -->
   <include file="blank_map_server.launch" />

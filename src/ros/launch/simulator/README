@@ -1,0 +1,11 @@
+To run a simulated turtlebot:
+
+1) sudo apt-get install ros-indigo-turtlebot-simulator
+2) roslaunch turtlebot_odom_only.launch
+
+This starts a turtlebot simulation in Gazebo, running move_base, so you can give it navigation goals. 
+Note: it's 'odom-only', so there's no odometry-correction running (i.e., no amcl).
+
+3) ./visualizations.bash
+
+This starts rviz, rqt_console, and rqt_plot.
