@@ -3,11 +3,12 @@
   <!-- start a turtlebot in gazebo -->
   <include file="$(find turtlebot_gazebo)/launch/turtlebot_world.launch" />
 
-  <!-- start our blank map server -->
-  <include file="blank_map_server.launch" />
+  <!-- start our map server -->
+  <arg name="JEEVES_LAUNCH_DIR" value="/home/rick/src/roboticsclub-mcecsbot/src/ros/launch" />
+  <include file="$(arg JEEVES_LAUNCH_DIR)/map_server.launch" />
 
-  <!-- no localizer running, so this if fixed -->
-  <node pkg="tf" type="static_transform_publisher" name="map_odom_transform_broadcaster" args="0 0 0 0 0 0 map odom 20" />
+  <!-- fake amcl -->
+  <include file="fake_localization.launch" />
 
   <!-- move_base -->
   <include file="$(find turtlebot_navigation)/launch/includes/move_base.launch.xml"/>

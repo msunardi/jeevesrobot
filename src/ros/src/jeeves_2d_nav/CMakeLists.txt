@@ -54,7 +54,7 @@ add_service_files(
    DeleteWaypoint.srv
    SaveCurrentPose.srv
    CancelCurrentNavGoal.srv
-   #SetDefaultInitialPose.srv
+   SetCurrentPoseToWaypoint.srv
    qrcode_pos_service.srv
 )
 

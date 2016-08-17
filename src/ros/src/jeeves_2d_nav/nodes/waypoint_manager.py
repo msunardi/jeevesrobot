@@ -133,9 +133,9 @@ class WaypointManager(threading.Thread):
 
     def handle_add_waypoint(self, req):
         wp = {'name': req.name,
-             'x': req.x,
-             'y': req.y,
-             'theta': req.theta}
+              'x': req.x,
+              'y': req.y,
+              'theta': req.theta}
         return self.add_waypoint(wp)
 
     def handle_delete_waypoint(self, req):
@@ -159,7 +159,6 @@ class WaypointManager(threading.Thread):
 
     def handle_set_current_pose_to_waypoint(self, req):
         """Set initialpose to pose described by req.name"""
-        wp = None
         try:
             wp = next(wp for wp in self.waypoints if wp['name'] == req.name)
         except StopIteration:
