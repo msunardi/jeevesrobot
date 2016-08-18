@@ -1,0 +1,4 @@
+<launch>
+  <node name="greeter_node" pkg="greeter" type="greeter.py">
+  </node>
+</launch>

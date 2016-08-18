@@ -1,4 +1,0 @@
-<launch>
-  <node name="tour_guide_executive_node" pkg="tour_guide" type="tour_guide.py">
-  </node>
-</launch>

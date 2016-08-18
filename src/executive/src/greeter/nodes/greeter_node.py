@@ -1,43 +1,23 @@
-#!/usr/bin/env python
+import time
 
 import rospy
 import smach
 import smach_ros
-import time
 
-
-# define state Foo
-class InTransitState(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, outcomes=['arrived_at_poi', 'arrived_at_home'])
-        self.counter = 0
-
-    def execute(self, userdata):
-        self.counter += 1
-#        rospy.loginfo('Executing state IN_TRANSIT, trip number {0}'
-#                      .format(self.counter))
-        time.sleep(5)
-        if self.counter <= 3:
-            return 'arrived_at_poi'
-        else:
-            rospy.loginfo('arrived_at_home')
-            self.counter = 0
-            return 'arrived_at_home'
-
-
-# define state Bar
-class GivingSpielState(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, outcomes=['spiel_complete'])
-
-    def execute(self, userdata):
-        time.sleep(5)
-        return 'spiel_complete'
+import src.executive.src.greeter.modules.tour_guide as tg
+from greeter.srv import *
 
 
 class GreetingState(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['tour_requested'])
+
+        rospy.Service('/greeter/begin_tour',
+                      BeginTour,
+                      self.begin_tour)
+
+    def begin_tour(self, req):
+        pass
 
     def execute(self, userdata):
         time.sleep(5)
@@ -45,7 +25,7 @@ class GreetingState(smach.State):
 
 
 def main():
-    rospy.init_node('tour_guide_executive_node')
+    rospy.init_node('greeter_executive_node')
 
     # Create the top level SMACH state machine
     sm_top = smach.StateMachine(outcomes=['idle'])
@@ -61,10 +41,10 @@ def main():
         # Open the container
         with sm_giving_tour:
             # Add states to the container
-            smach.StateMachine.add('IN_TRANSIT', InTransitState(),
+            smach.StateMachine.add('IN_TRANSIT', tg.InTransitState(),
                                    transitions={'arrived_at_poi': 'GIVING_SPIEL',
                                                 'arrived_at_home': 'AT_HOME'})
-            smach.StateMachine.add('GIVING_SPIEL', GivingSpielState(),
+            smach.StateMachine.add('GIVING_SPIEL', tg.GivingSpielState(),
                                    transitions={'spiel_complete': 'IN_TRANSIT'})
 
         smach.StateMachine.add('GIVING_TOUR', sm_giving_tour,
