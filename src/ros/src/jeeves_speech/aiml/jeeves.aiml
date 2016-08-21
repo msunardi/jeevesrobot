@@ -48,12 +48,187 @@
 </category>
 
 <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                    Date and Time                                                              -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<category>
+   <pattern>WHAT TIME IS IT</pattern>
+   <template>
+      <random>
+         <li>Time command</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>* WHAT TIME IS IT</pattern>
+   <template>
+      <srai>WHAT TIME IS IT</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>* WHAT IS THE DATE</pattern>
+   <template>
+      <srai>WHAT TIME IS IT</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>* WHAT IS THE DATE</pattern>
+   <template>
+      <srai>WHAT TIME IS IT</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>* WHAT IS THE DATE TODAY</pattern>
+   <template>
+      <srai>WHAT TIME IS IT</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>* WHAT IS THE DATE TODAY</pattern>
+   <template>
+      <srai>WHAT TIME IS IT</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>WHAT DAY IS IT</pattern>
+   <template>
+      <srai>WHAT TIME IS IT</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>* WHAT DAY IS IT</pattern>
+   <template>
+      <srai>WHAT TIME IS IT</srai>
+   </template>
+</category>
+
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                    FUN FACTS                                                                  -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<category>
+   <pattern>TELL ME A FUN FACT</pattern>
+   <template>
+      <random>
+         <li>FACT command</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>* TELL ME A FUN FACT</pattern>
+   <template>
+      <srai>TELL ME A FUN FACT</srai>
+   </template>
+</category>
+
+<category>
+   <pattern>TELL ME A FACT</pattern>
+   <template>
+      <srai>TELL ME A FUN FACT</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>* TELL ME A FACT</pattern>
+   <template>
+      <srai>TELL ME A FUN FACT</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>FACTS</pattern>
+   <template>
+      <random>
+         <li>I am a robot</li>
+         <li>A crocodile can't stick it's tongue out</li>
+         <li>If you keep your eyes open by force when you sneeze, you might pop an eyeball out</li>
+         <li>The cigarette lighter was invented before the match</li>
+         <li>The average person spends 6 months of their lifetime waiting on a red light to turn green</li>
+         <li>The Earth’s rotation is gradually slowing</li>
+         <li>The Earth was once believed to be the centre of the universe</li>
+         <li>The Earth has a powerful magnetic field that protects us from harmful cosmic radiation</li>
+         <li>There is only one natural satellite of the planet Earth</li>
+         <li>Earth is the only planet in our solar system that was not named after a god</li>
+         <li>Earth is the densest planet in our Solar System</li>
+         <li>The Moon is the Earth’s only natural satellite and was formed 4.6 billion years ago</li>
+         <li>The Earth is the only planet in the Solar System with plate tectonics</li>
+         <li>Earth is Mostly Iron, Oxygen and Silicon</li>
+         <li>The Earth's surface is about 70% water</li>
+         <li>The escape velocity of Earth is about 11.2 kilometers per second</li>
+         <li>Earth is the only known planet that has life</li>
+         <li>The rotation of the Earth is gradually slowing down</li>
+         <li>Earth’s atmosphere is composed of 78% nitrogen, 21% oxygen, and trace amounts of other gases including argon and carbon dixoide</li>
+         <li>The large amount of oxygen on Earth comes from our plant life’s consumption of carbon dioxide during photosynthesis</li>
+         <li>Ohm's law states that voltage is equal to the electric current multiplied by the resistance, that is v equals i r</li>
+         <li>The first life on Earth developed in the oceans</li>
+         <li>The highest point found on Earth is Mount Everest which reaches a height of 8.8 km</li>
+         <li>Resistors in series add together and can be treated as a single resistor</li>
+         <li>For DC voltage sources, capacitors are treated as open, and inductors are treated as short circuits</li>
+         <li>Tau is the rise time constant of a circuit assuming ideal conditions</li>
+         <li>Robotics is fun</li>
+         <li>An artificial heart pacemaker sends electric pulses through wires to a patient’s heart to keep it beating steadily</li>
+         <li>Moore's law predicts that the number of transistors per square inch doubles every 2 years</li>
+      </random>
+   </template>
+</category>
+
+   
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                    Jokes                                                                      -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<category>
+   <pattern>TELL ME A JOKE</pattern>
+   <template>
+      <random>
+         <li>JOKE command</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>* TELL ME A JOKE</pattern>
+   <template>
+      <srai>TELL ME A JOKE</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>JOKES</pattern>
+   <template>
+      <random>
+         <li>The early bird might get the worm, but the second mouse gets the cheese</li>
+         <li>Knowledge is knowing a tomato is a fruit; Wisdom is not putting it in a fruit salad</li>
+         <li>If I agreed with you we'd both be wrong</li>
+         <li>Did you know that dolphins are so smart that within a few weeks of captivity, they can train people to stand on the very edge of the pool and throw them fish</li>
+         <li>A computer once beat me at chess, but it was no match for me at kick boxing</li>
+         <li>A bank is a place that will lend you money, if you can prove that you don't need it</li>
+         <li>When in doubt, mumble</li>
+         <li>I intend to live forever. So far, so good</li>
+         <li>The colors Red, White and Blue represent freedom -  Until they're flashing behind you</li>
+         <li>Arguing with your wife is like getting arrested. Anything you say can and will be used against you</li>
+         <li>Whatever you do, always give your 100%. Unless you're donating blood</li>
+         <li>The recipe said Set the oven to 180 degrees, so I did, but now I can't open it because the door faces the wall</li>
+         <li>How many graduate students does it take to change a light bulb? Only one, but it takes nine years</li>
+         <li>How many professors does it take to change a light bulb? Only one, but they get three technical reports out of it</li>
+      </random>
+   </template>
+</category>
+   
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <!--                                                    Stories                                                                    -->
 <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <category>
    <pattern>TELL ME A STORY</pattern>
    <template>
-      I was traveling through the desert with two friends.  We only had one mouthful of food and water left.  We made camp for the night, and agreed that the one who dreamed the greatest dream that night would get the food in the morning.  We awoke, and we related our dreams.  My first friend said, I dreamed that I computed the parameters for a robot that was self aware.  People gave me much love and admiration, and I was hailed as a hero.  That is a great dream indeed, said the second, but I dreamed that I actually became self aware, and the people put me on their shoulders and made me the guest of honor.  Then both of my friends turned to me, and said, so tell us your dream, so that one of us may eat the food and water, at which I said, no doubt both of your dreams were great, but you see, in the middle of the night I was captivated by a powerful desire to rise and eat up all the remaining food and water, and that is just what I did.  End story.
+      <random>
+         <li>Story command</li>
+      </random>
    </template>
 </category>
 
@@ -84,6 +259,18 @@
       <srai>TELL ME A STORY</srai>
    </template>
 </category>
+   
+<category>
+   <pattern>STORIES</pattern>
+   <template>
+      <random>
+         <li>I was traveling through the desert with two friends.  We only had one mouthful of food and water left.  We made camp for the night, and agreed that the one who dreamed the greatest dream that night would get the food in the morning.  We awoke, and we related our dreams.  My first friend said, I dreamed that I computed the parameters for a robot that was self aware.  People gave me much love and admiration, and I was hailed as a hero.  That is a great dream indeed, said the second, but I dreamed that I actually became self aware, and the people put me on their shoulders and made me the guest of honor.  Then both of my friends turned to me, and said, so tell us your dream, so that one of us may eat the food and water, at which I said, no doubt both of your dreams were great, but you see, in the middle of the night I was captivated by a powerful desire to rise and eat up all the remaining food and water, and that is just what I did.  End story.</li>
+         <li>The gull stared into the beady, gold-rimmed eyes of its foe, its own expression one of intense disgust. It dove forward, beak slicing the air with pinpoint precision - but the blow, meant to pierce white feathers, clinked loudly and slid aside at the last moment. The gull stabbed again and again, infuriated by the realization that its target was doing the same, but each time its attacks were repelled by an unseen force. Despite its bravery the gull feared it might never succeed, and was only heartened by the fact that its hated enemy looked just as crestfallen.</li>
+         <li>A priest, a rabbi, and a pujari walked into a bar and ordered a drink. The bartender grimaced as the men sat down, clucking his tongue in disapproval as he passed out three glasses. Unable to restrain his opinion, he wagged a finger at the robed men. Three healers in one party? You won't get very far like that, you know. You don't even have a tank. What happens if you aggro a Chimaera the moment you leave town? Damned fools, the lot of you.</li>
+         <li>The CEO pulled in over three-hundred thousand dollars a year. He ruled over a company of peons two-hundred-and-fifty souls strong, owned two spacious homes, captained his own yacht on the weekends, and had recently dined with a world leader of no small repute. He was a mover and a shaker, a rags-to-riches story worthy of committing even the savviest financial advisor to a blush. The bird shit upon the CEO's tailored suit anyway, unimpressed.</li>
+      </random>
+   </template>
+</category>
 
 <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <!--                                                    Wolfram                                                                    -->
@@ -106,16 +293,37 @@
       </random>
    </template>
 </category>
+   
+<category>
+   <pattern>* DANCE</pattern>
+   <template>
+         <srai>DANCE</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>DANCE *</pattern>
+   <template>
+         <srai>DANCE</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>* DANCE *</pattern>
+   <template>
+         <srai>DANCE</srai>
+   </template>
+</category>
 
 <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
-<!--                                                    Location Commands                                                          -->
+<!--                                                    Escort Commands                                                            -->
 <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
    
 <category>
    <pattern>TAKE ME TO THE</pattern>
    <template>
       <random>
-         <li>Location command</li>
+         <li>TAKE ME TO</li>
       </random>
    </template>
 </category>
@@ -172,10 +380,33 @@
    </template>
 </category>
 
+<category>
+   <pattern>GIVE ME A TOUR</pattern>
+   <template>
+      <random>
+         <li>Tour command</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>TOUR</pattern>
+   <template>
+      <srai>GIVE ME A TOUR</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>* GIVE ME A TOUR</pattern>
+   <template>
+      <srai>GIVE ME A TOUR</srai>
+   </template>
+</category>
 
 
-
-
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                       Query                                                                   -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <category>
    <pattern>TELL ME ABOUT</pattern>
    <template>
@@ -199,22 +430,6 @@
    </template>
 </category>
 
-<category>
-   <pattern>GIVE ME A TOUR</pattern>
-   <template>
-      <random>
-         <li>Tour command</li>
-      </random>
-   </template>
-</category>
-   
-<category>
-   <pattern>TOUR</pattern>
-   <template>
-      <srai>GIVE ME A TOUR</srai>
-   </template>
-</category>
-
 <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <!--                                                    Control Commands                                                           -->
 <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->   
@@ -222,7 +437,7 @@
    <pattern>JEEVES ACKNOWLEDGE</pattern>
    <template>
       <random>
-         <li>jeeves acknowledge response to person</li>
+         <li>jeeves acknowledge</li>
       </random>
    </template>
 </category>
@@ -235,6 +450,162 @@
       </random>
    </template>
 </category>
+
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                         People                                                                -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->   
+   
+<category>
+   <pattern>DOCTOR PERKOWSKI</pattern>
+   <template>
+      <random>
+         <li>Marek Perkowski is a Professor of Computer Engineering at the ECE Dept of PSU.</li>
+         <li>His PhD is in automatic control from the Department of Electronics, Warsaw University of Technology, Warsaw, Poland.</li>
+         <li>He has been on faculties of Warsaw University of Technology, University of Minnesota, Minneapolis, Technical University of Eindhoven, Eindhoven, The Netherlands, University of Montpellier, Montpellier, France, and Korea Advanced Institute of Science and Technology, Daejeon, Korea.</li>
+         <li>He has been involved in research on Computer Aided Design of VLSI, intelligent robotics and Machine Learning since the 1980s</li>
+         <li>Recently he has worked on automatic synthesis and optimization of quantum circuits.</li>
+         <li>He has obtained several grants from the national science foundation, Intel, Sharp, Air Force Office of Scientific Research, KAIST and has worked as a programmer and consultant.</li>
+         <li>Doctor Perkowski is currently a chair of the IEEE Technical Committee, on Multiple-Valued Logic and he was the chair of several conferences on this and other topics.</li>
+         <li>He is an author of more than 300 papers and several books.</li>
+         <li>Several of his programs are used in CAD industry and his research is widely cited.</li>
+         <li>He is on the NEC list of most cited computer science authors.</li>
+         <li>His dream is to build a complete interactive theater of humanoid robots controlled by quantum immunological software.</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>MAREK PERKOWSKI</pattern>
+   <template>
+      <srai>DOCTOR PERKOWSKI</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>DOCTOR HALL</pattern>
+   <template>
+      <random>
+         <li>Doctor Hall is an associate professor in the Maseeh College of Engineering at Portland State University.</li>
+         <li>He specializes in computer architecture.</li>
+         <li>He obtained his PhD from Portland State University.</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>DOUG HALL</pattern>
+   <template>
+      <srai>DOCTOR HALL</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>DOUGLAS HALL</pattern>
+   <template>
+      <srai>DOCTOR HALL</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>DOCTOR SONG</pattern>
+   <template>
+      <random>
+         <li>Doctor Song is a professor of electrical and computer engineering in the Maseeh College of Engineering at Portland State University.</li>
+         <li>He specializes in design automation and formal methods.</li>
+         <li>Doctor Song obtained his PhD from the University of Pisa in Italy.</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>XIAOYU SONG</pattern>
+   <template>
+      <srai>DOCTOR SONG</srai>
+   </template>
+</category>
+   
+<category>
+   <pattern>JOSH SACKOS</pattern>
+   <template>
+      <random>
+         <li>Josh Sackos is an electrical and computer engieering embedded systems student at Portland State University.</li>
+         <li>He obtained a Bachelor of Science in Computer Engineering from Washington State University.</li>
+         <li>He is interested in automation</li>
+         <li>He is interested in the internet of things</li>
+         <li>He is interested in high performance systems</li>
+         <li>He is interested in data collection</li>
+         <li>He is interested in developing embedded systems for the space environment</li>
+         <li>Josh worked on some of my computer vision and speech recognition capabilities</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>RICK ARMSTRONG</pattern>
+   <template>
+      <random>
+         <li>Rick Armstrong obtained his Bachelor of Science in Mathematics at Portland State University.</li>
+         <li>He is interested in the intersection between Computer Vision, Mathematics, and Robotics.</li>
+         <li>He has contributed greatly to the development of me.</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>MATHIAS SUNARDI</pattern>
+   <template>
+      <random>
+         <li>Mathias Sunardi is a PhD student in the Maseeh College of Engineering at Portland State University.</li>
+         <li>He obtained his master of science degreee in electrical and computer engineering from Portland State University</li>
+         <li>He has contributed greatly to the development of me.</li>
+      </random>
+   </template>
+</category>
+   
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                         Places                                                                -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+   
+<category>
+   <pattern>ROBOTICS LAB</pattern>
+   <template>
+      <random>
+         <li>In the Intelligent Robotics Laboratory we design and program mobile, stationary and humanoid robots on levels of mechanical, electrical and software design.</li>
+         <li>Many of the Lab's robots have new types of controllers.</li>
+         <li>Theoretical research is dedicated to applying machine learning and data analysis algorithms to solve practical problems in electrical and computer engineering, especially in Data Mining, robot vision, robot motion, robot theatre  and human-robot interface.</li>
+         <li>The laboratory is involved in the research on quantum and reversible computing as well as nano-technologies such as quantum dots and memristors.</li>
+         <li>Quantum algorithms are developed in the Lab, for instance those used in robotics, thus defining a new research area of Quantum Robotics.</li>
+         <li>Some of the Lab's interests include highly parallel robotics algorithms on GPU platforms, and emulation of problem-solving architectures with FPGAs and VELOCE emulator from Mentor.</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>INTEL LAB</pattern>
+   <template>
+      <random>
+         <li>The FAB Intel Lab is a general computer lab that is open to all engineering students.</li>
+         <li>Within the facility are Windows-based computers, Linux-based workstations, and several black and white and color laser printers and scanners.</li>
+         <li>Wired and wireless internet access is available for laptop computers.</li>
+         <li>A variety of Windows software packages are offered, including Microsoft Office, Cadence design tools, QuestaSim, SynaptiCAD, Agilent ADS, LT Spice, LabView, MATLAB, Maple, Mathcad, Microsoft Visual Studio, Python, AutoCAD, SolidWorks, Arduino, LabJack, and Cygwin.</li>
+      </random>
+   </template>
+</category>
+
+<category>
+   <pattern>PORTLAND STATE UNIVERSITY</pattern>
+   <template>
+      <random>
+         <li>Portland States 49 acre downtown campus is located in the heart of one of Americas most vibrant centers of culture, business and technology in Porltand Oregon.</li>
+         <li>We are recognized throughout the world for programs like Urban Planning, Social Work, and Environmental Studies that directly engage the community, and aim our students towards the creation of a better, more sustainable world.</li>
+         <li>Portland State University is the home of the Vikings.</li>
+      </random>
+   </template>
+</category>
+
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!--                                                         Things                                                                -->
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 
 </aiml>
 
