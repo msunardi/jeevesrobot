@@ -13,4 +13,8 @@
   <!-- move_base -->
   <include file="$(find turtlebot_navigation)/launch/includes/move_base.launch.xml"/>
 
+  <!-- waypoint manager, and dev ui -->
+  <include file="$(find jeeves_2d_nav)/launch/waypoint_manager.launch" />
+  <include file="$(find jeeves_2d_nav)/web_ui/launch/web_ui.launch" />
+
 </launch>
