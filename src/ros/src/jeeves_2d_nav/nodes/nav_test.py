@@ -46,7 +46,7 @@ class NavTest(threading.Thread):
 
         rospy.loginfo("Waiting for /waypoint_manager/get_waypoints service.")
         rospy.wait_for_service('/waypoint_manager/get_waypoints')
-        rospy.loginfo("Connected to move_base action service.")
+        rospy.loginfo("Connected to waypoint_manager service.")
         try:
             self.waypoints = yaml.load(self.get_waypoints().waypoints)
         except Exception as e:
