@@ -12,6 +12,9 @@
 
   <!-- move_base -->
   <include file="$(find turtlebot_navigation)/launch/includes/move_base.launch.xml"/>
+  <!-- default turtlebot is poorly-tuned-->
+  <param name="move_base/DWAPlannerROS/max_rot_vel" value="1.0"/>
+  <param name="move_base/DWAPlannerROS/acc_lim_theta" value="10.0"/>
 
   <!-- waypoint manager, and dev ui -->
   <include file="$(find jeeves_2d_nav)/launch/waypoint_manager.launch" />
