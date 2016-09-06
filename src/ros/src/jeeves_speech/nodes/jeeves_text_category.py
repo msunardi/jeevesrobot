@@ -40,9 +40,6 @@ cwd = os.getcwd() + '/';
 #                       Configuration Parameters
 # ---------------------------------------------------------------------
 '''
-# **** These parameters get their value from the ROS "qrcode_pos_service.srv" file. ****
-#PROJECT_VALUE = rospy.get_param('~project')
-#VERBOSITY = rospy.get_param('~verbosity')
 
 # **** Hardcoded values to be used when developing/using rosrun ****
 DEV_ENV = bool(1)
@@ -57,10 +54,43 @@ jeeves.learn(cwd + "jeeves.xml")
 jeeves.respond('load aiml b') #finished initializing
 
 
+# Create empty ROS topic variables for global variable scope in Python file.
 proc_cmd_topic    = '';
 wolfram_cmd_topic = '';
 wiki_cmd_topic    = '';
 t2s_topic         = '';
+speech_aiml_resp  = '';
+
+'''
+# -----------------------------------------------------------------------------------------------------
+#                                          proc_aiml_req()
+#
+#   Description:  This function gets called whenever a message is published to the 
+#                 "jeeves_speech/speech_aiml_req" topic.  This function essentially provides a backdoor
+#                 to the AIML contents from other nodes.
+#
+#     Arguments:  N/A
+#
+#       Returns:  N/A
+#
+# -----------------------------------------------------------------------------------------------------
+'''
+def proc_aiml_req(message):
+
+   global jeeves, speech_aiml_resp;
+   
+   text = message.data;
+
+   # Check the Jeeves AIML for a pattern match
+   aiml_string      = jeeves.respond( text )
+   
+   # Print the speech to text string
+   if VERBOSITY:
+      print " AIML Req. Text:  %s" % text
+      print "AIML Resp. Text: = %s" % aiml_string
+      
+   # Publish the AIML data obtained
+   speech_aiml_resp.publish(aiml_string);
 
 '''
 # -----------------------------------------------------------------------------------------------------
@@ -81,14 +111,14 @@ def proc_text(message):
    global jeeves, proc_cmd_topic, wolfram_cmd_topic, wiki_cmd_topic
    
    speech_txt = message.data;
+
+   # Check the Jeeves AIML for a pattern match
+   aiml_string      = jeeves.respond( speech_txt )
    
    # Print the speech to text string
    if VERBOSITY:
       print "Received Text:  %s" % speech_txt
-
-   # Check the Jeeves AIML for a pattern match
-   aiml_string      = jeeves.respond( speech_txt )
-   print "aiml_string = %s" % aiml_string
+      print "aiml_string = %s" % aiml_string
 
    # -----------------------------------------------------
    #                  AIML Command
@@ -118,13 +148,13 @@ def proc_text(message):
    # -----------------------------------------------------
    #                    Acknowledge
    # -----------------------------------------------------
-   elif( aiml_string.lower().find('jeeves acknowledge response to person') != -1 ):
+   elif( aiml_string.lower().find('jeeves acknowledge') != -1 ):
       t2s_topic.publish('How can I help you');
       if VERBOSITY:
          print "How can I help you?"
          
    # -----------------------------------------------------
-   #                    Acknowledge
+   #                    Jeeves Listen
    # -----------------------------------------------------
    elif( aiml_string.lower().find('i am') != -1 ):
       t2s_topic.publish(aiml_string);
@@ -155,19 +185,29 @@ def proc_text(message):
 '''
 def jeeves_text_category_f():
    
-   global proc_cmd_topic, wolfram_cmd_topic, wiki_cmd_topic, t2s_topic;
+   global proc_cmd_topic, wolfram_cmd_topic, wiki_cmd_topic, t2s_topic, speech_aiml_resp;
    
    # Create the "jeeves_speech_to_text" ROS node
    rospy.init_node('jeeves_text_category')
-   
+
+   # ---------------------------------------
    # Create topics to publish to
+   # ---------------------------------------
    proc_cmd_topic    = rospy.Publisher('jeeves_speech/speech_proc_cmd'   , String, queue_size=10)   
    wolfram_cmd_topic = rospy.Publisher('jeeves_speech/speech_wolfram_cmd', String, queue_size=10)   
    wiki_cmd_topic    = rospy.Publisher('jeeves_speech/speech_wiki_cmd'   , String, queue_size=10)
    t2s_topic         = rospy.Publisher('jeeves_speech/speech_synthesis'   , String, queue_size=10)
-   
+   speech_aiml_resp  = rospy.Publisher('jeeves_speech/speech_aiml_resp'   , String, queue_size=10)
+
+   # ---------------------------------------
    # Subscribe to speech_to_text topic
+   # ---------------------------------------
    rospy.Subscriber("jeeves_speech/speech_to_text", String, proc_text)
+   
+   # ---------------------------------------
+   #   Subscribe to speech_aiml_req topic
+   # ---------------------------------------
+   rospy.Subscriber("jeeves_speech/speech_aiml_req", String, proc_aiml_req)
    
    if VERBOSITY:
       print "Listening for text..."

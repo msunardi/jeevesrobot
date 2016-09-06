@@ -26,7 +26,7 @@
 #                               Imports
 # ---------------------------------------------------------------------
 '''
-import sys, os, time, json, string
+import sys, os, time, json, string, time
 import rospy
 import aiml                               # Artificial Intelligence Markup Language
 from std_msgs.msg import String
@@ -40,27 +40,71 @@ cwd = os.getcwd() + '/../';
 #                       Configuration Parameters
 # ---------------------------------------------------------------------
 '''
-# **** These parameters get their value from the ROS "qrcode_pos_service.srv" file. ****
-#PROJECT_VALUE = rospy.get_param('~project')
-#VERBOSITY = rospy.get_param('~verbosity')
 
 # **** Hardcoded values to be used when developing/using rosrun ****
 DEV_ENV = bool(1)
-VERBOSITY = bool(1)
+VERBOSITY = bool(0)
 
 if VERBOSITY:
    print "Development Environment:  %s " % str(DEV_ENV)
 
-# initialize aiml speech system, and load aiml xml file
-jeeves = aiml.Kernel()
-jeeves.learn(cwd + "jeeves.xml")
-jeeves.respond('load aiml b') #finished initializing
+# Create empty ROS topic variables for global variable scope in Python file.
+t2s             = '';
+t2s_topic       = '';
+scmd_topic      = '';
+speech_aiml_req = '';
 
 
-t2s    = '';
-t2s_topic = '';
-scmd_topic = '';
+# Global variables
+aiml_resp = '';
+aiml_resp_flag = False;
 
+'''
+# -----------------------------------------------------------------------------------------------------
+#                                          proc_aiml_resp()
+#
+#   Description:  This function gets called whenever a message is published to the 
+#                 "jeeves_speech/speech_aiml_resp" topic.
+#
+#     Arguments:  N/A
+#
+#       Returns:  N/A
+#
+# -----------------------------------------------------------------------------------------------------
+'''
+def proc_aiml_resp(message):
+
+   global jeeves, aiml_resp, aiml_resp_flag;
+   aiml_resp_flag = True;
+   aiml_resp = message.data;
+   
+
+'''
+# -----------------------------------------------------------------------------------------------------
+#                                            extract_noun()
+#
+#   Description:  
+#
+#     Arguments:  cmd  : The command that was detected.
+#                 sent : The sentence to extract a noun from.
+#
+#       Returns:  A string containing the assumed noun.
+#
+# -----------------------------------------------------------------------------------------------------
+'''
+def extract_noun(cmd, sent):
+   
+   # Take the last two words from the sentence, this is the noun. "Intel lab", "Doctor Perkowski", etc.
+   sent = sent.split(' ');
+   if VERBOSITY:
+      print sent;
+   
+   # If Portland State University
+   if(sent[len(sent)-1].lower() == 'university'):
+      return "%s %s %s" % (sent[len(sent)-3], sent[len(sent)-2], sent[len(sent)-1]);
+   # If regular noun
+   else:
+      return "%s %s" % (sent[len(sent)-2], sent[len(sent)-1]);
 
 '''
 # -----------------------------------------------------------------------------------------------------
@@ -76,10 +120,11 @@ scmd_topic = '';
 '''
 def proc_cmd(message):
    
-   global t2s_topic, t2s;
+   global t2s_topic, t2s, aiml_resp, aiml_resp_flag;
    
    if len(message.data) == 0:
-      print "Invalid command received..."
+      if VERBOSITY:
+         print "Invalid command received..."
    
    msg_dict = json.loads(message.data);
    command  = msg_dict['command'];
@@ -94,7 +139,9 @@ def proc_cmd(message):
    # --------------------------------------------
    if command.find('greeting') != -1:
       command = command.replace('greeting ', '');
-      print "GREETING COMMAND";
+      
+      if VERBOSITY:
+         print "GREETING COMMAND";
       t2s_topic.publish(command);
 
       if(command.find('bye') != -1):
@@ -110,79 +157,248 @@ def proc_cmd(message):
    #                   Escort
    # --------------------------------------------
    elif command == 'escort':
-      print "ESCORT COMMAND";
+      # EXTRACT NOUN
+      noun = extract_noun(command, text);
+      
+      if VERBOSITY:
+         print "ESCORT COMMAND, noun = %s" % noun;
+         
       if(string.find(text.lower(), 'leader') != -1):
          t2s_topic.publish('I am not sure where Doctor Perkowski is at the moment')
       else:
-         t2s_topic.publish('I will escort you');
-      
+         if(string.find(text.lower(), 'lab') != -1):
+            t2s_topic.publish('I will escort you to the %s' % noun);
+         else:
+            t2s_topic.publish('I will escort you to %s' % noun);
+
+         json_str = json.dumps({'command':'escort', 'args':[noun, text]});
+         scmd_topic.publish(json_str);
       
    # --------------------------------------------
    #                    Query
    # --------------------------------------------
    elif command == 'query':
-      print "QUERY COMMAND";
+      # EXTRACT NOUN
+      noun = extract_noun(command, text);
       
-      # Tell me about Doctor Perkowski
-      if(string.find(text.lower(), 'doctor perkowski') != -1):
-         t2s_topic.publish('Marek Perkowski is a Professor of Computer Engineering at the ECE Dept of PSU. His PhD is in automatic control from the Department of Electronics, Warsaw University of Technology, Warsaw, Poland. He has been on faculties of Warsaw University of Technology, University of Minnesota, Minneapolis, Technical University of Eindhoven, Eindhoven, The Netherlands, University of Montpellier, Montpellier, France, and Korea Advanced Institute of Science and Technology, Daejeon, Korea. He has been involved in research on Computer Aided Design of VLSI, intelligent robotics and Machine Learning since the 1980s and recently works on automatic synthesis and optimization of quantum circuits. He has obtained several grants from NSF, Intel, Sharp, Air Force Office of Scientific Research, KAIST and others, and worked as a programmer and consultant. M. Perkowski is currently a chair of IEEE Technical Committee on Multiple-Valued Logic and he was the chair of several conferences on this and other topics. He is an author of more than 300 papers and several books. Several of his programs are used in CAD industry and his research is widely cited. He is on the NEC list of most cited computer science authors. His dream is to build a complete interactive theater of humanoid robots controlled by quantum immunological software.');
-
-      # Tell me about Doctor Hall
-      elif(string.find(text.lower(), 'doctor hall') != -1):
-         t2s_topic.publish('Doctor Hall is an associate professor in the Maseeh College of Engineering at Portland State University. He specializes in computer architecture, and he obtained his PhD from Portland State University.');
-
-      # Tell me about Doctor Song
-      elif(string.find(text.lower(), 'doctor song') != -1):
-         t2s_topic.publish('Doctor Song is a professor of electrical and computer engineering in the Maseeh College of Engineering at Portland State University. He specializes in design automation and formal methods. Doctor Song obtained his PhD from the University of Pisa in Italy.');
-
-      # Tell me about Rick Armstrong
-      elif(string.find(text.lower(), 'rick armstrong') != -1):
-         t2s_topic.publish('Rick Armstrong obtained his Bachelor of Science in Mathematics at Portland State University. He is interested in the intersection between Computer Vision, Mathematics, and Robotics. He has contributed greatly to the development of me.');
-
-      # Tell me about Mathias Sunardi
-      elif(string.find(text.lower(), 'mathias sunardi') != -1):
-         t2s_topic.publish('Mathias Sunardi is a PhD student in the Maseeh College of Engineering at Portland State University.');
-
-      # Tell me about Josh Sackos
-      elif(string.find(text.lower(), 'josh sackos') != -1):
-         t2s_topic.publish('Josh Sackos is an electrical and computer engieering embedded systems student at Portland State University. He obtained a Bachelor of Science in Computer Engineering from Washington State University. He is interested in automation, the internet of things, high performance systems, data collection, and developing embedded systems for the space environment. Josh worked on some of my computer vision and speech recognition capabilities.');
-
-      # Tell me about the Robotics Lab
-      elif(string.find(text.lower(), 'robotics lab') != -1):
-         t2s_topic.publish('In the Intelligent Robotics Laboratory we design and program mobile, stationary and humanoid robots on levels of mechanical, electrical and software design. Many of our robots have new types of controllers. Theoretical research is dedicated to applying machine learning and data analysis algorithms to solve practical problems in electrical and computer engineering, especially in Data Mining, robot vision, robot motion, robot theatre  and human-robot interface (such as emotion recognition). The laboratory is also involved in the research on quantum and reversible computing as well as nano-technologies such as quantum dots and memristors. In a related research we develop new quantum algorithms, for instance those used in robotics, thus defining a new research area of Quantum Robotics. Of laboratory interests are also highly parallel robotics algorithms on GPU platform and emulation of problem-solving architectures with FPGAs and VELOCE emulator from Mentor.');
-
-      # Tell me about the Intel Lab
-      elif(string.find(text.lower(), 'intel lab') != -1):
-         t2s_topic.publish('The FAB Intel Lab is a general computer lab that is open to all engineering students. Within the facility are Windows-based computers, Linux-based workstations, and several B/W and color laser printers and scanners. Wired and wireless access is also available for laptop computers. A variety of Windows software packages are offered, including Microsoft Office, Cadence design tools, QuestaSim, SynaptiCAD, Agilent ADS, LT Spice, LabView, MATLAB, Maple, Mathcad, Microsoft Visual Studio, Python, AutoCAD, SolidWorks, Arduino, LabJack, and Cygwin.');
-
-      # Tell me about the Portland State University
-      elif(string.find(text.lower(), 'psu') != -1 or string.find(text.lower(), 'portland state university') != -1):
-         t2s_topic.publish('Portland States 49-acre downtown campus is located in the heart of one of Americas most vibrant centers of culture, business and technology. We are recognized throughout the world for programs like Urban Planning, Social Work, and Environmental Studies that directly engage the community, and aim our students towards the creation of a better, more sustainable world.');
+      if VERBOSITY:
+         print "QUERY COMMAND, noun = %s" % noun;
+      
+      aiml_resp = '';
+      speech_aiml_req.publish(noun.upper());
+      
+      # Wait for a response from the AIML node
+      while(aiml_resp_flag == False):
+         None
+      aiml_resp_flag = False;    # Clear the flag
          
+      if VERBOSITY:
+         print "AIML response = %s" % aiml_resp;
+      
+      # If a match was found, send it to the text to speech node.
+      if(len(aiml_resp) > 0):
+         t2s_topic.publish(aiml_resp);
+      # If no match was found
       else:
-         t2s_topic.publish('I am sorry, I do not have that person or place in my database');
+         t2s_topic.publish('I am sorry, I do not have that person, place, or thing in my database');
          
    # --------------------------------------------
    #                    Dance
    # --------------------------------------------
    elif command == 'dance':
-      print "DANCE COMMAND";
-      t2s_topic.publish('DANCE COMMAND');
+      if VERBOSITY:
+         print "DANCE COMMAND";
+#      t2s_topic.publish('DANCE COMMAND');
+      t2s_topic.publish('stayin alive, stayin alive, ah, ah, ah, ah stayin alive!');
+      json_str = json.dumps({'command':'dance', 'args':[text]});
+      scmd_topic.publish(json_str);
       
    # --------------------------------------------
    #                    Tour
    # --------------------------------------------
    elif command == 'tour':
-      print "TOUR COMMAND";
+      if VERBOSITY:
+         print "TOUR COMMAND";
       t2s_topic.publish('TOUR COMMAND');
+      json_str = json.dumps({'command':'tour', 'args':[text]});
+      scmd_topic.publish(json_str);
       
    # --------------------------------------------
-   #                  Location
+   #                    Story
    # --------------------------------------------
-   elif command == 'location':
-      print "LOCATION COMMAND";
-      t2s_topic.publish('LOCATION COMMAND');
+   elif command == 'story':
+      if VERBOSITY:
+         print "STORY COMMAND";
       
+      aiml_resp = '';
+      speech_aiml_req.publish('STORIES');
+      
+      # Wait for a response from the AIML node
+      while(aiml_resp_flag == False):
+         None
+      aiml_resp_flag = False;    # Clear the flag
+
+      if VERBOSITY:
+         print "AIML response = %s" % aiml_resp;
+      
+      # If a match was found, send it to the text to speech node.
+      if(len(aiml_resp) > 0):
+         t2s_topic.publish(aiml_resp);
+      # If no match was found
+      else:
+         t2s_topic.publish('I am sorry, I do not have any stories currently');
+
+   # --------------------------------------------
+   #                 Date/Time
+   # --------------------------------------------
+   elif command == 'time':
+      
+      if VERBOSITY:
+         print "TIME COMMAND"
+      
+      # Default to am
+      ampm = 'am';
+      tm_hour = 0;
+      
+      # Get the date/time structure
+      the_time = time.localtime(time.time());
+      
+      # Calculate non-military time
+      if(the_time.tm_hour >= 12):
+         ampm = 'pm';
+         
+         if(the_time.tm_hour >= 13):
+            tm_hour = the_time.tm_hour - 12;
+         else:
+            tm_hour = the_time.tm_hour;
+            
+      else:
+         tm_hour = the_time.tm_hour;
+      
+      tm_min = the_time.tm_min;
+
+      # Determine month
+      tm_mon = '';
+      if(the_time.tm_mon == 1):
+         tm_mon = 'January';
+      elif(the_time.tm_mon == 2):
+         tm_mon = 'February';
+      elif(the_time.tm_mon == 3):
+         tm_mon = 'March';
+      elif(the_time.tm_mon == 4):
+         tm_mon = 'April';
+      elif(the_time.tm_mon == 5):
+         tm_mon = 'May';
+      elif(the_time.tm_mon == 6):
+         tm_mon = 'June';
+      elif(the_time.tm_mon == 7):
+         tm_mon = 'July';
+      elif(the_time.tm_mon == 8):
+         tm_mon = 'August';
+      elif(the_time.tm_mon == 9):
+         tm_mon = 'September';
+      elif(the_time.tm_mon == 10):
+         tm_mon = 'October';
+      elif(the_time.tm_mon == 11):
+         tm_mon = 'November';
+      elif(the_time.tm_mon == 12):
+         tm_mon = 'December';
+         
+      # Determine Day suffix
+      tm_mday_suffix = '';
+      if(the_time.tm_mday == 1):
+         tm_mday_suffix = 'st';
+      elif(the_time.tm_mday == 2):
+         tm_mday_suffix = 'nd';
+      elif(the_time.tm_mday == 3):
+         tm_mday_suffix = 'rd';
+      elif(the_time.tm_mday >= 4 and the_time.tm_mday <= 20):
+         tm_mday_suffix = 'th';
+      elif(the_time.tm_mday == 21):
+         tm_mday_suffix = 'st';
+      elif(the_time.tm_mday == 22):
+         tm_mday_suffix = 'nd';
+      elif(the_time.tm_mday == 23):
+         tm_mday_suffix = 'rd';
+      elif(the_time.tm_mday >= 24 and the_time.tm_mday <= 30):
+         tm_mday_suffix = 'th';
+      elif(the_time.tm_mday == 31):
+         tm_mday_suffix = 'st';
+         
+      # Determine Day
+      tm_wday = '';
+      if(the_time.tm_wday == 0):
+         tm_wday = 'Monday';
+      elif(the_time.tm_wday == 1):
+         tm_wday = 'Tuesday';
+      elif(the_time.tm_wday == 2):
+         tm_wday = 'Wednesday';
+      elif(the_time.tm_wday == 3):
+         tm_wday = 'Thursday';
+      elif(the_time.tm_wday == 4):
+         tm_wday = 'Friday';
+      elif(the_time.tm_wday == 5):
+         tm_wday = 'Saturday';
+      elif(the_time.tm_wday == 6):
+         tm_wday = 'Sunday';
+         
+      
+      if(tm_min < 10):
+         t2s_topic.publish('It is currently %d 0 %d %s on %s %s %d %s %s' % (tm_hour, the_time.tm_min, ampm, tm_wday, tm_mon, the_time.tm_mday, tm_mday_suffix, the_time.tm_year));
+      else:
+         t2s_topic.publish('It is currently %d %d %s on %s %s %d %s %s' % (tm_hour, the_time.tm_min, ampm, tm_wday, tm_mon, the_time.tm_mday, tm_mday_suffix, the_time.tm_year));
+      
+   # --------------------------------------------
+   #                    FACT
+   # --------------------------------------------
+   elif command == 'fact':
+      if VERBOSITY:
+         print "FACT COMMAND";
+      
+      aiml_resp = '';
+      speech_aiml_req.publish('FACTS');
+      
+      # Wait for a response from the AIML node
+      while(aiml_resp_flag == False):
+         None
+      aiml_resp_flag = False;    # Clear the flag
+
+      if VERBOSITY:
+         print "AIML response = %s" % aiml_resp;
+      
+      # If a match was found, send it to the text to speech node.
+      if(len(aiml_resp) > 0):
+         t2s_topic.publish(aiml_resp);
+      # If no match was found
+      else:
+         t2s_topic.publish('I am sorry, I do not have any fun facts currently');
+
+         
+   # --------------------------------------------
+   #                    JOKE
+   # --------------------------------------------
+   elif command == 'joke':
+      if VERBOSITY:
+         print "JOKE COMMAND";
+      
+      aiml_resp = '';
+      speech_aiml_req.publish('JOKES');
+      
+      # Wait for a response from the AIML node
+      while(aiml_resp_flag == False):
+         None
+      aiml_resp_flag = False;    # Clear the flag
+
+      if VERBOSITY:
+         print "AIML response = %s" % aiml_resp;
+      
+      # If a match was found, send it to the text to speech node.
+      if(len(aiml_resp) > 0):
+         t2s_topic.publish(aiml_resp);
+      # If no match was found
+      else:
+         t2s_topic.publish('I am sorry, I do not have any jokes currently');
+         
    # --------------------------------------------
    #                  Unknown
    # --------------------------------------------
@@ -205,12 +421,14 @@ def proc_cmd(message):
 '''
 def jeeves_proc_cmd_f():
    
-   global t2s_topic, scmd_topic;
+   global t2s_topic, scmd_topic, speech_aiml_req;
    
    # Create the "jeeves_speech_to_text" ROS node
    rospy.init_node('jeeves_proc_cmd')
-   
-   # Publish to "jeeves_speech_synthesis.py" node
+
+   # ---------------------------------------
+   # Create speech synthesis topic
+   # ---------------------------------------
    t2s_topic         = rospy.Publisher('jeeves_speech/speech_synthesis'   , String, queue_size=10)
 
    # ---------------------------------------
@@ -218,8 +436,20 @@ def jeeves_proc_cmd_f():
    # ---------------------------------------
    scmd_topic = rospy.Publisher('jeeves_speech/speech_command', String, queue_size=10)
    
+   # ---------------------------------------
+   #      Create speech_aiml_req Topic
+   # ---------------------------------------
+   speech_aiml_req = rospy.Publisher('jeeves_speech/speech_aiml_req', String, queue_size=10)
+   
+   # ---------------------------------------
    # Subscribe to speech_to_text topic
+   # ---------------------------------------
    rospy.Subscriber("jeeves_speech/speech_proc_cmd", String, proc_cmd)
+   
+   # ---------------------------------------
+   # Subscribe to speech_aiml_resps topic
+   # ---------------------------------------
+   rospy.Subscriber("jeeves_speech/speech_aiml_resp", String, proc_aiml_resp)
    
    if VERBOSITY:
       print "Listening for command..."

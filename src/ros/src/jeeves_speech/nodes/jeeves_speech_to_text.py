@@ -75,7 +75,7 @@ state                    = JEEVES_IDLE_STATE;
 
 '''
 # -----------------------------------------------------------------------------------------------------
-#                                        jeeves_speech_to_text_f()
+#                                          proc_handshake()
 #
 #   Description:  This function gets called whenever a message is published to the 
 #                 "jeeves_speech/jeeves_handshake" topic.
