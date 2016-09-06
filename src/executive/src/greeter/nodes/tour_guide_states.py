@@ -5,6 +5,7 @@ import yaml
 
 import actionlib
 from geometry_msgs.msg import Pose, Point, Quaternion
+from std_msgs.msg import String
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import rospy
 import smach
@@ -29,7 +30,10 @@ TOUR_AGENDA = [
 
 class InTransitState(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['arrived_at_poi', 'arrived_at_home'])
+        smach.State.__init__(
+            self,
+            outcomes=['arrived_at_poi', 'arrived_at_home'],
+            output_keys=['current_poi_out'])
         self.mbc = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.tfl = TransformListener()
         self.get_waypoints = rospy.ServiceProxy(
@@ -71,6 +75,7 @@ class InTransitState(smach.State):
         # wait for arrival at poi
         self.mbc.wait_for_result(rospy.Duration(300))
         rospy.loginfo('arrived at waypoint {0}'.format(wp['name']))
+        userdata.current_poi_out = wp['name']
 
         # home is the last stop
         if wp['name'] == TOUR_AGENDA[-1]:
@@ -83,9 +88,18 @@ class InTransitState(smach.State):
 # define state Bar
 class GivingSpielState(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['spiel_complete'])
+        smach.State.__init__(
+            self,
+            outcomes=['spiel_complete'],
+            input_keys=['current_poi_in'])
+        self.spiel_pub = rospy.Publisher(
+            '/jeeves_speech/speech_synthesis',
+            String,
+            latch=False,
+            queue_size=10)
 
     def execute(self, userdata):
-        time.sleep(5)
+        spiel = "Giving spiel at {0}".format(userdata.current_poi_in)
+        self.spiel_pub.publish(spiel)
         return 'spiel_complete'
 

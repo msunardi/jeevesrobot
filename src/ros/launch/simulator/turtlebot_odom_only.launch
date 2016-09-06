@@ -20,4 +20,7 @@
   <include file="$(find jeeves_2d_nav)/launch/waypoint_manager.launch" />
   <include file="$(find jeeves_2d_nav)/web_ui/launch/web_ui.launch" />
 
+  <!-- Jeeves Speech node -->
+  <include file="$(arg JEEVES_LAUNCH_DIR)/jeeves_speech.launch" />
+
 </launch>

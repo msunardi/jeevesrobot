@@ -54,10 +54,12 @@ def init_state_machine():
             smach.StateMachine.add(
                 'IN_TRANSIT', tgs.InTransitState(),
                 transitions={'arrived_at_poi': 'GIVING_SPIEL',
-                             'arrived_at_home': 'AT_HOME'})
+                             'arrived_at_home': 'AT_HOME'},
+                remapping={'current_poi_out': 'current_poi'})
             smach.StateMachine.add(
                 'GIVING_SPIEL', tgs.GivingSpielState(),
-                transitions={'spiel_complete': 'IN_TRANSIT'})
+                transitions={'spiel_complete': 'IN_TRANSIT'},
+                remapping={'current_poi_in': 'current_poi'})
 
         smach.StateMachine.add(
             'TOUR_GUIDE', sm_giving_tour,
