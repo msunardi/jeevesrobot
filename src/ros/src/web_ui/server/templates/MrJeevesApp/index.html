@@ -37,7 +37,7 @@
             $("#message").text("Reading ...");
             $.ajax({
               method:"GET",
-              url:"/MrJeevesApp/FindAndMatchQR",
+              url:"/FindAndMatchQR",
               success:function(response){
                 if ($("#error").is(":visible")) {
                     $("#error").empty().hide();
@@ -53,7 +53,7 @@
         function batt_status() {
             $.ajax({
               method:"GET",
-              url:"/MrJeevesApp/GetBatteryStatus",
+              url:"/GetBatteryStatus",
               success:function(response){
                 if ($("#error").is(":visible")) {
                     $("#error").empty().hide();
@@ -90,7 +90,8 @@
 			<button class="btn btn-primary btn-lg btn-block" type="button" id="get_info">GET INFO</button>
 			<button class="btn btn-primary btn-lg btn-block" type="button" id="interact" data-toggle="modal" data-target=".interact-modal-lg">INTERACT</button>
 			<button class="btn btn-primary btn-lg btn-block" type="button" id="tour" data-toggle="modal" data-target=".tour-modal-lg">TOUR</button>
-                        <a href="{% url 'navigation' %}" class="btn btn-primary btn-lg btn-block">NAVIGATE</a>
+                        <!--a href="{% url 'navigation' %}" class="btn btn-primary btn-lg btn-block">NAVIGATE</a-->
+                        <a href="http://192.168.1.2:8080" class="btn btn-primary btn-lg btn-block" target="_blank">NAVIGATE</a>
                 </div>
        		    <div class="col-md-8">
                    	<img class="center-block" src="http://192.168.1.2:8081/stream?topic=/camera/face" width="640">
