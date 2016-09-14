@@ -1,0 +1,16 @@
+<launch>
+    <arg name="JEEVES_LAUNCH_DIR" value="/home/mcecsbot/src/roboticsclub-mcecsbot/src/ros/launch" />
+    <include file="$(arg JEEVES_LAUNCH_DIR)/qrcode_pos_service.launch" />
+    <include file="$(find neck_control)/neck_control.launch" />
+    <include file="$(find freenect_launch)/launch/freenect.launch" />
+
+    <!--node name="cv_camera" pkg="cv_camera" type="cv_camera_node" /-->
+    <node name="web_video_server" pkg="web_video_server" type="web_video_server">
+        <rosparam>
+            port: 8081
+        </rosparam>
+    </node>
+    <!--node name="facial_recognition" pkg="facial_recognition" type="facial_recognition_node" /-->
+    <!--include file="$(arg JEEVES_LAUNCH_DIR)/web_ui.launch" /-->
+    <node name="web_ui" pkg="jeeves_2d_nav" type="config_server.py"/>
+</launch>
