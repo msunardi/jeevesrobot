@@ -1,0 +1,24 @@
+#!/bin/bash
+
+CWD=`pwd`
+WEB_UI_PATH=$CWD/server
+function start {
+    #python server/manage.py runserver_plus 0.0.0.0:8000
+    #echo $WEB_UI_PATH
+    echo "Starting web_ui ..."
+    python $WEB_UI_PATH/manage.py runserver_plus 0.0.0.0:8000 &> web_ui.log
+}
+
+function stop {
+    echo "Stopping web_ui ..."
+    pkill -f "runserver_plus"
+}
+
+case "$1" in
+    start) start &;;
+    stop) stop;;
+    restart) stop; start;;
+    *) echo "usage $0 start|stop|restart" >&2
+        exit 1
+        ;;
+esac
