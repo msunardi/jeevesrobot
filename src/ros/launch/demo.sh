@@ -38,6 +38,7 @@ function stop_all {
     echo "Stopping everything ..."
     pkill -f 'summer2016.launch'
     pkill -f 'facial_recognition_node'
+    pkill -f 'pocketsphinx'
     stop_web_ui
     echo "Done."
 }   

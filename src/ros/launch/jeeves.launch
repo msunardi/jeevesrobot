@@ -59,6 +59,6 @@
   <include file="$(arg JEEVES_LAUNCH_DIR)/qrcode_pos_service.launch" />
 
   <!-- Jeeves Speech node -->
-  <include file="$(arg JEEVES_LAUNCH_DIR)/jeeves_speech.launch" />
+  <!--include file="$(arg JEEVES_LAUNCH_DIR)/jeeves_speech.launch" /-->
 
 </launch>

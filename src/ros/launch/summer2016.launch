@@ -13,4 +13,5 @@
     <!--node name="facial_recognition" pkg="facial_recognition" type="facial_recognition_node" /-->
     <!--include file="$(arg JEEVES_LAUNCH_DIR)/web_ui.launch" /-->
     <node name="web_ui" pkg="jeeves_2d_nav" type="config_server.py"/>
+    <include file="$(find jeeves_speech)/launch/jeeves_speech.launch" />
 </launch>
