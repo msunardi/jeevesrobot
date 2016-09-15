@@ -60,7 +60,7 @@ if VERBOSITY:
 # -----------------------------------------------------------------------------------------------------
 
 jeeves_handshake         = False;                           # Jeeves handshake. Indicates when a speech to text publication has been processed.
-JEEVES_KEYWORDS          = ["jeeves listen", "hi jeeves", "hello jeeves", "bye jeeves"];  # Keywords that cause Jeeves to begin paying attention to words spoken. Should be ALL lowercase.
+JEEVES_KEYWORDS          = ["jeeves listen", "hi jeeves", "hello jeeves", "bye jeeves", "jeeves"];  # Keywords that cause Jeeves to begin paying attention to words spoken. Should be ALL lowercase.
 
 # Jeeves Speech State Machine
 JEEVES_IDLE_STATE        = 0;                # IDLE state
@@ -186,7 +186,7 @@ def jeeves_speech_to_text_f():
       # -----------------------------------------------------
       if(state == JEEVES_IDLE_STATE):
          # If the string contains "jeeves listen", advance to next state
-         if(speech_txt.lower() == JEEVES_KEYWORDS[0].lower()):
+         if(speech_txt.lower() == JEEVES_KEYWORDS[0].lower() or speech_txt.lower() == JEEVES[3].lower()):
             state = JEEVES_ACKNOWLEDGE_STATE;
             jeeves_handshake = False;
             ack_state_pub = False;
