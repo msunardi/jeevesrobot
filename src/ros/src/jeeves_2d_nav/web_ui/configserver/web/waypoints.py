@@ -134,7 +134,9 @@ class WaypointServer:
     '''
     def wait_nav_finish(self, message):
         
-        self.t2s_topic.publish('Escorting you to the %s' % message.data);
+        name = message.data.replace('_', ' ').upper()
+        
+        self.t2s_topic.publish('Escorting you to the %s' % name);
         
         # Wait for the navigation goal to finish, timeout after 600 seconds
         self.mbc.wait_for_result(rospy.Duration(600))
@@ -142,7 +144,7 @@ class WaypointServer:
         # Clear AIML response
         self.aiml_resp = '';
         
-        self.speech_aiml_req.publish(message.data);                          # Publish the name of the location to the AIML node
+        self.speech_aiml_req.publish(name);                          # Publish the name of the location to the AIML node
 
         # Wait for a response from the AIML node
         while(self.aiml_resp_flag == False):
