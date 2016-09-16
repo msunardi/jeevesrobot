@@ -152,8 +152,8 @@ class WaypointServer:
         self.aiml_resp_flag = False;    # Clear the flag
 
         # If a match was found, send it to the text to speech node.
-        if(len(aiml_resp) > 0):
-            self.t2s_topic.publish(aiml_resp);
+        if(len(self.aiml_resp) > 0):
+            self.t2s_topic.publish(self.aiml_resp);
             
     '''
     # -----------------------------------------------------------------------------------------------------
