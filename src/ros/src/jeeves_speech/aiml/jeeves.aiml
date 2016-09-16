@@ -580,7 +580,7 @@
       </random>
    </template>
 </category>
-   
+
 <category>
    <pattern>INTEL LAB</pattern>
    <template>
@@ -592,7 +592,7 @@
       </random>
    </template>
 </category>
-
+   
 <category>
    <pattern>PORTLAND STATE UNIVERSITY</pattern>
    <template>
@@ -603,6 +603,53 @@
       </random>
    </template>
 </category>
+   
+<category>
+   <pattern>ROBOT LAB</pattern>
+   <template>
+      <random>
+         <li>In the Intelligent Robotics Laboratory we design and program mobile, stationary and humanoid robots on levels of mechanical, electrical and software design. Many of the Lab's robots have new types of controllers. Theoretical research is dedicated to applying machine learning and data analysis algorithms to solve practical problems in electrical and computer engineering, especially in Data Mining, robot vision, robot motion, robot theatre  and human-robot interface. The laboratory is involved in the research on quantum and reversible computing as well as nano-technologies such as quantum dots and memristors. Quantum algorithms are developed in the Lab, for instance those used in robotics, thus defining a new research area of Quantum Robotics. Some of the Lab's interests include highly parallel robotics algorithms on GPU platforms, and emulation of problem-solving architectures with FPGAs and VELOCE emulator from Mentor.</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>LOCKER</pattern>
+   <template>
+      <random>
+         <li>Sweet home lockerama</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>STAIRS</pattern>
+   <template>
+      <random>
+         <li>These are the beautiful stairs that students use.</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>NEAR LAB</pattern>
+   <template>
+      <random>
+         <li>The mission of the Northwest Electromagnetics and Accoustics Research Laboratory is to develop knowledge of electromagnetic and acoustic wave scattering and propagation phenomenon in order to devise and evaluate advanced signal processing techniques. Applications are in the areas of radar, sonar, and biomedical.</li>
+      </random>
+   </template>
+</category>
+   
+<category>
+   <pattern>BIOMEDICAL LAB</pattern>
+   <template>
+      <random>
+         <li>The mission of the Biomedical Signal Processing Laboratory is to increase our collective knowledge of how useful information can be extracted from physiologic signals. They primarily focus on clinical projects where the extracted information can help physicians make better critical decisions and improve patient outcome.</li>
+      </random>
+   </template>
+</category>
+   
+
 
 <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 <!--                                                         Things                                                                -->
