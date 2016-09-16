@@ -135,6 +135,7 @@ class WaypointServer:
     def wait_nav_finish(self, message):
         
         name = message.data.replace('_', ' ').upper()
+        self.aiml_resp_flag = False
         
         self.t2s_topic.publish('Escorting you to the %s' % name);
         
