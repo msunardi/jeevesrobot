@@ -39,26 +39,27 @@
 @keyframes mymove {
     50% {background-color: blue;}
 }
-
+body {
+    background-color:;
+}
 .media-object{
  	height:px;   
 }
 
 .media-body{
     padding-top:00px;
-    background-color:#F0FAF8;
-    background-color:rgb(240,250,248);
+    background-color: darkslateblue;
+    color:white;
+
    /* -webkit-animation: mymove 5s infinite;
     animation: mymove 5s infinite;*/
 }
 
-h1{
-    text-shadow: 2px 2px #14A886;
-}
 .nav-tabs{
 	padding-top:px;
-    padding-left:px;
+    padding-left:120px;
 }
+
 .nav-tabs > li, .nav-pills > li {
     float:none;
     display:inline-block;
@@ -79,6 +80,98 @@ h1{
     opacity:;
 }
 
-.thumbnail-menu  {
-    
+
+/* Dropdown Button */
+.dropbtn {
+    background-color: white;
+    color: #337ab7  ;
+    padding: 16px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
 }
+
+
+.dropdown-header {
+    color: blue;
+    padding: 12px 16px;
+    font-size: 14px;
+    text-decoration: none;
+    display: block;
+}
+
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    color: blue;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+    background-color: lightgrey;
+    color:black
+}
+
+.maparea {
+  width: 1325px;
+  height: 550px;
+  background-image: url("Img/hallways_all_90.png");
+  background-size: 1325px 550px;
+  background-repeat: no-repeat;
+}
+.maplocation {
+  position: absolute;
+}
+
+.location1-stairs {
+  top: 300px;
+  left: 1130px;
+}
+.location2-home {
+  top: 350px;
+  left: 1030px;
+}
+.location3-robot-lab {
+  top: 390px;
+  left: 680px;
+}
+.location4-near-lab {
+  top: 340px;
+  left: 480px;
+}
+.location5-circuit-lounge {
+  top: 300px;
+  left: 700px;
+}
+.location6-Biomed-lab{
+    top: 340px;
+    left: 840px;
+}
+

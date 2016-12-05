@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Jeeves Navigation</title>
+        <!-- Bootstrap core CSS -->
+        <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+        <!-- Custom styles for this template -->
+        <link href="style.css" rel="stylesheet">
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <!-- include EventEmitter library ... currently not used in this sample -->
+        <script type="text/javascript" src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js">
+    </script>
+        <!-- include the roslibjs library ... required -->
+        <script type="text/javascript" src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js">
+    </script>
+        <!-- include jquery library ... required in the sample -->
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+        <script type="text/javascript">
+      var ros = new ROSLIB.Ros({
+        url: 'ws://localhost:9090' // url to your rosbridge server
+        //url: 'ws://192.168.1.2:9090' // url to your rosbridge server
+      });
+
+      var exampleTopic = new ROSLIB.Topic({
+        ros: ros,
+        name: '/test_topic', // use a sensible namespace
+        messageType: 'std_msgs/String' //Create a pose object (geometry_msg(s)/Pose) 
+
+      });
+
+
+      function callService(location) {
+        console.log('Service called')
+
+        var waypoint = new ROSLIB.Service({
+          ros : ros,
+          name : 'way_point',
+          serviceType : 'basics/Waypoint'
+        });
+
+        var request = new ROSLIB.ServiceRequest({
+          name: location
+        });
+
+        console.log(request)
+
+        waypoint.callService(request, function(result) {
+          console.log('Result for service call on '
+          + waypoint.name
+          + ': '
+          + result.result);
+        });
+      }
+
+      function setPose(location) {
+        console.log('Pose Set')
+
+        var waypoint = new ROSLIB.Service({
+          ros : ros,
+          name : 'set_pose',
+          serviceType : 'basics/Waypoint'
+        });
+
+        var request = new ROSLIB.ServiceRequest({
+          name: location
+        });
+
+        console.log(request)
+
+        waypoint.callService(request, function(result) {
+          console.log('Result for service call on '
+          + waypoint.name
+          + ': '
+          + result.result);
+        });
+      }
+
+
+      function publishEncoded(topic, obj) {
+        var msg = new ROSLIB.Message({
+
+        data: JSON.stringify(obj)
+        });
+        topic.publish(msg);
+      }
+
+      function decodeMessage(msg) {
+        return JSON.parse(msg.data);
+      }
+
+      // Example of subscribing to a topic with decodeMessage().
+      exampleTopic.subscribe(function(msg) {
+        var decoded = decodeMessage(msg);
+        // do something with the decod// Explicitly declare that we intend to publish on this Topic.
+        console.log(decoded);
+        $('#topic_data').text(decoded.name);
+      });
+
+      // Example of simple publishing a text
+      function publish(text) {
+        var myObject = {
+          name: text
+
+        }
+
+        // Publish to exampleTopic with data myObject
+        publishEncoded(exampleTopic, myObject);
+      }
+		//Go To Location Dropdown menu Functions
+      $(document).ready(function(){
+        $("#loc_stairs").click(function(){
+          callService('stairs');
+        });
+
+        $("#loc_robotics").click(function(){
+          callService('robot_lab');
+        });
+
+        $("#loc_near").click(function(){
+          callService('NEAR_lab');
+        });
+
+        $("#loc_home").click(function(){
+          callService('home');
+        });
+
+        $("#loc_ee").click(function(){
+          callService('ee');
+        });
+
+        $("#loc_wp0").click(function(){
+          callService('wp0');
+        });
+
+        $("#loc_biomed").click(function(){
+          callService('Biomedical_lab');
+        });
+
+        $("#loc_locker").click(function(){
+          callService('locker');
+        });
+		
+        
+        //Map Marker Hover functions
+        $("#hov-get-stairs").click(function(){
+          callService('stairs');
+        });
+        $("#hov-set-stairs").click(function(){
+          setPose('stairs');
+        });
+		
+        $("#hov-get-home").click(function(){
+          callService('home');
+        });
+        $("#hov-set-home").click(function(){
+          setPose('home');
+        });
+		
+        $("#hov-get-circuits").click(function(){
+          callService('ee');
+        });
+        $("#hov-set-circuits").click(function(){
+          setPose('ee');
+        });
+		
+        $("#hov-get-robotlab").click(function(){
+          callService('robot_lab');
+        });
+        $("#hov-set-robotlab").click(function(){
+          setPose('robot_lab');
+        });
+          
+		 $("#hov-get-near").click(function(){
+          callService('NEAR_lab');
+        });
+        $("#hov-set-near").click(function(){
+          setPose('NEAR_lab');
+        });
+          
+		 $("#hov-get-biomed").click(function(){
+          callService('Biomedical_lab');
+        });
+        $("#hov-set-biomed").click(function(){
+          setPose('Biomedical_lab');
+        });
+          
+        //Top Nav bar with options to hide portions of html page *Used to decrease # of html pages needed  
+        $("#nav_home_button").click(function(){
+          $("#nav_home").show();
+          $("#nav_qr").hide();
+          $("#nav_stop").hide();
+          $("#nav_place").hide();
+          publish('return home');
+        });
+
+        $("#nav_stop_button").click(function(){
+          $("#nav_stop").show();
+          $("#nav_home").hide();
+          $("#nav_qr").hide();
+          $("#nav_place").hide();
+          publish('Navigation Stopped');
+        });
+
+        $("#nav_qr_button").click(function(){
+          $("#nav_qr").show();
+          $("#nav_home").hide();
+          $("#nav_stop").hide();
+          $("#nav_place").hide();
+          publish('heres a QR');
+        });
+
+      })
+      
+      	//Default on html page load
+        $("#nav_qr").hide();
+        $("#nav_stop").hide();
+        $("#nav_place").hide();
+
+    </script>
+    </head>
+    <body> 
+        <div class="container-fluid">
+            <div class="row">
+                <div class="media">
+                    <div class="media-right media-middle">
+                        <a href="#">
+                            <img class="media-object" src="./Img/robo-butler.jpg" width="105">
+                        </a>
+                    </div>
+                    <div class="media-body">
+                        <h1><p class="text-center">J.E.E.V.E.S Navigation</p><small><p class="text-center">EB Basement</p></small></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class=" col-md-12">
+                    <ul class="nav nav-tabs centered">
+                        <li>
+                            <a id="nav_home_button" href="#">HOME</a>
+                        </li>
+                        <li>
+                            <a id="nav_qr_button" href="#">GET QR</a>
+                        </li>
+                        <li>
+                            <a id="nav_stop_button" href="#">STOP NAVIGATION</a>
+                        </li>
+                        <li>
+                            <div class="dropdown">
+                                <button class="btn btn -default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">NAVIGATE
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                    <li>
+                      <a id="loc_stairs" href="#">Stairs</a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+
+                  <li>
+                      <a id="loc_robotics" href="#">Robotics Lab</a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+
+                  <li>
+                      <a id="loc_near" href="#" >NEAR lab</a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+
+                  <li>
+                      <a id="loc_home" href="#">Home</a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+
+                  <li>
+                      <a id="loc_ee" href="#">EE</a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+
+                  <li>
+                      <a id="loc_wp0" href="#">WP0</a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+
+                  <li>
+                      <a id="loc_biomed" href="#">Biomedical Lab</a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+
+                  <li>
+                      <a id="loc_locker" href="#">Locker</a>
+                  </li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+           <!-- <div class="col-sm-2">
+                <div class="dropdown">
+                    <button class="btn btn -default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Go To Location
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <li>
+                            <a id="loc_stairs" href="#">Stairs</a>
+                        </li>
+                        <li role="separator" class="divider"></li>
+                        <li>
+                            <a id="loc_robotics" href="#">Robotics Lab</a>
+                        </li>
+                        <li role="separator" class="divider"></li>
+                        <li>
+                            <a id="loc_near" href="#">NEAR lab</a>
+                        </li>
+                        <li role="separator" class="divider"></li>
+                        <li>
+                            <a id="loc_home" href="#">Home</a>
+                        </li>
+                        <li role="separator" class="divider"></li>
+                        <li>
+                            <a id="loc_ee" href="#">EE</a>
+                        </li>
+                        <li role="separator" class="divider"></li>
+                        <li>
+                            <a id="loc_wp0" href="#">WP0</a>
+                        </li>
+                        <li role="separator" class="divider"></li>
+                        <li>
+                            <a id="loc_biomed" href="#">Biomedical Lab</a>
+                        </li>
+                        <li role="separator" class="divider"></li>
+                        <li>
+                            <a id="loc_locker" href="#">Locker</a>
+                        </li>
+                    </ul>
+                </div>
+                <div id="topic_output">
+                    <p>Location: <span id="topic_data"></span></p>
+                </div>
+            </div> -->
+            <div id="nav_home" class="col-md-11">
+                <div class="maparea">
+                    <!-- <IMG style="position:absolute; TOP:0px; LEFT:0px; WIDTH:1100px; HEIGHT:481px" src="./Img/hallways_all_90.png"> -->
+                    <div class="dropdown maplocation location1-stairs">
+                        <img src="./Img/Google_Maps.png" width="32" height="32" id="mapIcon1" class="dropdown-trigger" />
+                        <div class="dropdown-content"> 
+                            <li class="dropdown-header">Stairs</li>
+                            <a id="hov-get-stairs" href="#"><span>Go To</span></a>
+                            <a id="hov-set-stairs" href="#"><span>Set Pose</span></a>
+                        </div>
+                    </div>
+                    <div class="dropdown maplocation location2-home">
+                        <img src="./Img/Google_Maps.png" width="32" height="32" id="mapIcon1" class="dropdown-trigger" />
+                        <div class="dropdown-content">
+                            <li class="dropdown-header">Home</li>
+                            <a id="hov-get-home" href="#"><span>Go To</span></a>
+                            <a id="hov-set-home" href="#"><span>Set Pose</span></a>
+                        </div>
+                    </div>
+                    <div class="dropdown maplocation location3-robot-lab">
+                        <img src="./Img/Google_Maps.png" width="32" height="32" id="mapIcon1" class="dropdown-trigger" />
+                        <div class="dropdown-content">
+                            <li class="dropdown-header">Robot Lab</li>
+                            <a id="hov-get-robotlab" href="#"><span>Go To</span></a>
+                            <a id="hov-set-robotlab" href="#"><span>Set Pose</span></a>
+                        </div>
+                    </div>
+                    <div class="dropdown maplocation location4-near-lab">
+                        <img src="./Img/Google_Maps.png" width="32" height="32" id="mapIcon1" class="dropdown-trigger" />
+                        <div class="dropdown-content">
+                            <li class="dropdown-header">Near Lab</li>
+                            <a id="hov-get-near" href="#"><span>Go To</span></a>
+                            <a id="hov-set-near" href="#"><span>Set Pose</span></a>
+                        </div>
+                    </div>
+                    <div class="dropdown maplocation location5-circuit-lounge">
+                        <img src="./Img/Google_Maps.png" width="32" height="32" id="mapIcon1" class="dropdown-trigger" />
+                        <div class="dropdown-content">
+                            <li class="dropdown-header">Circuit Lounge</li>
+                            <a id="hov-get-circuits" href="#"><span>Go To</span></a>
+                            <a id="hov-set-circuits" href="#"><span>Set Pose</span></a>
+                        </div>
+                    </div>
+                    <div class="dropdown maplocation location6-Biomed-lab">
+                        <img src="./Img/Google_Maps.png" width="32" height="32" id="mapIcon1" class="dropdown-trigger" />
+                        <div class="dropdown-content">
+                            <li class="dropdown-header">Biomedical Lab</li>
+                            <a id="hov-get-biomed" href="#"><span>Go To</span></a>
+                            <a id="hov-set-biomed" href="#"><span>Set Pose</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Bootstrap core JavaScript
+================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="bootstrap/js/bootstrap.min.js"></script>
+        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="assets/js/ie10-viewport-bug-workaround.js"></script>
+    </body>
