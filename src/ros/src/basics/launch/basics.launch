@@ -2,6 +2,7 @@
   <node name="rosbridge" pkg="rosbridge_server" type="rosbridge_websocket" output="screen" />
   <!-- main node -->
   <node name="basics" pkg="basics" type="waypoint_service.py">
-    <param name="waypoint_file" value="$(find jeeves_2d_nav)/waypoints.yaml" />
+    <!--param name="waypoint_file" value="$(find jeeves_2d_nav)/waypoints.yaml" /> -->
+    <param name="waypoint_file" value="waypoints.yaml" />
   </node>
 </launch>

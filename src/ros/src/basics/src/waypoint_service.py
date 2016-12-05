@@ -23,6 +23,7 @@ class WaypointBasics(threading.Thread):
         self.waypoint_file = waypoint_file
         self.waypoints = []
         rospy.Service('way_point', Waypoint, self.process_waypoint)
+        rospy.Service('set_pose', Waypoint, self.save_current_pose)
         threading.Thread.__init__(self)
 
     def process_waypoint(self, request):
@@ -56,6 +57,15 @@ class WaypointBasics(threading.Thread):
         #print goal
         mbc.send_goal(goal)
         return WaypointResponse("%s: %s: %s: %s" % (name, x, y, theta))
+
+    def save_current_pose(self, waypoint_name):
+        print(waypoint_name)
+        try:
+            rospy.wait_for_service('set_pose', timeout=3)
+        except rospy.ROSException, e:
+            return WaypointResponse("%s" % "failed")
+            pass
+        return WaypointResponse("%s:" % waypoint_name)
 
 if __name__ == '__main__':
     rospy.init_node('service_waypoint_server')
