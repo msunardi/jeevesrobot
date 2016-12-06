@@ -13,6 +13,8 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from std_msgs.msg import String
 from basics.srv import Waypoint, WaypointResponse
 
+import jeeves_2d_nav
+from jeeves_2d_nav.srv import *
 
 mbc = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 
@@ -25,6 +27,9 @@ class WaypointBasics(threading.Thread):
         rospy.Service('way_point', Waypoint, self.process_waypoint)
         rospy.Service('set_pose', Waypoint, self.save_current_pose)
         threading.Thread.__init__(self)
+        self.prxy_set_current_pose_to_waypoint = rospy.ServiceProxy(
+            'waypoint_manager/set_current_pose_to_waypoint',
+            jeeves_2d_nav.srv.SetCurrentPoseToWaypoint)
 
     def process_waypoint(self, request):
         # return WaypointResponse(len(request.name.split()))
@@ -60,11 +65,17 @@ class WaypointBasics(threading.Thread):
 
     def save_current_pose(self, waypoint_name):
         print(waypoint_name)
+        #try:
+        #    rospy.wait_for_service('set_pose', timeout=3)
+        #except rospy.ROSException, e:
+        #    return WaypointResponse("%s" % "failed")
+        #    pass
         try:
-            rospy.wait_for_service('set_pose', timeout=3)
+            rospy.wait_for_service('waypoint_manager/set_current_pose_to_waypoint', timeout=3)
         except rospy.ROSException, e:
-            return WaypointResponse("%s" % "failed")
+            #return WaypointResponse("%s" % "failed")
             pass
+        self.prxy_set_current_pose_to_waypoint(waypoint_name.name)
         return WaypointResponse("%s:" % waypoint_name)
 
 if __name__ == '__main__':
