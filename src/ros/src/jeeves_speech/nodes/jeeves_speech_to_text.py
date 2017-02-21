@@ -186,7 +186,7 @@ def jeeves_speech_to_text_f():
       # -----------------------------------------------------
       if(state == JEEVES_IDLE_STATE):
          # If the string contains "jeeves listen", advance to next state
-         if((speech_txt.lower() == JEEVES_KEYWORDS[0].lower()) or (speech_txt.lower() == JEEVES[4].lower())):
+         if((speech_txt.lower() == JEEVES_KEYWORDS[0].lower()) or (speech_txt.lower() == JEEVES_KEYWORDS[4].lower())):
             state = JEEVES_ACKNOWLEDGE_STATE;
             jeeves_handshake = False;
             ack_state_pub = False;
