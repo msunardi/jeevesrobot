@@ -3,5 +3,7 @@
     <rosparam file="$(find neck_control)/arbotix_config.yaml" command="load" />
   </node>
   <!-- main node -->
-  <node name="nav_test" pkg="neck_control" type="neck_control_node.py" />
+  <node name="neck_test" pkg="neck_control" type="neck_control_node.py" />
+  <node name="neck_wave_node" pkg="neck_control" type="neck_wave_node.py" />
+  <!--node name="neck_gui" pkg="neck_control" type="neck_gui_node.py" /-->
 </launch>
