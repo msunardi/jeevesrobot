@@ -26,6 +26,7 @@ class WaypointBasics(threading.Thread):
         self.waypoints = []
         rospy.Service('way_point', Waypoint, self.process_waypoint)
         rospy.Service('set_pose', Waypoint, self.save_current_pose)
+        rospy.Service('cancel_waypoint', Waypoint, self.cancel_waypoint)
         threading.Thread.__init__(self)
         self.prxy_set_current_pose_to_waypoint = rospy.ServiceProxy(
             'waypoint_manager/set_current_pose_to_waypoint',
@@ -60,6 +61,8 @@ class WaypointBasics(threading.Thread):
         goal.target_pose.header.stamp = rospy.Time.now()
         #print goal.target_pose.header.stamp
         #print goal
+        print goal
+        rospy.loginfo("Goal: %s" % goal)
         mbc.send_goal(goal)
         return WaypointResponse("%s: %s: %s: %s" % (name, x, y, theta))
 
@@ -76,7 +79,15 @@ class WaypointBasics(threading.Thread):
             #return WaypointResponse("%s" % "failed")
             pass
         self.prxy_set_current_pose_to_waypoint(waypoint_name.name)
+        print waypoint_name.name
+        rospy.loginfo(waypoint_name)
+
         return WaypointResponse("%s:" % waypoint_name)
+
+    def cancel_waypoint(self, request):
+        mbc.cancel_goal()
+        rospy.loginfo("Navigation canceled.")
+        return "Navigation canceled."
 
 if __name__ == '__main__':
     rospy.init_node('service_waypoint_server')
