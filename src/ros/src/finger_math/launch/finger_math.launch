@@ -1,0 +1,6 @@
+<launch>
+    <node pkg="finger_math" type="num_finger.py" name="num_finger" output="screen" />
+    <node pkg="finger_math" type="reg_math.py" name="reg_math" output="screen" />
+    <!--node pkg="ears" type="talker.py" name="ears_talker" output="screen" /-->
+    <include file="$(find ros_pololu)/launch/pololu_example.launch" />
+</launch>
