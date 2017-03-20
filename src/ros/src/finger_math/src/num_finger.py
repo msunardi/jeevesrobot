@@ -7,6 +7,7 @@ from std_msgs.msg import String
 from ros_pololu.msg import MotorCommand
 from random import random
 
+import redis
 class Num_Finger(threading.Thread):
 
 	def __init__(self):
@@ -68,11 +69,18 @@ class Num_Finger(threading.Thread):
 		self.ALL = range(5)
 		self.ALL += [7, 6, 5, 8, 9]
 
+                r = redis.StrictRedis(host='localhost', port=6379, db=0)
+		self.redis_sub = r.pubsub()
+		self.old_message = ""
+
 		threading.Thread.__init__(self)
 		self.sleeper = rospy.Rate(10)
 
 	def callback(self, data):
 		numbers = data.data
+		self.goFingers(numbers)
+
+	def goFingers(self, numbers):
 		rospy.loginfo("Got data: %s" % numbers)
 		# if(number == '1'):
 		# 	self.r_hand_to_thumb.position = 0.68 #0
@@ -236,7 +244,8 @@ class Num_Finger(threading.Thread):
 			#	opens += [9,8,7,6]
 			#	closed = [9]
 
-			#elif(number == '9'):
+			
+#elif(number == '9'):
 			#	opens = range(5)
 			#	opens += [9,8,7,6,5]
 			#	closed = [9]
@@ -279,9 +288,19 @@ class Num_Finger(threading.Thread):
 			self.finger_pub.publish(self.fingers[o])
 			sleep(0.1)	
 
-	def run(self):
+	def redis_handler(self, message):
+		rospy.loginfo("REDIS MESSAGE: %s" % message['data'])
+		print("REDIS MESSAGE: %s" % message['data'])
+		if message['data'] == self.old_message:
+			return
+ 		self.old_message = message['data']
+		answer = message['data'].split('is ')[-1]
+		self.goFingers(answer)
 
+	def run(self):
+		self.redis_sub.subscribe(**{'response': self.redis_handler})
 		while not rospy.is_shutdown():
+			self.redis_sub.get_message()
 			self.sleeper.sleep()
 
 def main():
