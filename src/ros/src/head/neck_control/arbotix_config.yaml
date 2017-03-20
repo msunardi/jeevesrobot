@@ -1,4 +1,4 @@
-port: /dev/ttyUSB0
+port: /dev/arbotix
 read_rate: 15
 write_rate: 25
 joints: {
