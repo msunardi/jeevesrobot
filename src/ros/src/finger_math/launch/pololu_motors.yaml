@@ -68,14 +68,14 @@ r_hand_to_pinkie:
 base_to_r_arm_one:
   pololu_id: 12
   motor_id: 7
-  init: 1383
-  min: 992
+  init: 1520
+  min: 1376
   max: 1664
   reverse: true
   calibration:
-    min_pulse: 992
+    min_pulse: 1664
     min_angle: -70
-    max_pulse: 1664
+    max_pulse: 1376
     max_angle: 80
 
 r_arm_one_to_arm_two:
@@ -94,14 +94,14 @@ r_arm_one_to_arm_two:
 r_arm_two_to_arm_three:
   pololu_id: 12
   motor_id: 5
-  init: 716
-  min: 560
-  max: 944
+  init: 944
+  min: 900
+  max: 1200
   reverse: true
   calibration:
-    min_pulse: 560
+    min_pulse: 900
     min_angle: -90
-    max_pulse: 944
+    max_pulse: 1200
     max_angle: 90
 
 l_hand_to_pinkie:
@@ -121,11 +121,11 @@ l_hand_to_ring:
   pololu_id: 12
   motor_id: 14
   init: 2000
-  min: 1050
+  min: 1000
   max: 2000
   reverse: true
   calibration:
-    min_pulse: 1050
+    min_pulse: 1000
     min_angle: 0
     max_pulse: 2000
     max_angle: 45
@@ -134,11 +134,11 @@ l_hand_to_middle:
   pololu_id: 12
   motor_id: 15
   init: 2000
-  min: 1056
+  min: 1000
   max: 2000
   reverse: true
   calibration:
-    min_pulse: 1056
+    min_pulse: 1000
     min_angle: 0
     max_pulse: 2000
     max_angle: 45
@@ -147,11 +147,11 @@ l_hand_to_index:
   pololu_id: 12
   motor_id: 16
   init: 2000
-  min: 1350
+  min: 1050
   max: 2000
   reverse: true
   calibration:
-    min_pulse: 1350
+    min_pulse: 1050
     min_angle: 0
     max_pulse: 2000
     max_angle: 45
@@ -173,15 +173,15 @@ l_hand_to_thumb:
 base_to_l_arm_one:
   pololu_id: 12
   motor_id: 10
-  init: 1376
-  min: 1376
-  max: 1600
+  init: 1537
+  min: 1386
+  max: 1700
   reverse: true
   calibration:
-    min_pulse: 1376
+    min_pulse: 1386
     min_angle: -70
-    max_pulse: 1600
-    max_angle: 80
+    max_pulse: 1700
+    max_angle: 130
 
 l_arm_one_to_arm_two:
   pololu_id: 12
@@ -199,14 +199,14 @@ l_arm_one_to_arm_two:
 l_arm_two_to_arm_three:
   pololu_id: 12
   motor_id: 12
-  init: 1008
+  init: 1220
   min: 1008
-  max: 1296
+  max: 1396
   reverse: true
   calibration:
-    min_pulse: 1008
+    min_pulse: 1396
     min_angle: -90
-    max_pulse: 1296
-    max_angle: 90
+    max_pulse: 1008
+    max_angle: 120
 
 
