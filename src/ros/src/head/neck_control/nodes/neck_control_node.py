@@ -17,7 +17,7 @@ class NeckController(threading.Thread):
         self.tilt_pub = rospy.Publisher('/head_tilt_joint/command', Float64, queue_size=10)
         self.roll_pub = rospy.Publisher('/head_roll_joint/command', Float64, queue_size=10)
         threading.Thread.__init__(self)
-        self.sleeper = rospy.Rate(10)
+        self.sleeper = rospy.Rate(30)
         
     def run(self):
         rospy.loginfo("Setting up neck controller...")
@@ -30,7 +30,7 @@ class NeckController(threading.Thread):
 
     def yaw_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + "Got pan data: %s" % data.data)
-        self.pan = data.data * 0.8
+        self.pan = data.data * 0.2
         self.roll = data.data * 0.3
         self.pan_pub.publish(Float64(self.pan))
         #self.roll_pub.publish(Float64(self.roll))
@@ -45,9 +45,11 @@ class NeckController(threading.Thread):
         if x < 0.2:
             self.roll += r.random() * self.pan
             self.roll = min(self.roll, 0.8)
-        elif x >= 0.2 and x < 0.4:
+        elif x >= 0.8:
             self.roll -= r.random() * self.pan
             self.roll = max(self.roll, -0.8)
+        else:
+            self.roll = 0.0
         self.roll_pub.publish(Float64(self.roll))
             
 
