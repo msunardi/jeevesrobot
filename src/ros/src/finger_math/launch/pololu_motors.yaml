@@ -1,29 +1,29 @@
 # Pololu based motors
 
 r_hand_to_thumb:
-  pololu_id: 12
+  pololu_id: 12 
   motor_id: 4
   init: 2100
-  min: 1536
-  max: 2100
+  min: 1645
+  max: 2176
   reverse: false
   calibration:
-    min_pulse: 1536
+    min_pulse: 1645
     min_angle: 0
-    max_pulse: 2100
+    max_pulse: 2176
     max_angle: 45
 
 r_hand_to_index:
   pololu_id: 12
   motor_id: 3
-  init: 2470
-  min: 1650
-  max: 2496
+  init: 992
+  min: 992
+  max: 2304
   reverse: false
   calibration:
-    min_pulse: 2650
+    min_pulse: 992
     min_angle: 0
-    max_pulse: 2496
+    max_pulse: 2304
     max_angle: 45
 
 r_hand_to_middle:
@@ -44,10 +44,10 @@ r_hand_to_ring:
   motor_id: 1
   init: 1138
   min: 1008
-  max: 1900
+  max: 1520
   reverse: true 
   calibration:
-    min_pulse: 1900
+    min_pulse: 1520
     min_angle: 0
     max_pulse: 1008
     max_angle: 45
@@ -155,7 +155,6 @@ l_hand_to_index:
     min_angle: 0
     max_pulse: 2000
     max_angle: 45
-
 
 l_hand_to_thumb:
   pololu_id: 12
