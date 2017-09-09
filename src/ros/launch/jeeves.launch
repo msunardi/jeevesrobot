@@ -59,6 +59,11 @@
   <include file="$(arg JEEVES_LAUNCH_DIR)/qrcode_pos_service.launch" />
 
   <!-- Jeeves Speech node -->
-  <!--include file="$(arg JEEVES_LAUNCH_DIR)/jeeves_speech.launch" /-->
+  <include file="$(arg JEEVES_LAUNCH_DIR)/jeeves_speech.launch" />
 
+  <!-- Basics node - service to connect web UI to nav -->
+  <include file="$(find basics)/launch/basics.launch" />
+
+  <!-- Arbiter node - coordinates interaction nodes -->
+  <include file="$(find arbiter)/launch/arbiter.launch" />
 </launch>
