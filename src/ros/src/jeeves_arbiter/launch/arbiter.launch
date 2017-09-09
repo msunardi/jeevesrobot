@@ -1,0 +1,5 @@
+<launch>
+  <node name="arbiter_server" pkg="arbiter" type="arbiter_server.py" output="screen" />
+  <!-- main node -->
+  <node name="nav_spiel" pkg="arbiter" type="nav_spiel.py" output="screen" />
+</launch>
