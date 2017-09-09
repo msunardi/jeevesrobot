@@ -103,7 +103,7 @@ class Num_Finger(threading.Thread):
  				  self.l_base_one, self.l_one_two, self.l_two_three]
 
 		self.shoulder_open = [1.0, 0.7, 0.0, 1.0, 0.8, 1.3]
-		self.shoulder_rest = [0.0, 0.0, -1.0, 0.0, 0.0, -1.0]
+		self.shoulder_rest = [-1.0, 0.0, -1.5, -0.8, 0.0, -1.0]
 
 		# self.ALL = range(5)
 		# self.ALL += [7, 6, 5, 8, 9]

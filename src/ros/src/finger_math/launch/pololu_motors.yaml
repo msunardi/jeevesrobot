@@ -173,11 +173,11 @@ base_to_l_arm_one:
   pololu_id: 12
   motor_id: 10
   init: 1537
-  min: 1386
+  min: 1248
   max: 1700
   reverse: true
   calibration:
-    min_pulse: 1386
+    min_pulse: 1248
     min_angle: -70
     max_pulse: 1700
     max_angle: 130
